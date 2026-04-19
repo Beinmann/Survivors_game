@@ -29,6 +29,8 @@ export default function Game() {
         { key: 'enemy_elite',   color: 0xfbbf24, stroke: 0xfde68a, size: 22, radius: 3, hp: 170, speed: 108, unlockSecs: 150, weight: 0.8, orbBonus: 1 },
       ]
 
+      type WeaponType = 'shotgun' | 'sniper' | 'aura' | 'machinegun'
+
       class GameScene extends Phaser.Scene {
         // --- objects ---
         private player!: Phaser.Physics.Arcade.Image
@@ -40,29 +42,29 @@ export default function Game() {
         private cursors!: Phaser.Types.Input.Keyboard.CursorKeys
         private wasd!: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>
 
-        // --- base state (reset in create) ---
-        private weaponType: string | null = null
-        private hp = 100; private maxHp = 100
-        private xp = 0; private xpNeeded = 10
-        private level = 1; private score = 0
+        // --- base state (canonical values in resetState()) ---
+        private weaponType: WeaponType | null = null
+        private hp = 0; private maxHp = 0
+        private xp = 0; private xpNeeded = 0
+        private level = 0; private score = 0
         private shootCooldown = 0; private spawnTimer = 0
-        private spawnRate = SPAWN_INTERVAL_MS
+        private spawnRate = 0
         private iframes = 0; private dead = false; private levelUpPending = false
 
         // --- upgradeable stats ---
-        private moveSpeed = 200
-        private shootRate = 750
+        private moveSpeed = 0
+        private shootRate = 0
         private extraBullets = 0
-        private pierceCount = 2
+        private pierceCount = 0
         private rearShot = false
-        private bulletSpd = 480
-        private magnetRadius = 70
-        private orbMultiplier = 1.0
-        private auraRadius = 110
-        private shotgunRange = 220
-        private shotgunDmg = 22; private sniperDmg = 60; private auraDmg = 10
-        private machineGunDmg = 2; private machineGunBurst = 1; private machineGunPierce = false
-        private weaponLevel = 1
+        private bulletSpd = 0
+        private magnetRadius = 0
+        private orbMultiplier = 0
+        private auraRadius = 0
+        private shotgunRange = 0
+        private shotgunDmg = 0; private sniperDmg = 0; private auraDmg = 0
+        private machineGunDmg = 0; private machineGunBurst = 0; private machineGunPierce = false
+        private weaponLevel = 0
 
         // --- power-up state ---
         private powerUpSpawnTimer = 0
@@ -80,29 +82,14 @@ export default function Game() {
         private timerText!: Phaser.GameObjects.Text
         private effectText!: Phaser.GameObjects.Text
         private paused = false
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        private pauseUI: any[] = []
+        private pauseUI: { destroy(): void }[] = []
 
         constructor() { super('GameScene') }
 
         // ─── lifecycle ──────────────────────────────────────────────────────
 
         create() {
-          this.weaponType = null
-          this.hp = 100; this.maxHp = 100; this.xp = 0; this.xpNeeded = 10
-          this.level = 1; this.score = 0; this.shootCooldown = 0
-          this.spawnTimer = 0; this.spawnRate = SPAWN_INTERVAL_MS
-          this.iframes = 0; this.dead = false; this.levelUpPending = false
-          this.paused = false; this.pauseUI = []
-          this.moveSpeed = 200; this.shootRate = 750
-          this.extraBullets = 0; this.pierceCount = 2; this.rearShot = false
-          this.bulletSpd = 480; this.magnetRadius = 70; this.orbMultiplier = 1.0
-          this.auraRadius = 110; this.shotgunRange = 220
-          this.shotgunDmg = 30; this.sniperDmg = 150; this.auraDmg = 10
-          this.machineGunDmg = 2; this.machineGunBurst = 1; this.machineGunPierce = false; this.weaponLevel = 1
-          this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
-
-          this.gameTime = 0
+          this.resetState()
 
           this.buildTextures()
 
@@ -166,6 +153,23 @@ export default function Game() {
           }).setScrollFactor(0).setDepth(20).setOrigin(0.5, 0)
 
           this.showWeaponSelection()
+        }
+
+        private resetState() {
+          this.weaponType = null
+          this.hp = 100; this.maxHp = 100; this.xp = 0; this.xpNeeded = 10
+          this.level = 1; this.score = 0; this.shootCooldown = 0
+          this.spawnTimer = 0; this.spawnRate = SPAWN_INTERVAL_MS
+          this.iframes = 0; this.dead = false; this.levelUpPending = false
+          this.paused = false; this.pauseUI = []
+          this.moveSpeed = 200; this.shootRate = 750
+          this.extraBullets = 0; this.pierceCount = 2; this.rearShot = false
+          this.bulletSpd = 480; this.magnetRadius = 70; this.orbMultiplier = 1.0
+          this.auraRadius = 110; this.shotgunRange = 220
+          this.shotgunDmg = 30; this.sniperDmg = 150; this.auraDmg = 10
+          this.machineGunDmg = 2; this.machineGunBurst = 1; this.machineGunPierce = false; this.weaponLevel = 1
+          this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
+          this.gameTime = 0
         }
 
         private togglePause() {
@@ -307,6 +311,7 @@ export default function Game() {
             const b = this.bullets.create(this.player.x, this.player.y, 'sniperBullet') as Phaser.Physics.Arcade.Image
             b.setVelocity(Math.cos(a) * this.bulletSpd, Math.sin(a) * this.bulletSpd)
             b.setRotation(a)
+            b.setData('dmg', this.sniperDmg)
             b.setData('pierceLeft', this.pierceCount)
             b.setData('hitEnemies', new Set())
             b.setDepth(4)
@@ -785,7 +790,7 @@ export default function Game() {
         private showWeaponSelection() {
           const { width: w, height: h } = this.cameras.main
 
-          const WEAPONS = [
+          const WEAPONS: { type: WeaponType; name: string; desc: string; stats: string; accent: number; setup: () => void }[] = [
             {
               type: 'shotgun', name: 'Shotgun',
               desc: 'Fires a cone of pellets.\nDeadly up close, useless at range.',
@@ -978,7 +983,7 @@ export default function Game() {
               const r = 60 + Math.random() * 80
               const ox = this.player.x + Math.cos(a) * r
               const oy = this.player.y + Math.sin(a) * r
-              ;(this.xpOrbs.create(ox, oy, 'orb') as Phaser.Physics.Arcade.Image).setDepth(2).setVelocity(0, 0)
+              ;(this.xpOrbs.create(ox, oy, 'orb') as Phaser.Physics.Arcade.Image).setDepth(2).setVelocity(0, 0).setData('xpValue', 1)
             }
           }
         }
