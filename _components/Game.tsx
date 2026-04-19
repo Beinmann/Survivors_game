@@ -289,6 +289,7 @@ export default function Game() {
           const fire = (a: number) => {
             const b = this.bullets.create(this.player.x, this.player.y, 'bullet') as Phaser.Physics.Arcade.Image
             b.setVelocity(Math.cos(a) * this.bulletSpd, Math.sin(a) * this.bulletSpd)
+            b.setRotation(a)
             b.setData('sx', this.player.x).setData('sy', this.player.y).setData('dmg', this.shotgunDmg)
             b.setDepth(4)
           }
@@ -304,6 +305,7 @@ export default function Game() {
           const fire = (a: number) => {
             const b = this.bullets.create(this.player.x, this.player.y, 'sniperBullet') as Phaser.Physics.Arcade.Image
             b.setVelocity(Math.cos(a) * this.bulletSpd, Math.sin(a) * this.bulletSpd)
+            b.setRotation(a)
             b.setData('pierceLeft', this.pierceCount)
             b.setData('hitEnemies', new Set())
             b.setDepth(4)
@@ -317,6 +319,7 @@ export default function Game() {
           const fire = (a: number) => {
             const b = this.bullets.create(this.player.x, this.player.y, 'mgBullet') as Phaser.Physics.Arcade.Image
             b.setVelocity(Math.cos(a) * this.bulletSpd, Math.sin(a) * this.bulletSpd)
+            b.setRotation(a)
             b.setData('dmg', this.machineGunDmg)
             b.setDepth(4)
           }
