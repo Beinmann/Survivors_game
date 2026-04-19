@@ -927,7 +927,7 @@ export default function Game() {
           overlay.fillStyle(0x000000, 0.96).fillRect(0, 0, w, h)
           ui.push(overlay)
 
-          const title = this.add.text(w / 2, h / 2 - 140, 'SURVIVORS', {
+          const title = this.add.text(w / 2, h / 2 - 110, 'SURVIVORS', {
             fontSize: '52px', color: '#4ade80', stroke: '#000000', strokeThickness: 6,
           }).setOrigin(0.5).setScrollFactor(0).setDepth(51)
           ui.push(title)
@@ -936,38 +936,25 @@ export default function Game() {
             duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
           })
 
-          ui.push(this.add.text(w / 2, h / 2 - 88, 'a browser game', {
+          ui.push(this.add.text(w / 2, h / 2 - 58, 'a browser game', {
             fontSize: '14px', color: '#6b7280',
           }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
 
-          const warnW = Math.min(w - 60, 440)
-          const warnH = 116
-          const warnX = w / 2 - warnW / 2
-          const warnY = h / 2 - 56
-
-          const warnBg = this.add.graphics().setScrollFactor(0).setDepth(51)
-          warnBg.fillStyle(0x1c0a00, 1).fillRoundedRect(warnX, warnY, warnW, warnH, 8)
-          warnBg.lineStyle(1, 0xf97316, 0.9).strokeRoundedRect(warnX, warnY, warnW, warnH, 8)
-          ui.push(warnBg)
-
-          ui.push(this.add.text(w / 2, warnY + 13, 'PHOTOSENSITIVITY WARNING', {
-            fontSize: '12px', color: '#fb923c',
-          }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(52))
-
-          ui.push(this.add.text(w / 2, warnY + 35,
-            'This game contains flashing lights and rapidly\n' +
-            'changing visuals. If you are photosensitive or\n' +
-            'prone to seizures, please play with caution.',
-            { fontSize: '11px', color: '#d1d5db', align: 'center', lineSpacing: 5 }
-          ).setOrigin(0.5, 0).setScrollFactor(0).setDepth(52))
-
-          const btn = this.add.text(w / 2, h / 2 + 86, '[ START ]', {
+          const btn = this.add.text(w / 2, h / 2 + 20, '[ START ]', {
             fontSize: '24px', color: '#4ade80', stroke: '#000000', strokeThickness: 3,
           }).setOrigin(0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
           ui.push(btn)
 
-          ui.push(this.add.text(w / 2, h / 2 + 116, 'or press Space', {
+          ui.push(this.add.text(w / 2, h / 2 + 50, 'or press Space', {
             fontSize: '12px', color: '#4b5563',
+          }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
+
+          ui.push(this.add.text(w / 2, h / 2 + 100, 'Photosensitivity warning: contains flashing lights', {
+            fontSize: '10px', color: '#6b7280',
+          }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
+
+          ui.push(this.add.text(w / 2, h / 2 + 116, 'and rapidly changing visuals. Play with caution if photosensitive.', {
+            fontSize: '10px', color: '#4b5563',
           }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
 
           const dismiss = () => {
