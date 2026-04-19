@@ -284,9 +284,49 @@ export default function Game() {
         }
 
         private showAuraPulse() {
+          const cx = this.player.x
+          const cy = this.player.y
+          const spikes = 14
+          const outerR = this.auraRadius
+          const innerR = this.auraRadius * 0.68
+
+          // random rotation each pulse
+          const rotation = Math.random() * Math.PI * 2
+
+          // pick 2–3 spike indices to be dramatically longer
+          const prominentCount = 2 + Math.floor(Math.random() * 2)
+          const prominent = new Set<number>()
+          while (prominent.size < prominentCount) prominent.add(Math.floor(Math.random() * spikes))
+
+          // generate points once so fill and stroke share the same shape
+          const pts: { x: number; y: number }[] = []
+          for (let i = 0; i < spikes * 2; i++) {
+            const angle = (i / (spikes * 2)) * Math.PI * 2 + rotation
+            let r: number
+            if (i % 2 === 0) {
+              r = prominent.has(i / 2)
+                ? outerR * (1.28 + Math.random() * 0.22) + (Math.random() - 0.5) * 8
+                : outerR * (0.88 + Math.random() * 0.18)
+            } else {
+              r = innerR + (Math.random() - 0.5) * 10
+            }
+            pts.push({ x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r })
+          }
+
+          const draw = (g: Phaser.GameObjects.Graphics) => {
+            g.moveTo(pts[0].x, pts[0].y)
+            for (let i = 1; i < pts.length; i++) g.lineTo(pts[i].x, pts[i].y)
+            g.closePath()
+          }
+
           const ring = this.add.graphics().setDepth(4)
-          ring.lineStyle(2, 0xa78bfa, 0.7)
-          ring.strokeCircle(this.player.x, this.player.y, this.auraRadius)
+
+          ring.fillStyle(0xa78bfa, 0.13)
+          ring.beginPath(); draw(ring); ring.fillPath()
+
+          ring.lineStyle(2, 0xc4b5fd, 0.9)
+          ring.beginPath(); draw(ring); ring.strokePath()
+
           this.tweens.add({ targets: ring, alpha: 0, duration: 420, onComplete: () => ring.destroy() })
         }
 
