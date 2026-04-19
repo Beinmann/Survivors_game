@@ -139,7 +139,7 @@ export default function Game() {
           this.physics.add.collider(this.player, this.obstacles)
           this.physics.add.collider(this.enemies, this.obstacles)
           this.physics.add.collider(this.bullets, this.obstacles,
-            (bullet) => { (bullet as Phaser.Physics.Arcade.Image).destroy() }, undefined, this)
+            (bullet: Phaser.GameObjects.GameObject) => { (bullet as Phaser.Physics.Arcade.Image).destroy() }, undefined, this)
           this.physics.add.overlap(this.bullets, this.enemies,
             this.onBulletHitEnemy as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this)
           this.physics.add.overlap(this.player, this.enemies,
