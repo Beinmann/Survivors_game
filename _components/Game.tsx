@@ -20,6 +20,14 @@ export default function Game() {
       const Phaser = (await import('phaser')) as any
       if (cancelled) return
 
+      const ENEMY_TYPES = [
+        { key: 'enemy_grunt',   color: 0xef4444, stroke: 0xfca5a5, size: 22, radius: 3, hp: 30,  speed: 70,  unlockSecs: 0   },
+        { key: 'enemy_brute',   color: 0xf97316, stroke: 0xfed7aa, size: 30, radius: 6, hp: 110, speed: 52,  unlockSecs: 30  },
+        { key: 'enemy_speeder', color: 0x22d3ee, stroke: 0xa5f3fc, size: 16, radius: 1, hp: 28,  speed: 140, unlockSecs: 60  },
+        { key: 'enemy_tank',    color: 0x7c3aed, stroke: 0xc4b5fd, size: 36, radius: 2, hp: 300, speed: 36,  unlockSecs: 100 },
+        { key: 'enemy_elite',   color: 0xfbbf24, stroke: 0xfde68a, size: 22, radius: 3, hp: 170, speed: 108, unlockSecs: 150 },
+      ]
+
       class GameScene extends Phaser.Scene {
         // --- objects ---
         private player!: Phaser.Physics.Arcade.Image
@@ -285,8 +293,8 @@ export default function Game() {
         // ─── movement / orbs ────────────────────────────────────────────────
 
         private moveEnemies() {
-          const speed = 70 + Math.floor(this.gameTime / 10000) * 4
           for (const e of this.enemies.getChildren() as Phaser.Physics.Arcade.Image[]) {
+            const speed = (e.getData('speed') as number) ?? 70
             const angle = Phaser.Math.Angle.Between(e.x, e.y, this.player.x, this.player.y)
             e.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed)
           }
@@ -518,14 +526,15 @@ export default function Game() {
         private spawnWave() {
           const gameTimeSecs = this.gameTime / 1000
           const count = 3 + Math.floor(gameTimeSecs / 20)
-          const baseHp = Math.round(25 + Math.floor(gameTimeSecs / 10) * 12)
+          const available = ENEMY_TYPES.filter(t => gameTimeSecs >= t.unlockSecs)
           for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2
             const dist = 550 + Math.random() * 250
             const x = Phaser.Math.Clamp(this.player.x + Math.cos(angle) * dist, 10, WORLD - 10)
             const y = Phaser.Math.Clamp(this.player.y + Math.sin(angle) * dist, 10, WORLD - 10)
-            const e = this.enemies.create(x, y, 'enemy') as Phaser.Physics.Arcade.Image
-            e.setDepth(3).setData('hp', baseHp)
+            const type = available[Math.floor(Math.random() * available.length)]
+            const e = this.enemies.create(x, y, type.key) as Phaser.Physics.Arcade.Image
+            e.setDepth(3).setData('hp', type.hp).setData('speed', type.speed)
           }
           this.spawnTimer = this.spawnRate
         }
@@ -671,10 +680,12 @@ export default function Game() {
             g.lineStyle(2, 0x86efac); g.strokeRoundedRect(1, 1, 24, 24, 5)
           }, 26, 26)
 
-          make('enemy', g => {
-            g.fillStyle(0xef4444); g.fillRoundedRect(0, 0, 22, 22, 3)
-            g.lineStyle(2, 0xfca5a5); g.strokeRoundedRect(1, 1, 20, 20, 3)
-          }, 22, 22)
+          for (const t of ENEMY_TYPES) {
+            make(t.key, g => {
+              g.fillStyle(t.color); g.fillRoundedRect(0, 0, t.size, t.size, t.radius)
+              g.lineStyle(2, t.stroke); g.strokeRoundedRect(1, 1, t.size - 2, t.size - 2, t.radius)
+            }, t.size, t.size)
+          }
 
           make('bullet', g => {
             g.fillStyle(0xfbbf24); g.fillCircle(4, 4, 4)
