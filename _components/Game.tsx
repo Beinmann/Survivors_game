@@ -34,6 +34,7 @@ export default function Game() {
         private enemies!: Phaser.Physics.Arcade.Group
         private bullets!: Phaser.Physics.Arcade.Group
         private xpOrbs!: Phaser.Physics.Arcade.Group
+        private obstacles!: Phaser.Physics.Arcade.StaticGroup
         private cursors!: Phaser.Types.Input.Keyboard.CursorKeys
         private wasd!: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>
 
@@ -54,7 +55,7 @@ export default function Game() {
         private rearShot = false
         private bulletSpd = 480
         private magnetRadius = 70
-        private orbsPerKill = 1
+        private orbMultiplier = 1.0
         private auraRadius = 110
         private shotgunRange = 220   // max travel distance for shotgun pellets
         private shotgunDmg = 22; private sniperDmg = 60; private auraDmg = 10
@@ -85,7 +86,7 @@ export default function Game() {
           this.paused = false; this.pauseUI = []
           this.moveSpeed = 200; this.shootRate = 750
           this.extraBullets = 0; this.pierceCount = 2; this.rearShot = false
-          this.bulletSpd = 480; this.magnetRadius = 70; this.orbsPerKill = 1
+          this.bulletSpd = 480; this.magnetRadius = 70; this.orbMultiplier = 1.0
           this.auraRadius = 110; this.shotgunRange = 220
           this.shotgunDmg = 30; this.sniperDmg = 150; this.auraDmg = 10
 
@@ -107,6 +108,8 @@ export default function Game() {
           this.enemies = this.physics.add.group()
           this.bullets = this.physics.add.group()
           this.xpOrbs = this.physics.add.group()
+          this.obstacles = this.physics.add.staticGroup()
+          this.spawnObstacles()
 
           this.cameras.main.startFollow(this.player, true, 0.08, 0.08)
 
@@ -121,6 +124,10 @@ export default function Game() {
           this.input.keyboard!.on('keydown-ESC', () => this.togglePause())
 
           this.physics.add.collider(this.enemies, this.enemies)
+          this.physics.add.collider(this.player, this.obstacles)
+          this.physics.add.collider(this.enemies, this.obstacles)
+          this.physics.add.collider(this.bullets, this.obstacles,
+            (bullet) => { (bullet as Phaser.Physics.Arcade.Image).destroy() }, undefined, this)
           this.physics.add.overlap(this.bullets, this.enemies,
             this.onBulletHitEnemy as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this)
           this.physics.add.overlap(this.player, this.enemies,
@@ -398,7 +405,8 @@ export default function Game() {
 
         private killEnemy(e: Phaser.Physics.Arcade.Image) {
           if (!e.active) return
-          const orbCount = this.orbsPerKill + ((e.getData('orbBonus') as number) ?? 0)
+          const orbBonus = (e.getData('orbBonus') as number) ?? 0
+          const orbCount = Math.max(1, Math.round((1 + orbBonus) * this.orbMultiplier))
           for (let i = 0; i < orbCount; i++) {
             const ox = e.x + (Math.random() - 0.5) * 16
             const oy = e.y + (Math.random() - 0.5) * 16
@@ -455,7 +463,7 @@ export default function Game() {
             {
               name: 'Bounty Hunter',
               desc: 'Enemies drop one extra XP orb',
-              apply: () => { this.orbsPerKill++ },
+              apply: () => { this.orbMultiplier += 0.35 },
             },
             {
               name: 'Vital Surge',
@@ -566,7 +574,7 @@ export default function Game() {
 
         private spawnWave() {
           const gameTimeSecs = this.gameTime / 1000
-          const count = 3 + Math.floor(gameTimeSecs / 20)
+          const count = 2 + Math.floor(gameTimeSecs / 35)
           const available = ENEMY_TYPES.filter(t => gameTimeSecs >= t.unlockSecs)
           const totalWeight = available.reduce((s, t) => s + t.weight, 0)
           for (let i = 0; i < count; i++) {
@@ -711,6 +719,24 @@ export default function Game() {
           btn.on('pointerdown', () => this.scene.restart())
         }
 
+        private spawnObstacles() {
+          const cx = WORLD / 2, cy = WORLD / 2
+          const safeR = 700
+          const place = (key: string, count: number) => {
+            for (let i = 0; i < count; i++) {
+              let x: number, y: number
+              do {
+                x = 100 + Math.random() * (WORLD - 200)
+                y = 100 + Math.random() * (WORLD - 200)
+              } while (Phaser.Math.Distance.Between(x, y, cx, cy) < safeR)
+              this.obstacles.create(x, y, key).setDepth(3)
+            }
+          }
+          place('obs_pillar', 260)
+          place('obs_hwall',  130)
+          place('obs_vwall',  130)
+        }
+
         private buildTextures() {
           const make = (key: string, draw: (g: Phaser.GameObjects.Graphics) => void, w: number, h: number) => {
             if (this.textures.exists(key)) return
@@ -729,6 +755,25 @@ export default function Game() {
               g.lineStyle(2, t.stroke); g.strokeRoundedRect(1, 1, t.size - 2, t.size - 2, t.radius)
             }, t.size, t.size)
           }
+
+          make('obs_pillar', g => {
+            g.fillStyle(0x2d3748); g.fillRect(0, 0, 48, 48)
+            g.lineStyle(2, 0x4a5568); g.strokeRect(1, 1, 46, 46)
+            g.lineStyle(1, 0x4a5568, 0.4)
+            g.lineBetween(8, 8, 40, 40); g.lineBetween(40, 8, 8, 40)
+          }, 48, 48)
+
+          make('obs_hwall', g => {
+            g.fillStyle(0x2d3748); g.fillRect(0, 0, 160, 40)
+            g.lineStyle(2, 0x4a5568); g.strokeRect(1, 1, 158, 38)
+            for (let x = 40; x < 160; x += 40) { g.lineStyle(1, 0x4a5568, 0.35); g.lineBetween(x, 4, x, 36) }
+          }, 160, 40)
+
+          make('obs_vwall', g => {
+            g.fillStyle(0x2d3748); g.fillRect(0, 0, 40, 160)
+            g.lineStyle(2, 0x4a5568); g.strokeRect(1, 1, 38, 158)
+            for (let y = 40; y < 160; y += 40) { g.lineStyle(1, 0x4a5568, 0.35); g.lineBetween(4, y, 36, y) }
+          }, 40, 160)
 
           make('bullet', g => {
             g.fillStyle(0xfbbf24); g.fillCircle(4, 4, 4)
