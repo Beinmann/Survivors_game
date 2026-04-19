@@ -166,7 +166,7 @@ export default function Game() {
             fontSize: '13px', color: '#fb923c', stroke: '#000000', strokeThickness: 3,
           }).setScrollFactor(0).setDepth(20).setOrigin(0.5, 0)
 
-          this.showWeaponSelection()
+          this.showTitleScreen()
         }
 
         private resetState() {
@@ -916,6 +916,70 @@ export default function Game() {
           if (this.frenzyTimer > 0) effects.push(`⚡ FRENZY ${(this.frenzyTimer / 1000).toFixed(1)}s`)
           if (this.freezeTimer > 0) effects.push(`❄ FREEZE ${(this.freezeTimer / 1000).toFixed(1)}s`)
           this.effectText.setText(effects.join('   '))
+        }
+
+        private showTitleScreen() {
+          const { width: w, height: h } = this.cameras.main
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const ui: any[] = []
+
+          const overlay = this.add.graphics().setScrollFactor(0).setDepth(50)
+          overlay.fillStyle(0x000000, 0.96).fillRect(0, 0, w, h)
+          ui.push(overlay)
+
+          const title = this.add.text(w / 2, h / 2 - 140, 'SURVIVORS', {
+            fontSize: '52px', color: '#4ade80', stroke: '#000000', strokeThickness: 6,
+          }).setOrigin(0.5).setScrollFactor(0).setDepth(51)
+          ui.push(title)
+          this.tweens.add({
+            targets: title, scaleX: 1.04, scaleY: 1.04,
+            duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+          })
+
+          ui.push(this.add.text(w / 2, h / 2 - 88, 'a browser game', {
+            fontSize: '14px', color: '#6b7280',
+          }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
+
+          const warnW = Math.min(w - 60, 440)
+          const warnH = 116
+          const warnX = w / 2 - warnW / 2
+          const warnY = h / 2 - 56
+
+          const warnBg = this.add.graphics().setScrollFactor(0).setDepth(51)
+          warnBg.fillStyle(0x1c0a00, 1).fillRoundedRect(warnX, warnY, warnW, warnH, 8)
+          warnBg.lineStyle(1, 0xf97316, 0.9).strokeRoundedRect(warnX, warnY, warnW, warnH, 8)
+          ui.push(warnBg)
+
+          ui.push(this.add.text(w / 2, warnY + 13, 'PHOTOSENSITIVITY WARNING', {
+            fontSize: '12px', color: '#fb923c',
+          }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(52))
+
+          ui.push(this.add.text(w / 2, warnY + 35,
+            'This game contains flashing lights and rapidly\n' +
+            'changing visuals. If you are photosensitive or\n' +
+            'prone to seizures, please play with caution.',
+            { fontSize: '11px', color: '#d1d5db', align: 'center', lineSpacing: 5 }
+          ).setOrigin(0.5, 0).setScrollFactor(0).setDepth(52))
+
+          const btn = this.add.text(w / 2, h / 2 + 86, '[ START ]', {
+            fontSize: '24px', color: '#4ade80', stroke: '#000000', strokeThickness: 3,
+          }).setOrigin(0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
+          ui.push(btn)
+
+          ui.push(this.add.text(w / 2, h / 2 + 116, 'or press Space', {
+            fontSize: '12px', color: '#4b5563',
+          }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
+
+          const dismiss = () => {
+            this.input.keyboard!.off('keydown-SPACE', dismiss)
+            ui.forEach(o => o.destroy())
+            this.showWeaponSelection()
+          }
+
+          btn.on('pointerover', () => btn.setColor('#86efac'))
+          btn.on('pointerout', () => btn.setColor('#4ade80'))
+          btn.on('pointerdown', dismiss)
+          this.input.keyboard!.on('keydown-SPACE', dismiss)
         }
 
         private showWeaponSelection() {
