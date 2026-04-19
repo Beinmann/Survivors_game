@@ -21,11 +21,11 @@ export default function Game() {
       if (cancelled) return
 
       const ENEMY_TYPES = [
-        { key: 'enemy_grunt',   color: 0xef4444, stroke: 0xfca5a5, size: 22, radius: 3, hp: 30,  speed: 70,  unlockSecs: 0   },
-        { key: 'enemy_brute',   color: 0xf97316, stroke: 0xfed7aa, size: 30, radius: 6, hp: 110, speed: 52,  unlockSecs: 30  },
-        { key: 'enemy_speeder', color: 0x22d3ee, stroke: 0xa5f3fc, size: 16, radius: 1, hp: 28,  speed: 140, unlockSecs: 60  },
-        { key: 'enemy_tank',    color: 0x7c3aed, stroke: 0xc4b5fd, size: 36, radius: 2, hp: 300, speed: 36,  unlockSecs: 100 },
-        { key: 'enemy_elite',   color: 0xfbbf24, stroke: 0xfde68a, size: 22, radius: 3, hp: 170, speed: 108, unlockSecs: 150 },
+        { key: 'enemy_grunt',   color: 0xef4444, stroke: 0xfca5a5, size: 22, radius: 3, hp: 30,  speed: 70,  unlockSecs: 0,   weight: 1.0, orbBonus: 0 },
+        { key: 'enemy_brute',   color: 0xf97316, stroke: 0xfed7aa, size: 30, radius: 6, hp: 110, speed: 52,  unlockSecs: 30,  weight: 0.3, orbBonus: 4 },
+        { key: 'enemy_speeder', color: 0x22d3ee, stroke: 0xa5f3fc, size: 16, radius: 1, hp: 28,  speed: 140, unlockSecs: 60,  weight: 1.0, orbBonus: 0 },
+        { key: 'enemy_tank',    color: 0x7c3aed, stroke: 0xc4b5fd, size: 36, radius: 2, hp: 300, speed: 36,  unlockSecs: 100, weight: 0.5, orbBonus: 2 },
+        { key: 'enemy_elite',   color: 0xfbbf24, stroke: 0xfde68a, size: 22, radius: 3, hp: 170, speed: 108, unlockSecs: 150, weight: 0.8, orbBonus: 1 },
       ]
 
       class GameScene extends Phaser.Scene {
@@ -358,7 +358,8 @@ export default function Game() {
 
         private killEnemy(e: Phaser.Physics.Arcade.Image) {
           if (!e.active) return
-          for (let i = 0; i < this.orbsPerKill; i++) {
+          const orbCount = this.orbsPerKill + ((e.getData('orbBonus') as number) ?? 0)
+          for (let i = 0; i < orbCount; i++) {
             const ox = e.x + (Math.random() - 0.5) * 16
             const oy = e.y + (Math.random() - 0.5) * 16
             ;(this.xpOrbs.create(ox, oy, 'orb') as Phaser.Physics.Arcade.Image).setDepth(2).setVelocity(0, 0)
@@ -527,14 +528,16 @@ export default function Game() {
           const gameTimeSecs = this.gameTime / 1000
           const count = 3 + Math.floor(gameTimeSecs / 20)
           const available = ENEMY_TYPES.filter(t => gameTimeSecs >= t.unlockSecs)
+          const totalWeight = available.reduce((s, t) => s + t.weight, 0)
           for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2
             const dist = 550 + Math.random() * 250
             const x = Phaser.Math.Clamp(this.player.x + Math.cos(angle) * dist, 10, WORLD - 10)
             const y = Phaser.Math.Clamp(this.player.y + Math.sin(angle) * dist, 10, WORLD - 10)
-            const type = available[Math.floor(Math.random() * available.length)]
+            let r = Math.random() * totalWeight
+            const type = available.find(t => (r -= t.weight) <= 0) ?? available[available.length - 1]
             const e = this.enemies.create(x, y, type.key) as Phaser.Physics.Arcade.Image
-            e.setDepth(3).setData('hp', type.hp).setData('speed', type.speed)
+            e.setDepth(3).setData('hp', type.hp).setData('speed', type.speed).setData('orbBonus', type.orbBonus)
           }
           this.spawnTimer = this.spawnRate
         }
