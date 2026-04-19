@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react'
 const WORLD = 12000
 const SPAWN_INTERVAL_MS = 2500
 const MAX_ORBS = 180
+const DESPAWN_DIST = 2000
 
 export default function Game() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -399,11 +400,14 @@ export default function Game() {
 
         private moveEnemies() {
           if (this.freezeTimer > 0) {
-            for (const e of this.enemies.getChildren() as Phaser.Physics.Arcade.Image[])
+            for (const e of this.enemies.getChildren() as Phaser.Physics.Arcade.Image[]) {
+              if (Phaser.Math.Distance.Between(this.player.x, this.player.y, e.x, e.y) > DESPAWN_DIST) { e.destroy(); continue }
               e.setVelocity(0, 0)
+            }
             return
           }
           for (const e of this.enemies.getChildren() as Phaser.Physics.Arcade.Image[]) {
+            if (Phaser.Math.Distance.Between(this.player.x, this.player.y, e.x, e.y) > DESPAWN_DIST) { e.destroy(); continue }
             const speed = (e.getData('speed') as number) ?? 70
             const angle = Phaser.Math.Angle.Between(e.x, e.y, this.player.x, this.player.y)
             e.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed)
@@ -749,6 +753,15 @@ export default function Game() {
 
         // ─── spawning ───────────────────────────────────────────────────────
 
+        private spawnPressure(): number {
+          const n = this.enemies.countActive()
+          if (n <= 4)  return 0.1   // 10× faster — field is nearly empty
+          if (n <= 12) return 0.3   // ~3× faster
+          if (n <= 25) return 0.6   // ~1.7× faster
+          if (n <= 45) return 1.0   // base rate
+          return 2.5                 // 2.5× slower — field is packed
+        }
+
         private spawnWave() {
           const gameTimeSecs = this.gameTime / 1000
           const count = 2 + Math.floor(gameTimeSecs / 35)
@@ -764,7 +777,7 @@ export default function Game() {
             const e = this.enemies.create(x, y, type.key) as Phaser.Physics.Arcade.Image
             e.setDepth(3).setData('hp', type.hp).setData('speed', type.speed).setData('orbBonus', type.orbBonus)
           }
-          this.spawnTimer = this.spawnRate
+          this.spawnTimer = this.spawnRate * this.spawnPressure()
         }
 
         // ─── ui ─────────────────────────────────────────────────────────────
