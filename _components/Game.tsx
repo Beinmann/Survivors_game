@@ -463,7 +463,7 @@ export default function Game() {
             },
             {
               name: 'Bounty Hunter',
-              desc: 'Enemies drop one extra XP orb',
+              desc: 'Enemies drop 35% more XP orbs',
               apply: () => { this.orbMultiplier += 0.35 },
             },
             {
