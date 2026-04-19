@@ -60,7 +60,7 @@ export default function Game() {
         private auraRadius = 110
         private shotgunRange = 220
         private shotgunDmg = 22; private sniperDmg = 60; private auraDmg = 10
-        private machineGunDmg = 18; private machineGunSpread = 0
+        private machineGunDmg = 2; private machineGunBurst = 1; private machineGunPierce = false
         private weaponLevel = 1
 
         // --- power-up state ---
@@ -98,7 +98,7 @@ export default function Game() {
           this.bulletSpd = 480; this.magnetRadius = 70; this.orbMultiplier = 1.0
           this.auraRadius = 110; this.shotgunRange = 220
           this.shotgunDmg = 30; this.sniperDmg = 150; this.auraDmg = 10
-          this.machineGunDmg = 18; this.machineGunSpread = 0; this.weaponLevel = 1
+          this.machineGunDmg = 2; this.machineGunBurst = 1; this.machineGunPierce = false; this.weaponLevel = 1
           this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
 
           this.gameTime = 0
@@ -315,18 +315,20 @@ export default function Game() {
         }
 
         private fireMachineGun(angle: number) {
-          const spread = 0.11
           const fire = (a: number) => {
             const b = this.bullets.create(this.player.x, this.player.y, 'mgBullet') as Phaser.Physics.Arcade.Image
             b.setVelocity(Math.cos(a) * this.bulletSpd, Math.sin(a) * this.bulletSpd)
             b.setRotation(a)
             b.setData('dmg', this.machineGunDmg)
+            if (this.machineGunPierce) {
+              b.setData('pierceLeft', 1)
+              b.setData('hitEnemies', new Set())
+            }
             b.setDepth(4)
           }
-          fire(angle)
-          for (let i = 1; i <= this.machineGunSpread; i++) {
-            fire(angle + spread * i)
-            fire(angle - spread * i)
+          const offset = 0.022
+          for (let i = 0; i < this.machineGunBurst; i++) {
+            fire(angle + (this.machineGunBurst > 1 ? (i - (this.machineGunBurst - 1) / 2) * offset : 0))
           }
           if (this.rearShot) fire(angle + Math.PI)
         }
@@ -425,11 +427,11 @@ export default function Game() {
           const pierceLeft = b.getData('pierceLeft') as number | undefined
 
           if (pierceLeft !== undefined) {
-            // sniper — piercing bullet
             const hitSet: Set<Phaser.GameObjects.GameObject> = b.getData('hitEnemies')
             if (hitSet.has(e)) return
             hitSet.add(e)
-            this.damageEnemy(e, this.sniperDmg)
+            const dmg = (b.getData('dmg') as number) ?? this.sniperDmg
+            this.damageEnemy(e, dmg)
             const remaining = pierceLeft - 1
             if (remaining <= 0) b.destroy()
             else b.setData('pierceLeft', remaining)
@@ -479,7 +481,7 @@ export default function Game() {
           this.xp += this.orbMultiplier
           if (this.xp >= this.xpNeeded) {
             this.xp = 0
-            this.xpNeeded = Math.floor(this.xpNeeded * 1.6)
+            this.xpNeeded = Math.floor(this.xpNeeded * 1.25)
             this.level++
             this.levelText.setText(`Level ${this.level}`)
             this.showUpgradeMenu()
@@ -522,14 +524,14 @@ export default function Game() {
               { desc: '+100% damage  ·  +50px radius  ·  −100ms',  apply: () => { this.auraDmg = Math.round(this.auraDmg * 2.0); this.auraRadius += 50; this.shootRate = Math.max(100, this.shootRate - 100) } },
             ],
             machinegun: [
-              { desc: '+25% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.25); this.shootRate = Math.max(50, this.shootRate - 15) } },
-              { desc: '3-way spread unlocked',                     apply: () => { this.machineGunSpread = 1 } },
-              { desc: '+25% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.25); this.shootRate = Math.max(50, this.shootRate - 15) } },
-              { desc: '5-way spread',                              apply: () => { this.machineGunSpread = 2 } },
-              { desc: '+30% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.3); this.shootRate = Math.max(50, this.shootRate - 15) } },
-              { desc: 'Rear shot  ·  +25% damage',                 apply: () => { this.rearShot = true; this.machineGunDmg = Math.round(this.machineGunDmg * 1.25) } },
-              { desc: '7-way spread  ·  −20ms cooldown',           apply: () => { this.machineGunSpread = 3; this.shootRate = Math.max(50, this.shootRate - 20) } },
-              { desc: '+50% damage  ·  −20ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.5); this.shootRate = Math.max(50, this.shootRate - 20) } },
+              { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.shootRate = Math.max(50, this.shootRate - 15) } },
+              { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.shootRate = Math.max(50, this.shootRate - 15) } },
+              { desc: 'Piercing rounds — bullets pass through 1 enemy', apply: () => { this.machineGunPierce = true } },
+              { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.shootRate = Math.max(50, this.shootRate - 15) } },
+              { desc: 'Burst fire — 2 bullets per shot',           apply: () => { this.machineGunBurst = 2 } },
+              { desc: 'Rear shot  ·  +30% damage',                 apply: () => { this.rearShot = true; this.machineGunDmg = Math.round(this.machineGunDmg * 1.3) } },
+              { desc: '3-round burst  ·  −20ms cooldown',          apply: () => { this.machineGunBurst = 3; this.shootRate = Math.max(50, this.shootRate - 20) } },
+              { desc: '+60% damage  ·  −20ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.6); this.shootRate = Math.max(50, this.shootRate - 20) } },
             ],
           }
           const step = paths[this.weaponType]?.[lvl - 1]
@@ -671,10 +673,10 @@ export default function Game() {
               { label: 'Damage',     value: String(this.auraDmg) },
             )
           } else if (wt === 'machinegun') {
-            const bullets = 1 + this.machineGunSpread * 2
             lines.push(
               { label: 'Fire Rate',  value: `${rate}/s` },
-              { label: 'Bullets',    value: String(bullets) + (this.rearShot ? '+rear' : '') },
+              { label: 'Burst',      value: String(this.machineGunBurst) + (this.rearShot ? '+rear' : '') },
+              { label: 'Pierce',     value: this.machineGunPierce ? 'Yes' : 'No' },
               { label: 'Damage',     value: String(this.machineGunDmg) },
             )
           }
