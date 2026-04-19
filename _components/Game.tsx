@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 
-const WORLD = 3000
+const WORLD = 12000
 const SPAWN_INTERVAL_MS = 2500
 
 export default function Game() {
