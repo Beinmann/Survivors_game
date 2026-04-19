@@ -461,7 +461,7 @@ export default function Game() {
         private killEnemy(e: Phaser.Physics.Arcade.Image) {
           if (!e.active) return
           const orbBonus = (e.getData('orbBonus') as number) ?? 0
-          const orbCount = Math.max(1, Math.round((1 + orbBonus) * this.orbMultiplier))
+          const orbCount = 1 + orbBonus
           for (let i = 0; i < orbCount; i++) {
             const ox = e.x + (Math.random() - 0.5) * 16
             const oy = e.y + (Math.random() - 0.5) * 16
@@ -476,7 +476,7 @@ export default function Game() {
 
         private onCollectOrb(_p: Phaser.GameObjects.GameObject, orb: Phaser.GameObjects.GameObject) {
           ;(orb as Phaser.Physics.Arcade.Image).destroy()
-          this.xp++
+          this.xp += this.orbMultiplier
           if (this.xp >= this.xpNeeded) {
             this.xp = 0
             this.xpNeeded = Math.floor(this.xpNeeded * 1.6)
@@ -546,7 +546,7 @@ export default function Game() {
           const passives = [
             { name: 'Swift Feet',     desc: 'Move 25% faster',                   apply: () => { this.moveSpeed = Math.round(this.moveSpeed * 1.25) } },
             { name: 'XP Magnet',      desc: 'Pull orbs from 80px further away',  apply: () => { this.magnetRadius += 80 } },
-            { name: 'Bounty Hunter',  desc: 'Enemies drop 35% more XP orbs',     apply: () => { this.orbMultiplier += 0.35 } },
+            { name: 'Bounty Hunter',  desc: 'Gain 35% more XP from every orb collected', apply: () => { this.orbMultiplier += 0.35 } },
             { name: 'Vital Surge',    desc: 'Restore 40 HP and raise max HP by 20', apply: () => { this.maxHp += 20; this.hp = Math.min(this.maxHp, this.hp + 40) } },
             { name: 'Power Core',     desc: '+20% weapon damage',                apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.2); this.sniperDmg = Math.round(this.sniperDmg * 1.2); this.auraDmg = Math.round(this.auraDmg * 1.2); this.machineGunDmg = Math.round(this.machineGunDmg * 1.2) } },
             { name: 'Overclock',      desc: 'Fire 15% faster',                   apply: () => { this.shootRate = Math.max(50, Math.round(this.shootRate * 0.85)) } },
