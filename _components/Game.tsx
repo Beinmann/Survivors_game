@@ -6,6 +6,10 @@ const WORLD = 12000
 const SPAWN_INTERVAL_MS = 2500
 const MAX_ORBS = 180
 const DESPAWN_DIST = 2000
+const STACK_NEARBY_RADIUS = 500   // orbs within this distance are "nearby"
+const STACK_THRESHOLD = 15        // how many nearby orbs trigger stacking
+const STACK_EDGE_MIN = 260        // preferred target orb distance range (≈ edge of screen)
+const STACK_EDGE_MAX = 480
 
 export default function Game() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -476,18 +480,32 @@ export default function Game() {
           if (!e.active) return
           const orbBonus = (e.getData('orbBonus') as number) ?? 0
           const orbCount = 1 + orbBonus
+
+          // snapshot nearby orbs once — used for stacking decisions in the loop
+          const nearbyOrbs = (this.xpOrbs.getChildren() as Phaser.Physics.Arcade.Image[]).filter(o => {
+            if (!o.active) return false
+            return Phaser.Math.Distance.Between(this.player.x, this.player.y, o.x, o.y) < STACK_NEARBY_RADIUS
+          })
+          const shouldStack = nearbyOrbs.length >= STACK_THRESHOLD
+
           for (let i = 0; i < orbCount; i++) {
-            if (this.xpOrbs.countActive() >= MAX_ORBS) {
-              const active = this.xpOrbs.getChildren().filter(
-                o => (o as Phaser.Physics.Arcade.Image).active
-              ) as Phaser.Physics.Arcade.Image[]
-              if (active.length > 0) {
-                const target = active[Math.floor(Math.random() * active.length)]
-                const newVal = ((target.getData('xpValue') as number) ?? 1) + 1
-                target.setData('xpValue', newVal)
-                this.tintStackedOrb(target, newVal)
-              }
-            } else {
+            if (shouldStack && nearbyOrbs.length > 0) {
+              // prefer an orb in the edge band; fall back to the nearby orb nearest to that band
+              const edgeOrbs = nearbyOrbs.filter(o => {
+                const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, o.x, o.y)
+                return d >= STACK_EDGE_MIN && d <= STACK_EDGE_MAX
+              })
+              const mid = (STACK_EDGE_MIN + STACK_EDGE_MAX) / 2
+              const target = edgeOrbs.length > 0
+                ? edgeOrbs[Math.floor(Math.random() * edgeOrbs.length)]
+                : nearbyOrbs.reduce((best, o) =>
+                    Math.abs(Phaser.Math.Distance.Between(this.player.x, this.player.y, o.x, o.y) - mid) <
+                    Math.abs(Phaser.Math.Distance.Between(this.player.x, this.player.y, best.x, best.y) - mid)
+                      ? o : best)
+              const newVal = ((target.getData('xpValue') as number) ?? 1) + 1
+              target.setData('xpValue', newVal)
+              this.tintStackedOrb(target, newVal)
+            } else if (this.xpOrbs.countActive() < MAX_ORBS) {
               const ox = e.x + (Math.random() - 0.5) * 16
               const oy = e.y + (Math.random() - 0.5) * 16
               const orb = (this.xpOrbs.create(ox, oy, 'orb') as Phaser.Physics.Arcade.Image)
