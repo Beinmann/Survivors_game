@@ -75,7 +75,7 @@ export default function Game() {
           this.extraBullets = 0; this.pierceCount = 2; this.rearShot = false
           this.bulletSpd = 480; this.magnetRadius = 70; this.orbsPerKill = 1
           this.auraRadius = 110; this.shotgunRange = 220
-          this.shotgunDmg = 30; this.sniperDmg = 60; this.auraDmg = 10
+          this.shotgunDmg = 30; this.sniperDmg = 150; this.auraDmg = 10
 
           this.buildTextures()
 
@@ -420,6 +420,19 @@ export default function Game() {
                 else this.rearShot = true
               },
             },
+            {
+              name: wt === 'sniper' ? 'AP Rounds'
+                  : wt === 'aura'   ? 'Overload'
+                  :                   'Heavy Slugs',
+              desc: wt === 'sniper' ? 'Bullets deal 40% more damage'
+                  : wt === 'aura'   ? 'Aura pulses 35% harder'
+                  :                   'Pellets deal 30% more damage',
+              apply: () => {
+                if (wt === 'sniper') this.sniperDmg = Math.round(this.sniperDmg * 1.4)
+                else if (wt === 'aura') this.auraDmg = Math.round(this.auraDmg * 1.35)
+                else this.shotgunDmg = Math.round(this.shotgunDmg * 1.3)
+              },
+            },
           ]
         }
 
@@ -529,7 +542,7 @@ export default function Game() {
             {
               type: 'sniper', name: 'Sniper Rifle',
               desc: 'Single piercing shot.\nSlower but punches through enemies.',
-              stats: 'Pierces 2 enemies · 1400ms cooldown',
+              stats: 'Pierces 2 enemies · high dmg · 1400ms cooldown',
               accent: 0x60a5fa,
               setup: () => { this.shootRate = 1400; this.bulletSpd = 680 },
             },
@@ -545,17 +558,17 @@ export default function Game() {
           const overlay = this.add.graphics().setScrollFactor(0).setDepth(50)
           overlay.fillStyle(0x000000, 0.88).fillRect(0, 0, w, h)
 
-          this.add.text(w / 2, h / 2 - 160, 'Choose your weapon', {
-            fontSize: '26px', color: '#ffffff', stroke: '#000', strokeThickness: 4,
-          }).setOrigin(0.5).setScrollFactor(0).setDepth(51)
-
           const cardW = Math.min(200, (w - 80) / 3 - 10)
           const cardH = 160
           const gap = cardW + 20
           const startX = w / 2 - gap
 
+          const titleText = this.add.text(w / 2, h / 2 - 160, 'Choose your weapon', {
+            fontSize: '26px', color: '#ffffff', stroke: '#000', strokeThickness: 4,
+          }).setOrigin(0.5).setScrollFactor(0).setDepth(51)
+
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const allUI: any[] = [overlay]
+          const allUI: any[] = [overlay, titleText]
 
           WEAPONS.forEach((weapon, i) => {
             const cx = startX + i * gap
