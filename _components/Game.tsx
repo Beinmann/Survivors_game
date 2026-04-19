@@ -35,6 +35,7 @@ export default function Game() {
         private bullets!: Phaser.Physics.Arcade.Group
         private xpOrbs!: Phaser.Physics.Arcade.Group
         private obstacles!: Phaser.Physics.Arcade.StaticGroup
+        private powerUps!: Phaser.Physics.Arcade.Group
         private cursors!: Phaser.Types.Input.Keyboard.CursorKeys
         private wasd!: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>
 
@@ -62,6 +63,11 @@ export default function Game() {
         private machineGunDmg = 18; private machineGunSpread = 0
         private weaponLevel = 1
 
+        // --- power-up state ---
+        private powerUpSpawnTimer = 0
+        private frenzyTimer = 0
+        private freezeTimer = 0
+
         // --- timer ---
         private gameTime = 0
 
@@ -71,6 +77,7 @@ export default function Game() {
         private levelText!: Phaser.GameObjects.Text
         private scoreText!: Phaser.GameObjects.Text
         private timerText!: Phaser.GameObjects.Text
+        private effectText!: Phaser.GameObjects.Text
         private paused = false
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         private pauseUI: any[] = []
@@ -92,6 +99,7 @@ export default function Game() {
           this.auraRadius = 110; this.shotgunRange = 220
           this.shotgunDmg = 30; this.sniperDmg = 150; this.auraDmg = 10
           this.machineGunDmg = 18; this.machineGunSpread = 0; this.weaponLevel = 1
+          this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
 
           this.gameTime = 0
 
@@ -113,6 +121,7 @@ export default function Game() {
           this.xpOrbs = this.physics.add.group()
           this.obstacles = this.physics.add.staticGroup()
           this.spawnObstacles()
+          this.powerUps = this.physics.add.group()
 
           this.cameras.main.startFollow(this.player, true, 0.08, 0.08)
 
@@ -137,6 +146,8 @@ export default function Game() {
             this.onPlayerHitEnemy as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this)
           this.physics.add.overlap(this.player, this.xpOrbs,
             this.onCollectOrb as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this)
+          this.physics.add.overlap(this.player, this.powerUps,
+            this.onCollectPowerUp as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this)
 
           this.hpBar = this.add.graphics().setScrollFactor(0).setDepth(20)
           this.xpBar = this.add.graphics().setScrollFactor(0).setDepth(20)
@@ -148,6 +159,9 @@ export default function Game() {
           }).setScrollFactor(0).setDepth(20)
           this.timerText = this.add.text(this.cameras.main.width / 2, 12, '0:00', {
             fontSize: '15px', color: '#facc15', stroke: '#000000', strokeThickness: 3,
+          }).setScrollFactor(0).setDepth(20).setOrigin(0.5, 0)
+          this.effectText = this.add.text(this.cameras.main.width / 2, 34, '', {
+            fontSize: '13px', color: '#fb923c', stroke: '#000000', strokeThickness: 3,
           }).setScrollFactor(0).setDepth(20).setOrigin(0.5, 0)
 
           this.showWeaponSelection()
@@ -187,6 +201,18 @@ export default function Game() {
           this.autoShoot(time)
           this.moveEnemies()
           this.pullOrbs()
+
+          this.powerUpSpawnTimer -= delta
+          if (this.powerUpSpawnTimer <= 0) {
+            this.spawnPowerUp()
+            this.powerUpSpawnTimer = 10000 + Math.random() * 40000
+          }
+          if (this.frenzyTimer > 0) this.frenzyTimer = Math.max(0, this.frenzyTimer - delta)
+          if (this.freezeTimer > 0) this.freezeTimer = Math.max(0, this.freezeTimer - delta)
+          for (const p of this.powerUps.getChildren() as Phaser.Physics.Arcade.Image[]) {
+            const lbl = p.getData('label') as Phaser.GameObjects.Text | undefined
+            if (lbl) lbl.setPosition(p.x, p.y - 26)
+          }
 
           if (this.iframes > 0) {
             this.iframes -= delta
@@ -235,7 +261,7 @@ export default function Game() {
 
           if (this.weaponType === 'aura') {
             this.fireAura()
-            this.shootCooldown = time + this.shootRate
+            this.shootCooldown = time + this.effectiveShootRate()
             return
           }
 
@@ -252,7 +278,7 @@ export default function Game() {
           else if (this.weaponType === 'sniper') this.fireSniper(angle)
           else if (this.weaponType === 'machinegun') this.fireMachineGun(angle)
 
-          this.shootCooldown = time + this.shootRate
+          this.shootCooldown = time + this.effectiveShootRate()
         }
 
         private fireShotgun(angle: number) {
@@ -361,6 +387,11 @@ export default function Game() {
         // ─── movement / orbs ────────────────────────────────────────────────
 
         private moveEnemies() {
+          if (this.freezeTimer > 0) {
+            for (const e of this.enemies.getChildren() as Phaser.Physics.Arcade.Image[])
+              e.setVelocity(0, 0)
+            return
+          }
           for (const e of this.enemies.getChildren() as Phaser.Physics.Arcade.Image[]) {
             const speed = (e.getData('speed') as number) ?? 70
             const angle = Phaser.Math.Angle.Between(e.x, e.y, this.player.x, this.player.y)
@@ -702,6 +733,10 @@ export default function Game() {
 
         // ─── ui ─────────────────────────────────────────────────────────────
 
+        private effectiveShootRate() {
+          return this.frenzyTimer > 0 ? this.shootRate / 2 : this.shootRate
+        }
+
         private drawUI() {
           const barW = 160
           this.hpBar.clear()
@@ -710,6 +745,10 @@ export default function Game() {
           this.xpBar.clear()
           this.xpBar.fillStyle(0x1a1a1a).fillRect(10, 64, barW, 6)
           this.xpBar.fillStyle(0xa78bfa).fillRect(10, 64, barW * (this.xp / this.xpNeeded), 6)
+          const effects: string[] = []
+          if (this.frenzyTimer > 0) effects.push(`⚡ FRENZY ${(this.frenzyTimer / 1000).toFixed(1)}s`)
+          if (this.freezeTimer > 0) effects.push(`❄ FREEZE ${(this.freezeTimer / 1000).toFixed(1)}s`)
+          this.effectText.setText(effects.join('   '))
         }
 
         private showWeaponSelection() {
@@ -836,6 +875,89 @@ export default function Game() {
           btn.on('pointerdown', () => this.scene.restart())
         }
 
+        // ─── power-ups ──────────────────────────────────────────────────────
+
+        private readonly PU_TYPES = [
+          { key: 'pu_vacuum', label: 'XP Vacuum',   color: 0xa78bfa, stroke: 0xc4b5fd },
+          { key: 'pu_frenzy', label: 'Frenzy',      color: 0xf97316, stroke: 0xfed7aa },
+          { key: 'pu_nuke',   label: 'Nuke',        color: 0xef4444, stroke: 0xfca5a5 },
+          { key: 'pu_freeze', label: 'Time Freeze', color: 0x22d3ee, stroke: 0xa5f3fc },
+          { key: 'pu_heal',   label: 'Full Heal',   color: 0x4ade80, stroke: 0x86efac },
+          { key: 'pu_orbs',   label: 'Orb Shower',  color: 0xfbbf24, stroke: 0xfde68a },
+        ]
+
+        private spawnPowerUp() {
+          const type = this.PU_TYPES[Math.floor(Math.random() * this.PU_TYPES.length)]
+          const angle = Math.random() * Math.PI * 2
+          const dist = 350 + Math.random() * 350
+          const x = Phaser.Math.Clamp(this.player.x + Math.cos(angle) * dist, 80, WORLD - 80)
+          const y = Phaser.Math.Clamp(this.player.y + Math.sin(angle) * dist, 80, WORLD - 80)
+
+          const pu = this.powerUps.create(x, y, type.key) as Phaser.Physics.Arcade.Image
+          pu.setDepth(6).setData('type', type.key)
+
+          const lbl = this.add.text(x, y - 26, type.label, {
+            fontSize: '11px', color: '#ffffff', stroke: '#000000', strokeThickness: 2,
+          }).setOrigin(0.5).setDepth(7)
+          pu.setData('label', lbl)
+
+          this.tweens.add({
+            targets: pu, scaleX: 1.18, scaleY: 1.18,
+            duration: 550, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+          })
+        }
+
+        private onCollectPowerUp(_p: Phaser.GameObjects.GameObject, powerUp: Phaser.GameObjects.GameObject) {
+          const pu = powerUp as Phaser.Physics.Arcade.Image
+          if (!pu.active) return
+          const type = pu.getData('type') as string
+          ;(pu.getData('label') as Phaser.GameObjects.Text | undefined)?.destroy()
+          pu.destroy()
+          this.applyPowerUp(type)
+        }
+
+        private applyPowerUp(type: string) {
+          if (type === 'pu_vacuum') {
+            for (const o of this.xpOrbs.getChildren() as Phaser.Physics.Arcade.Image[]) {
+              if (o.active) {
+                o.setPosition(
+                  this.player.x + (Math.random() - 0.5) * 12,
+                  this.player.y + (Math.random() - 0.5) * 12,
+                )
+                o.setVelocity(0, 0)
+              }
+            }
+          } else if (type === 'pu_frenzy') {
+            this.frenzyTimer = 15000
+          } else if (type === 'pu_nuke') {
+            const cam = this.cameras.main
+            const l = cam.scrollX - 40, r = cam.scrollX + cam.width + 40
+            const t = cam.scrollY - 40, b = cam.scrollY + cam.height + 40
+            for (const e of [...this.enemies.getChildren()] as Phaser.Physics.Arcade.Image[]) {
+              if (e.active && e.x >= l && e.x <= r && e.y >= t && e.y <= b) this.killEnemy(e)
+            }
+            const flash = this.add.graphics().setScrollFactor(0).setDepth(25)
+            flash.fillStyle(0xffffff, 0.35).fillRect(0, 0, cam.width, cam.height)
+            this.tweens.add({ targets: flash, alpha: 0, duration: 350, onComplete: () => flash.destroy() })
+          } else if (type === 'pu_freeze') {
+            this.freezeTimer = 5000
+            const cam = this.cameras.main
+            const flash = this.add.graphics().setScrollFactor(0).setDepth(25)
+            flash.fillStyle(0x22d3ee, 0.2).fillRect(0, 0, cam.width, cam.height)
+            this.tweens.add({ targets: flash, alpha: 0, duration: 400, onComplete: () => flash.destroy() })
+          } else if (type === 'pu_heal') {
+            this.hp = this.maxHp
+          } else if (type === 'pu_orbs') {
+            for (let i = 0; i < 25; i++) {
+              const a = (i / 25) * Math.PI * 2
+              const r = 60 + Math.random() * 80
+              const ox = this.player.x + Math.cos(a) * r
+              const oy = this.player.y + Math.sin(a) * r
+              ;(this.xpOrbs.create(ox, oy, 'orb') as Phaser.Physics.Arcade.Image).setDepth(2).setVelocity(0, 0)
+            }
+          }
+        }
+
         private spawnObstacles() {
           const cx = WORLD / 2, cy = WORLD / 2
           const safeR = 700
@@ -871,6 +993,19 @@ export default function Game() {
               g.fillStyle(t.color); g.fillRoundedRect(0, 0, t.size, t.size, t.radius)
               g.lineStyle(2, t.stroke); g.strokeRoundedRect(1, 1, t.size - 2, t.size - 2, t.radius)
             }, t.size, t.size)
+          }
+
+          for (const t of this.PU_TYPES) {
+            make(t.key, g => {
+              // diamond (rotated square) drawn as polygon
+              const s = 14
+              g.fillStyle(t.color, 1)
+              g.fillTriangle(s, 0,  s*2, s,  s, s*2)
+              g.fillTriangle(s, 0,  0,   s,  s, s*2)
+              g.lineStyle(2, t.stroke, 1)
+              g.strokeTriangle(s, 0,  s*2, s,  s, s*2)
+              g.strokeTriangle(s, 0,  0,   s,  s, s*2)
+            }, 28, 28)
           }
 
           make('obs_pillar', g => {
