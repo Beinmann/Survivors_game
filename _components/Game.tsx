@@ -27,11 +27,16 @@ export default function Game() {
       if (cancelled) return
 
       const ENEMY_TYPES = [
-        { key: 'enemy_grunt',   color: 0xef4444, stroke: 0xfca5a5, size: 22, radius: 3, hp: 30,  speed: 70,  unlockSecs: 0,   weight: 1.0, orbBonus: 0 },
-        { key: 'enemy_brute',   color: 0xf97316, stroke: 0xfed7aa, size: 30, radius: 6, hp: 110, speed: 52,  unlockSecs: 30,  weight: 0.3, orbBonus: 4 },
-        { key: 'enemy_speeder', color: 0x22d3ee, stroke: 0xa5f3fc, size: 16, radius: 1, hp: 28,  speed: 140, unlockSecs: 60,  weight: 1.0, orbBonus: 0 },
-        { key: 'enemy_tank',    color: 0x7c3aed, stroke: 0xc4b5fd, size: 36, radius: 2, hp: 300, speed: 36,  unlockSecs: 100, weight: 0.5, orbBonus: 2 },
-        { key: 'enemy_elite',   color: 0xfbbf24, stroke: 0xfde68a, size: 22, radius: 3, hp: 170, speed: 108, unlockSecs: 150, weight: 0.8, orbBonus: 1 },
+        { key: 'enemy_grunt',   color: 0xef4444, stroke: 0xfca5a5, size: 22, radius: 3,  hp: 30,   speed: 70,  unlockSecs: 0,       weight: 1.0, orbBonus: 0 },
+        { key: 'enemy_brute',   color: 0xf97316, stroke: 0xfed7aa, size: 30, radius: 6,  hp: 110,  speed: 52,  unlockSecs: 30,      weight: 0.3, orbBonus: 4 },
+        { key: 'enemy_speeder', color: 0x22d3ee, stroke: 0xa5f3fc, size: 16, radius: 1,  hp: 28,   speed: 140, unlockSecs: 60,      weight: 1.0, orbBonus: 0 },
+        { key: 'enemy_tank',    color: 0x7c3aed, stroke: 0xc4b5fd, size: 36, radius: 2,  hp: 300,  speed: 36,  unlockSecs: 100,     weight: 0.5, orbBonus: 2 },
+        { key: 'enemy_elite',   color: 0xfbbf24, stroke: 0xfde68a, size: 22, radius: 3,  hp: 170,  speed: 108, unlockSecs: 150,     weight: 0.8, orbBonus: 1 },
+        { key: 'enemy_charger', color: 0xff4500, stroke: 0xff8c69, size: 24, radius: 4,  hp: 80,   speed: 55,  unlockSecs: 75,      weight: 0.7, orbBonus: 1 },
+        { key: 'enemy_ghost',   color: 0xe0e0ff, stroke: 0xffffff, size: 20, radius: 10, hp: 45,   speed: 110, unlockSecs: 90,      weight: 0.9, orbBonus: 0 },
+        { key: 'enemy_bomber',  color: 0xcc2200, stroke: 0xff6644, size: 28, radius: 3,  hp: 90,   speed: 38,  unlockSecs: 130,     weight: 0.4, orbBonus: 2 },
+        { key: 'enemy_swarm',   color: 0xec4899, stroke: 0xf9a8d4, size: 12, radius: 6,  hp: 15,   speed: 160, unlockSecs: 180,     weight: 0.8, orbBonus: 0 },
+        { key: 'enemy_boss',    color: 0xff0000, stroke: 0xff8080, size: 52, radius: 8,  hp: 1500, speed: 47,  unlockSecs: 9999999, weight: 0.0, orbBonus: 18 },
       ]
 
       type WeaponType = 'shotgun' | 'sniper' | 'aura' | 'machinegun'
@@ -78,6 +83,8 @@ export default function Game() {
 
         // --- timer ---
         private gameTime = 0
+        private globalSpeedMult = 0
+        private nextBossWave = 0
 
         // --- ui ---
         private hpBar!: Phaser.GameObjects.Graphics
@@ -130,7 +137,9 @@ export default function Game() {
 
           this.physics.add.collider(this.enemies, this.enemies)
           this.physics.add.collider(this.player, this.obstacles)
-          this.physics.add.collider(this.enemies, this.obstacles)
+          this.physics.add.collider(this.enemies, this.obstacles, undefined,
+            (enemy: Phaser.GameObjects.GameObject) =>
+              !(enemy as Phaser.Physics.Arcade.Image).getData('isGhost'), this)
           this.physics.add.collider(this.bullets, this.obstacles,
             (bullet: Phaser.GameObjects.GameObject) => { (bullet as Phaser.Physics.Arcade.Image).destroy() }, undefined, this)
           this.physics.add.overlap(this.bullets, this.enemies,
@@ -174,7 +183,7 @@ export default function Game() {
           this.shotgunDmg = 30; this.sniperDmg = 150; this.auraDmg = 10
           this.machineGunDmg = 2; this.machineGunBurst = 1; this.machineGunPierce = false; this.weaponLevel = 1
           this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
-          this.gameTime = 0
+          this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
         }
 
         private togglePause() {
@@ -206,10 +215,15 @@ export default function Game() {
           this.gameTime += delta
           const totalSecs = Math.floor(this.gameTime / 1000)
           this.timerText.setText(`${Math.floor(totalSecs / 60)}:${(totalSecs % 60).toString().padStart(2, '0')}`)
+          this.globalSpeedMult = 1.0 + (this.gameTime / 1000) / 300
+          if (totalSecs >= this.nextBossWave) {
+            this.spawnBossWave()
+            this.nextBossWave += 180
+          }
 
           this.move()
           this.autoShoot(time)
-          this.moveEnemies()
+          this.moveEnemies(delta)
           this.pullOrbs()
 
           this.powerUpSpawnTimer -= delta
@@ -402,18 +416,45 @@ export default function Game() {
 
         // ─── movement / orbs ────────────────────────────────────────────────
 
-        private moveEnemies() {
-          if (this.freezeTimer > 0) {
-            for (const e of this.enemies.getChildren() as Phaser.Physics.Arcade.Image[]) {
-              if (Phaser.Math.Distance.Between(this.player.x, this.player.y, e.x, e.y) > DESPAWN_DIST) { e.destroy(); continue }
-              e.setVelocity(0, 0)
-            }
-            return
-          }
+        private moveEnemies(delta: number) {
           for (const e of this.enemies.getChildren() as Phaser.Physics.Arcade.Image[]) {
             if (Phaser.Math.Distance.Between(this.player.x, this.player.y, e.x, e.y) > DESPAWN_DIST) { e.destroy(); continue }
-            const speed = (e.getData('speed') as number) ?? 70
+            if (this.freezeTimer > 0) { e.setVelocity(0, 0); continue }
+
             const angle = Phaser.Math.Angle.Between(e.x, e.y, this.player.x, this.player.y)
+            const speed = ((e.getData('speed') as number) ?? 70) * this.globalSpeedMult
+
+            if (e.getData('isCharger')) {
+              const chargeState = e.getData('chargeState') as string
+              const chargeTimer = (e.getData('chargeTimer') as number) - delta
+              e.setData('chargeTimer', chargeTimer)
+
+              if (chargeState === 'idle') {
+                e.setVelocity(Math.cos(angle) * speed * 0.45, Math.sin(angle) * speed * 0.45)
+                if (chargeTimer <= 0) {
+                  e.setData('chargeState', 'telegraph')
+                  e.setData('chargeTimer', 600)
+                  e.setTint(0xff6600)
+                }
+              } else if (chargeState === 'telegraph') {
+                e.setVelocity(0, 0)
+                if (chargeTimer <= 0) {
+                  e.setData('chargeAngle', angle)
+                  e.setData('chargeState', 'charging')
+                  e.setData('chargeTimer', 900)
+                  e.clearTint()
+                }
+              } else {
+                const chargeAngle = e.getData('chargeAngle') as number
+                e.setVelocity(Math.cos(chargeAngle) * 380, Math.sin(chargeAngle) * 380)
+                if (chargeTimer <= 0) {
+                  e.setData('chargeState', 'idle')
+                  e.setData('chargeTimer', 2500 + Math.random() * 2000)
+                }
+              }
+              continue
+            }
+
             e.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed)
           }
         }
@@ -460,8 +501,9 @@ export default function Game() {
 
         private onPlayerHitEnemy(_p: Phaser.GameObjects.GameObject, _e: Phaser.GameObjects.GameObject) {
           if (this.iframes > 0) return
-          this.hp = Math.max(0, this.hp - 10)
-          this.iframes = 900
+          const contactDmg = 10 + Math.floor((this.gameTime / 1000) / 60) * 4
+          this.hp = Math.max(0, this.hp - contactDmg)
+          this.iframes = 650
           if (this.hp <= 0) this.showGameOver()
         }
 
@@ -478,6 +520,22 @@ export default function Game() {
 
         private killEnemy(e: Phaser.Physics.Arcade.Image) {
           if (!e.active) return
+
+          if (e.getData('explodes')) {
+            const expRadius = 80
+            const expFlash = this.add.graphics().setDepth(8)
+            expFlash.fillStyle(0xff4400, 0.55).fillCircle(e.x, e.y, expRadius)
+            expFlash.lineStyle(2, 0xff8800, 0.9).strokeCircle(e.x, e.y, expRadius)
+            this.tweens.add({ targets: expFlash, alpha: 0, duration: 450, onComplete: () => expFlash.destroy() })
+            if (this.iframes <= 0 &&
+                Phaser.Math.Distance.Between(this.player.x, this.player.y, e.x, e.y) <= expRadius) {
+              const contactDmg = 10 + Math.floor((this.gameTime / 1000) / 60) * 4
+              this.hp = Math.max(0, this.hp - contactDmg)
+              this.iframes = 650
+              if (this.hp <= 0) this.showGameOver()
+            }
+          }
+
           const orbBonus = (e.getData('orbBonus') as number) ?? 0
           const orbCount = 1 + orbBonus
 
@@ -782,7 +840,7 @@ export default function Game() {
 
         private spawnWave() {
           const gameTimeSecs = this.gameTime / 1000
-          const count = 2 + Math.floor(gameTimeSecs / 35)
+          const count = 2 + Math.floor(gameTimeSecs / 25) + Math.floor(gameTimeSecs / 120)
           const available = ENEMY_TYPES.filter(t => gameTimeSecs >= t.unlockSecs)
           const totalWeight = available.reduce((s, t) => s + t.weight, 0)
           for (let i = 0; i < count; i++) {
@@ -792,10 +850,52 @@ export default function Game() {
             const y = Phaser.Math.Clamp(this.player.y + Math.sin(angle) * dist, 10, WORLD - 10)
             let r = Math.random() * totalWeight
             const type = available.find(t => (r -= t.weight) <= 0) ?? available[available.length - 1]
-            const e = this.enemies.create(x, y, type.key) as Phaser.Physics.Arcade.Image
-            e.setDepth(3).setData('hp', type.hp).setData('speed', type.speed).setData('orbBonus', type.orbBonus)
+
+            const spawnOne = (sx: number, sy: number) => {
+              const e = this.enemies.create(sx, sy, type.key) as Phaser.Physics.Arcade.Image
+              e.setDepth(3).setData('hp', type.hp).setData('speed', type.speed).setData('orbBonus', type.orbBonus)
+              if (type.key === 'enemy_charger') {
+                e.setData('isCharger', true).setData('chargeState', 'idle').setData('chargeTimer', 2000 + Math.random() * 2000)
+              }
+              if (type.key === 'enemy_ghost') {
+                e.setAlpha(0.45).setData('isGhost', true)
+              }
+              if (type.key === 'enemy_bomber') {
+                e.setData('explodes', true)
+              }
+            }
+
+            if (type.key === 'enemy_swarm') {
+              for (let j = 0; j < 5; j++) {
+                const sa = Math.random() * Math.PI * 2
+                const sr = Math.random() * 50
+                spawnOne(
+                  Phaser.Math.Clamp(x + Math.cos(sa) * sr, 10, WORLD - 10),
+                  Phaser.Math.Clamp(y + Math.sin(sa) * sr, 10, WORLD - 10),
+                )
+              }
+            } else {
+              spawnOne(x, y)
+            }
           }
           this.spawnTimer = this.spawnRate * this.spawnPressure()
+        }
+
+        private spawnBossWave() {
+          const { width: w, height: h } = this.cameras.main
+          const warn = this.add.text(w / 2, h / 2 - 60, '⚠ BOSS INCOMING', {
+            fontSize: '26px', color: '#ef4444', stroke: '#000000', strokeThickness: 5,
+          }).setOrigin(0.5).setScrollFactor(0).setDepth(30)
+          this.tweens.add({ targets: warn, alpha: 0, duration: 3000, onComplete: () => warn.destroy() })
+
+          this.time.delayedCall(3000, () => {
+            if (this.dead) return
+            const angle = Math.random() * Math.PI * 2
+            const bx = Phaser.Math.Clamp(this.player.x + Math.cos(angle) * 620, 10, WORLD - 10)
+            const by = Phaser.Math.Clamp(this.player.y + Math.sin(angle) * 620, 10, WORLD - 10)
+            const boss = this.enemies.create(bx, by, 'enemy_boss') as Phaser.Physics.Arcade.Image
+            boss.setDepth(3).setData('hp', 1500).setData('speed', 47).setData('orbBonus', 18)
+          })
         }
 
         // ─── ui ─────────────────────────────────────────────────────────────
