@@ -165,6 +165,7 @@ export default function Game() {
               fontSize: '15px', color: '#aaaaaa', stroke: '#000', strokeThickness: 3,
             }).setOrigin(0.5).setScrollFactor(0).setDepth(36)
             this.pauseUI = [overlay, txt, sub]
+            this.addStatsPanel(o => this.pauseUI.push(o))
           } else {
             this.pauseUI.forEach(o => o.destroy())
             this.pauseUI = []
@@ -567,6 +568,78 @@ export default function Game() {
             })
 
             tag(bg); tag(nameText); tag(descText); tag(zone)
+          })
+
+          this.addStatsPanel(o => tag(o))
+        }
+
+        // ─── stats panel ────────────────────────────────────────────────────
+
+        private buildStatLines() {
+          const wt = this.weaponType
+          const rate = (1000 / this.shootRate).toFixed(1)
+          const lines: { label: string; value: string }[] = [
+            { label: 'HP',           value: `${this.hp} / ${this.maxHp}` },
+            { label: 'Move Speed',   value: String(this.moveSpeed) },
+            { label: 'Magnet',       value: String(this.magnetRadius) },
+            { label: 'Orb ×',        value: this.orbMultiplier.toFixed(2) },
+          ]
+          if (wt === 'shotgun') {
+            lines.push(
+              { label: 'Fire Rate',  value: `${rate}/s` },
+              { label: 'Pellets',    value: String(6 + this.extraBullets) },
+              { label: 'Range',      value: String(this.shotgunRange) },
+              { label: 'Damage',     value: String(this.shotgunDmg) },
+              { label: 'Rear Shot',  value: this.rearShot ? 'Yes' : 'No' },
+            )
+          } else if (wt === 'sniper') {
+            lines.push(
+              { label: 'Fire Rate',  value: `${rate}/s` },
+              { label: 'Pierce',     value: String(this.pierceCount) },
+              { label: 'Blt Speed',  value: String(this.bulletSpd) },
+              { label: 'Damage',     value: String(this.sniperDmg) },
+              { label: 'Rear Shot',  value: this.rearShot ? 'Yes' : 'No' },
+            )
+          } else if (wt === 'aura') {
+            lines.push(
+              { label: 'Pulse Rate', value: `${rate}/s` },
+              { label: 'Radius',     value: String(this.auraRadius) },
+              { label: 'Damage',     value: String(this.auraDmg) },
+            )
+          }
+          return lines
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        private addStatsPanel(collect: (o: any) => void) {
+          const { width: w, height: h } = this.cameras.main
+          const lines = this.buildStatLines()
+          const panelW = 175
+          const rowH = 17
+          const panelH = 26 + lines.length * rowH + 8
+          const px = w - panelW - 14
+          const py = h - panelH - 14
+
+          const bg = this.add.graphics().setScrollFactor(0).setDepth(46)
+          bg.fillStyle(0x080810, 0.88)
+          bg.fillRoundedRect(px, py, panelW, panelH, 6)
+          bg.lineStyle(1, 0x3a3a5a, 1)
+          bg.strokeRoundedRect(px, py, panelW, panelH, 6)
+          collect(bg)
+
+          const title = this.add.text(px + panelW / 2, py + 8, 'STATS', {
+            fontSize: '11px', color: '#fbbf24',
+          }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(47)
+          collect(title)
+
+          lines.forEach(({ label, value }, i) => {
+            const y = py + 24 + i * rowH
+            collect(this.add.text(px + 10, y, label, {
+              fontSize: '11px', color: '#9ca3af',
+            }).setScrollFactor(0).setDepth(47))
+            collect(this.add.text(px + panelW - 10, y, value, {
+              fontSize: '11px', color: '#e5e7eb',
+            }).setOrigin(1, 0).setScrollFactor(0).setDepth(47))
           })
         }
 
