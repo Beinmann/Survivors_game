@@ -407,8 +407,10 @@ export default function Game() {
         private pullOrbs() {
           for (const o of this.xpOrbs.getChildren() as Phaser.Physics.Arcade.Image[]) {
             const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, o.x, o.y)
-            if (dist < this.magnetRadius) {
-              const angle = Phaser.Math.Angle.Between(o.x, o.y, this.player.x, this.player.y)
+            const angle = Phaser.Math.Angle.Between(o.x, o.y, this.player.x, this.player.y)
+            if (o.getData('vacuumed')) {
+              o.setVelocity(Math.cos(angle) * 520, Math.sin(angle) * 520)
+            } else if (dist < this.magnetRadius) {
               o.setVelocity(Math.cos(angle) * (120 + (this.magnetRadius - dist) * 3),
                             Math.sin(angle) * (120 + (this.magnetRadius - dist) * 3))
             } else {
@@ -924,13 +926,7 @@ export default function Game() {
         private applyPowerUp(type: string) {
           if (type === 'pu_vacuum') {
             for (const o of this.xpOrbs.getChildren() as Phaser.Physics.Arcade.Image[]) {
-              if (o.active) {
-                o.setPosition(
-                  this.player.x + (Math.random() - 0.5) * 12,
-                  this.player.y + (Math.random() - 0.5) * 12,
-                )
-                o.setVelocity(0, 0)
-              }
+              if (o.active) o.setData('vacuumed', true)
             }
           } else if (type === 'pu_frenzy') {
             this.frenzyTimer = 15000
