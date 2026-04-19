@@ -51,11 +51,15 @@ export default function Game() {
         private shotgunRange = 220   // max travel distance for shotgun pellets
         private shotgunDmg = 22; private sniperDmg = 60; private auraDmg = 10
 
+        // --- timer ---
+        private gameTime = 0
+
         // --- ui ---
         private hpBar!: Phaser.GameObjects.Graphics
         private xpBar!: Phaser.GameObjects.Graphics
         private levelText!: Phaser.GameObjects.Text
         private scoreText!: Phaser.GameObjects.Text
+        private timerText!: Phaser.GameObjects.Text
         private paused = false
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         private pauseUI: any[] = []
@@ -76,6 +80,8 @@ export default function Game() {
           this.bulletSpd = 480; this.magnetRadius = 70; this.orbsPerKill = 1
           this.auraRadius = 110; this.shotgunRange = 220
           this.shotgunDmg = 30; this.sniperDmg = 150; this.auraDmg = 10
+
+          this.gameTime = 0
 
           this.buildTextures()
 
@@ -122,6 +128,9 @@ export default function Game() {
           this.scoreText = this.add.text(12, 32, 'Score: 0', {
             fontSize: '13px', color: '#dddddd', stroke: '#000000', strokeThickness: 3,
           }).setScrollFactor(0).setDepth(20)
+          this.timerText = this.add.text(this.cameras.main.width / 2, 12, '0:00', {
+            fontSize: '15px', color: '#facc15', stroke: '#000000', strokeThickness: 3,
+          }).setScrollFactor(0).setDepth(20).setOrigin(0.5, 0)
 
           this.showWeaponSelection()
         }
@@ -150,6 +159,10 @@ export default function Game() {
 
         update(time: number, delta: number) {
           if (this.dead || this.levelUpPending || this.weaponType === null || this.paused) return
+
+          this.gameTime += delta
+          const totalSecs = Math.floor(this.gameTime / 1000)
+          this.timerText.setText(`${Math.floor(totalSecs / 60)}:${(totalSecs % 60).toString().padStart(2, '0')}`)
 
           this.move()
           this.autoShoot(time)
@@ -272,7 +285,7 @@ export default function Game() {
         // ─── movement / orbs ────────────────────────────────────────────────
 
         private moveEnemies() {
-          const speed = 70 + this.level * 6
+          const speed = 70 + Math.floor(this.gameTime / 10000) * 4
           for (const e of this.enemies.getChildren() as Phaser.Physics.Arcade.Image[]) {
             const angle = Phaser.Math.Angle.Between(e.x, e.y, this.player.x, this.player.y)
             e.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed)
@@ -503,8 +516,9 @@ export default function Game() {
         // ─── spawning ───────────────────────────────────────────────────────
 
         private spawnWave() {
-          const count = 3 + Math.floor(this.level * 1.8)
-          const baseHp = Math.round(25 + (this.level - 1) * 15)
+          const gameTimeSecs = this.gameTime / 1000
+          const count = 3 + Math.floor(gameTimeSecs / 20)
+          const baseHp = Math.round(25 + Math.floor(gameTimeSecs / 10) * 12)
           for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2
             const dist = 550 + Math.random() * 250
@@ -630,7 +644,9 @@ export default function Game() {
             fontSize: '36px', color: '#ef4444', stroke: '#000', strokeThickness: 5,
           }).setOrigin(0.5).setScrollFactor(0).setDepth(31)
 
-          this.add.text(w / 2, h / 2 - 10, `Score: ${this.score}  ·  Level: ${this.level}`, {
+          const t = Math.floor(this.gameTime / 1000)
+          const timeStr = `${Math.floor(t / 60)}:${(t % 60).toString().padStart(2, '0')}`
+          this.add.text(w / 2, h / 2 - 10, `Score: ${this.score}  ·  Time: ${timeStr}`, {
             fontSize: '18px', color: '#ffffff', stroke: '#000', strokeThickness: 3,
           }).setOrigin(0.5).setScrollFactor(0).setDepth(31)
 
