@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 
 const WORLD = 12000
 const SPAWN_INTERVAL_MS = 2500
+const MAX_ORBS = 180
 
 export default function Game() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -467,20 +468,43 @@ export default function Game() {
           const orbBonus = (e.getData('orbBonus') as number) ?? 0
           const orbCount = 1 + orbBonus
           for (let i = 0; i < orbCount; i++) {
-            const ox = e.x + (Math.random() - 0.5) * 16
-            const oy = e.y + (Math.random() - 0.5) * 16
-            ;(this.xpOrbs.create(ox, oy, 'orb') as Phaser.Physics.Arcade.Image).setDepth(2).setVelocity(0, 0)
+            if (this.xpOrbs.countActive() >= MAX_ORBS) {
+              const active = this.xpOrbs.getChildren().filter(
+                o => (o as Phaser.Physics.Arcade.Image).active
+              ) as Phaser.Physics.Arcade.Image[]
+              if (active.length > 0) {
+                const target = active[Math.floor(Math.random() * active.length)]
+                const newVal = ((target.getData('xpValue') as number) ?? 1) + 1
+                target.setData('xpValue', newVal)
+                this.tintStackedOrb(target, newVal)
+              }
+            } else {
+              const ox = e.x + (Math.random() - 0.5) * 16
+              const oy = e.y + (Math.random() - 0.5) * 16
+              const orb = (this.xpOrbs.create(ox, oy, 'orb') as Phaser.Physics.Arcade.Image)
+                .setDepth(2).setVelocity(0, 0)
+              orb.setData('xpValue', 1)
+            }
           }
           e.destroy()
           this.score++
           this.scoreText.setText(`Score: ${this.score}`)
         }
 
+        private tintStackedOrb(orb: Phaser.Physics.Arcade.Image, value: number) {
+          const t = Math.min(1, (value - 1) / 9)
+          const g = Math.round(0x50 * (1 - t))
+          orb.setTint((0xff << 16) | (g << 8))
+          orb.setScale(1 + Math.min(1, (value - 1) * 0.1))
+        }
+
         // ─── progression ────────────────────────────────────────────────────
 
         private onCollectOrb(_p: Phaser.GameObjects.GameObject, orb: Phaser.GameObjects.GameObject) {
-          ;(orb as Phaser.Physics.Arcade.Image).destroy()
-          this.xp += this.orbMultiplier
+          const o = orb as Phaser.Physics.Arcade.Image
+          const xpValue = (o.getData('xpValue') as number) ?? 1
+          o.destroy()
+          this.xp += xpValue * this.orbMultiplier
           if (this.xp >= this.xpNeeded) {
             this.xp = 0
             this.xpNeeded = Math.floor(this.xpNeeded * 1.25)
