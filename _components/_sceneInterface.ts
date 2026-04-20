@@ -76,6 +76,8 @@ export interface IGameScene {
   xpBar: any
   weaponHUDGfx: any
   auraGfx: any
+  auraPulseAlpha: number
+  auraPulsePts: { x: number; y: number }[]
   weaponHUDLvlTexts: any[]
   passiveHUDLvlTexts: any[]
   passiveHUDIcons: any[]

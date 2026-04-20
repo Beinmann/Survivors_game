@@ -8,7 +8,7 @@ import { showTitleScreen, showWeaponSelection, showGameOver } from './_screens'
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
 import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies } from './_spawning'
-import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, showAuraPulse } from './_combat'
+import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura } from './_combat'
 import { onCollectOrb, getWeaponUpgrades, getUpgrades, showUpgradeMenu, pullOrbs, unlockWeapon } from './_progression'
 
 export function createGameScene(Phaser: any) {
@@ -94,6 +94,8 @@ export function createGameScene(Phaser: any) {
     public xpBar!: any
     public weaponHUDGfx!: any
     public auraGfx!: any
+    public auraPulseAlpha = 0
+    public auraPulsePts: { x: number; y: number }[] = []
     public weaponHUDLvlTexts: any[] = []
     public passiveHUDLvlTexts: any[] = []
     public passiveHUDIcons: any[] = []
@@ -214,6 +216,8 @@ export function createGameScene(Phaser: any) {
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
       this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
+      this.auraPulseAlpha = 0
+      this.auraPulsePts = []
     }
 
     public togglePause() {
@@ -300,17 +304,41 @@ export function createGameScene(Phaser: any) {
     }
 
     public updateAura() {
-      if (this.weapons.includes('aura')) {
-        this.auraGfx.setVisible(true)
-        this.auraGfx.clear()
-        this.auraGfx.x = this.player.x
-        this.auraGfx.y = this.player.y
-        this.auraGfx.fillStyle(0xa78bfa, 0.06)
-        this.auraGfx.fillCircle(0, 0, this.auraRadius)
-        this.auraGfx.lineStyle(1, 0xc4b5fd, 0.15)
-        this.auraGfx.strokeCircle(0, 0, this.auraRadius)
-      } else {
+      if (!this.weapons.includes('aura')) {
         this.auraGfx.setVisible(false)
+        return
+      }
+
+      this.auraGfx.setVisible(true)
+      this.auraGfx.clear()
+      this.auraGfx.x = this.player.x
+      this.auraGfx.y = this.player.y
+
+      // Base field: subtle pulsing circle
+      const baseAlpha = 0.06 + (Math.sin(this.gameTime / 200) * 0.02)
+      this.auraGfx.fillStyle(0xa78bfa, baseAlpha)
+      this.auraGfx.fillCircle(0, 0, this.auraRadius)
+      
+      this.auraGfx.lineStyle(1, 0xc4b5fd, 0.15)
+      this.auraGfx.strokeCircle(0, 0, this.auraRadius)
+
+      // Damage pulse (spikes) combined with field
+      if (this.auraPulseAlpha > 0 && this.auraPulsePts.length > 0) {
+        this.auraGfx.lineStyle(2, 0xc4b5fd, this.auraPulseAlpha * 0.9)
+        this.auraGfx.fillStyle(0xa78bfa, this.auraPulseAlpha * 0.15)
+        
+        this.auraGfx.beginPath()
+        this.auraGfx.moveTo(this.auraPulsePts[0].x, this.auraPulsePts[0].y)
+        for (let i = 1; i < this.auraPulsePts.length; i++) {
+          this.auraGfx.lineTo(this.auraPulsePts[i].x, this.auraPulsePts[i].y)
+        }
+        this.auraGfx.closePath()
+        this.auraGfx.fillPath()
+        this.auraGfx.strokePath()
+
+        // Distort the base field slightly when pulsing
+        this.auraGfx.lineStyle(2, 0xc4b5fd, this.auraPulseAlpha * 0.5)
+        this.auraGfx.strokeCircle(0, 0, this.auraRadius * (1 + this.auraPulseAlpha * 0.05))
       }
     }
 
@@ -353,7 +381,37 @@ export function createGameScene(Phaser: any) {
     }
 
     public showAuraPulse() {
-      showAuraPulse(this)
+      const spikes = 14
+      const outerR = this.auraRadius
+      const innerR = this.auraRadius * 0.68
+
+      const rotation = Math.random() * Math.PI * 2
+      const prominentCount = 2 + Math.floor(Math.random() * 2)
+      const prominent = new Set<number>()
+      while (prominent.size < prominentCount) prominent.add(Math.floor(Math.random() * spikes))
+
+      const pts: { x: number; y: number }[] = []
+      for (let i = 0; i < spikes * 2; i++) {
+        const angle = (i / (spikes * 2)) * Math.PI * 2 + rotation
+        let r: number
+        if (i % 2 === 0) {
+          r = prominent.has(i / 2)
+            ? outerR * (1.28 + Math.random() * 0.22) + (Math.random() - 0.5) * 8
+            : outerR * (0.88 + Math.random() * 0.18)
+        } else {
+          r = innerR + (Math.random() - 0.5) * 10
+        }
+        pts.push({ x: Math.cos(angle) * r, y: Math.sin(angle) * r })
+      }
+
+      this.auraPulsePts = pts
+      this.auraPulseAlpha = 1.0
+      this.tweens.add({
+        targets: this,
+        auraPulseAlpha: 0,
+        duration: 450,
+        ease: 'Cubic.out'
+      })
     }
 
     // ─── movement / orbs ────────────────────────────────────────────────

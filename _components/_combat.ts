@@ -90,68 +90,14 @@ export function fireMachineGun(scene: IGameScene, angle: number, wt: WeaponType)
 }
 
 export function fireAura(scene: IGameScene) {
-  let hit = false
   for (const e of [...scene.enemies.getChildren()] as any[]) {
     if (!e.active) continue
     const dist = Math.sqrt((scene.player.x - e.x) ** 2 + (scene.player.y - e.y) ** 2)
     if (dist <= scene.auraRadius) {
       scene.damageEnemy(e, scene.auraDmg, false)
-      hit = true
     }
   }
-  if (hit) scene.showAuraPulse()
-}
-
-export function showAuraPulse(scene: IGameScene) {
-  const spikes = 14
-  const outerR = scene.auraRadius
-  const innerR = scene.auraRadius * 0.68
-
-  const rotation = Math.random() * Math.PI * 2
-  const prominentCount = 2 + Math.floor(Math.random() * 2)
-  const prominent = new Set<number>()
-  while (prominent.size < prominentCount) prominent.add(Math.floor(Math.random() * spikes))
-
-  const pts: { x: number; y: number }[] = []
-  for (let i = 0; i < spikes * 2; i++) {
-    const angle = (i / (spikes * 2)) * Math.PI * 2 + rotation
-    let r: number
-    if (i % 2 === 0) {
-      r = prominent.has(i / 2)
-        ? outerR * (1.28 + Math.random() * 0.22) + (Math.random() - 0.5) * 8
-        : outerR * (0.88 + Math.random() * 0.18)
-    } else {
-      r = innerR + (Math.random() - 0.5) * 10
-    }
-    pts.push({ x: Math.cos(angle) * r, y: Math.sin(angle) * r })
-  }
-
-  const draw = (g: any) => {
-    g.moveTo(pts[0].x, pts[0].y)
-    for (let i = 1; i < pts.length; i++) g.lineTo(pts[i].x, pts[i].y)
-    g.closePath()
-  }
-
-  const ring = scene.add.graphics().setDepth(4)
-  ring.x = scene.player.x
-  ring.y = scene.player.y
-  ring.fillStyle(0xa78bfa, 0.13)
-  ring.beginPath(); draw(ring); ring.fillPath()
-  ring.lineStyle(2, 0xc4b5fd, 0.9)
-  ring.beginPath(); draw(ring); ring.strokePath()
-
-  scene.tweens.add({ 
-    targets: ring, 
-    alpha: 0, 
-    duration: 420, 
-    onUpdate: () => {
-      if (scene.player) {
-        ring.x = scene.player.x
-        ring.y = scene.player.y
-      }
-    },
-    onComplete: () => ring.destroy() 
-  })
+  scene.showAuraPulse()
 }
 
 export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
