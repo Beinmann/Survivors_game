@@ -614,51 +614,51 @@ export default function Game() {
           }
         }
 
-        private getWeaponUpgrades(): { name: string; desc: string; apply: () => void; isWeaponUpgrade: true }[] {
-          type Step = { desc: string; apply: () => void }
+        private getWeaponUpgrades(): { name: string; desc: string; icon: string; apply: () => void; isWeaponUpgrade: true }[] {
+          type Step = { desc: string; icon: string; apply: () => void }
           const paths: Record<WeaponType, Step[]> = {
             shotgun: [
-              { desc: '+2 pellets  ·  −50ms cooldown',             apply: () => { this.extraBullets += 2; this.weaponShootRates['shotgun'] = Math.max(100, (this.weaponShootRates['shotgun'] ?? 550) - 50) } },
-              { desc: '+30% damage  ·  +50px range',               apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.3); this.shotgunRange += 50 } },
-              { desc: 'Unlock rear shot',                          apply: () => { this.weaponRearShot['shotgun'] = true } },
-              { desc: '+2 pellets  ·  +30% damage',                apply: () => { this.extraBullets += 2; this.shotgunDmg = Math.round(this.shotgunDmg * 1.3) } },
-              { desc: '−80ms cooldown  ·  +60px range',            apply: () => { this.weaponShootRates['shotgun'] = Math.max(100, (this.weaponShootRates['shotgun'] ?? 550) - 80); this.shotgunRange += 60 } },
-              { desc: '+40% damage  ·  +2 pellets',                apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.4); this.extraBullets += 2 } },
-              { desc: '−80ms cooldown  ·  +60px range',            apply: () => { this.weaponShootRates['shotgun'] = Math.max(100, (this.weaponShootRates['shotgun'] ?? 550) - 80); this.shotgunRange += 60 } },
-              { desc: '+60% damage  ·  +4 pellets  ·  −100ms',     apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.6); this.extraBullets += 4; this.weaponShootRates['shotgun'] = Math.max(100, (this.weaponShootRates['shotgun'] ?? 550) - 100) } },
+              { desc: '+2 pellets  ·  −50ms cooldown',             icon: 'ico_pellets',     apply: () => { this.extraBullets += 2; this.weaponShootRates['shotgun'] = Math.max(100, (this.weaponShootRates['shotgun'] ?? 550) - 50) } },
+              { desc: '+30% damage  ·  +50px range',               icon: 'ico_damage',      apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.3); this.shotgunRange += 50 } },
+              { desc: 'Unlock rear shot',                          icon: 'ico_rearshot',    apply: () => { this.weaponRearShot['shotgun'] = true } },
+              { desc: '+2 pellets  ·  +30% damage',                icon: 'ico_pellets',     apply: () => { this.extraBullets += 2; this.shotgunDmg = Math.round(this.shotgunDmg * 1.3) } },
+              { desc: '−80ms cooldown  ·  +60px range',            icon: 'ico_cooldown',    apply: () => { this.weaponShootRates['shotgun'] = Math.max(100, (this.weaponShootRates['shotgun'] ?? 550) - 80); this.shotgunRange += 60 } },
+              { desc: '+40% damage  ·  +2 pellets',                icon: 'ico_damage',      apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.4); this.extraBullets += 2 } },
+              { desc: '−80ms cooldown  ·  +60px range',            icon: 'ico_range',       apply: () => { this.weaponShootRates['shotgun'] = Math.max(100, (this.weaponShootRates['shotgun'] ?? 550) - 80); this.shotgunRange += 60 } },
+              { desc: '+60% damage  ·  +4 pellets  ·  −100ms',     icon: 'ico_pellets',     apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.6); this.extraBullets += 4; this.weaponShootRates['shotgun'] = Math.max(100, (this.weaponShootRates['shotgun'] ?? 550) - 100) } },
             ],
             sniper: [
-              { desc: '+1 pierce  ·  +50% damage',                 apply: () => { this.pierceCount++; this.sniperDmg = Math.round(this.sniperDmg * 1.5) } },
-              { desc: '−250ms cooldown  ·  +30% bullet speed',     apply: () => { this.weaponShootRates['sniper'] = Math.max(300, (this.weaponShootRates['sniper'] ?? 1400) - 250); this.weaponBulletSpd['sniper'] = Math.round((this.weaponBulletSpd['sniper'] ?? 680) * 1.3) } },
-              { desc: 'Rear shot  ·  +50% damage',                 apply: () => { this.weaponRearShot['sniper'] = true; this.sniperDmg = Math.round(this.sniperDmg * 1.5) } },
-              { desc: '+2 pierce  ·  −200ms cooldown',             apply: () => { this.pierceCount += 2; this.weaponShootRates['sniper'] = Math.max(300, (this.weaponShootRates['sniper'] ?? 1400) - 200) } },
-              { desc: '+70% damage  ·  +30% bullet speed',         apply: () => { this.sniperDmg = Math.round(this.sniperDmg * 1.7); this.weaponBulletSpd['sniper'] = Math.round((this.weaponBulletSpd['sniper'] ?? 680) * 1.3) } },
-              { desc: '+2 pierce  ·  −200ms cooldown',             apply: () => { this.pierceCount += 2; this.weaponShootRates['sniper'] = Math.max(300, (this.weaponShootRates['sniper'] ?? 1400) - 200) } },
-              { desc: '+80% damage  ·  +30% bullet speed',         apply: () => { this.sniperDmg = Math.round(this.sniperDmg * 1.8); this.weaponBulletSpd['sniper'] = Math.round((this.weaponBulletSpd['sniper'] ?? 680) * 1.3) } },
-              { desc: '+3 pierce  ·  +100% damage  ·  −200ms',     apply: () => { this.pierceCount += 3; this.sniperDmg = Math.round(this.sniperDmg * 2.0); this.weaponShootRates['sniper'] = Math.max(300, (this.weaponShootRates['sniper'] ?? 1400) - 200) } },
+              { desc: '+1 pierce  ·  +50% damage',                 icon: 'ico_pierce',      apply: () => { this.pierceCount++; this.sniperDmg = Math.round(this.sniperDmg * 1.5) } },
+              { desc: '−250ms cooldown  ·  +30% bullet speed',     icon: 'ico_cooldown',    apply: () => { this.weaponShootRates['sniper'] = Math.max(300, (this.weaponShootRates['sniper'] ?? 1400) - 250); this.weaponBulletSpd['sniper'] = Math.round((this.weaponBulletSpd['sniper'] ?? 680) * 1.3) } },
+              { desc: 'Rear shot  ·  +50% damage',                 icon: 'ico_rearshot',    apply: () => { this.weaponRearShot['sniper'] = true; this.sniperDmg = Math.round(this.sniperDmg * 1.5) } },
+              { desc: '+2 pierce  ·  −200ms cooldown',             icon: 'ico_pierce',      apply: () => { this.pierceCount += 2; this.weaponShootRates['sniper'] = Math.max(300, (this.weaponShootRates['sniper'] ?? 1400) - 200) } },
+              { desc: '+70% damage  ·  +30% bullet speed',         icon: 'ico_bulletspeed', apply: () => { this.sniperDmg = Math.round(this.sniperDmg * 1.7); this.weaponBulletSpd['sniper'] = Math.round((this.weaponBulletSpd['sniper'] ?? 680) * 1.3) } },
+              { desc: '+2 pierce  ·  −200ms cooldown',             icon: 'ico_pierce',      apply: () => { this.pierceCount += 2; this.weaponShootRates['sniper'] = Math.max(300, (this.weaponShootRates['sniper'] ?? 1400) - 200) } },
+              { desc: '+80% damage  ·  +30% bullet speed',         icon: 'ico_damage',      apply: () => { this.sniperDmg = Math.round(this.sniperDmg * 1.8); this.weaponBulletSpd['sniper'] = Math.round((this.weaponBulletSpd['sniper'] ?? 680) * 1.3) } },
+              { desc: '+3 pierce  ·  +100% damage  ·  −200ms',     icon: 'ico_pierce',      apply: () => { this.pierceCount += 3; this.sniperDmg = Math.round(this.sniperDmg * 2.0); this.weaponShootRates['sniper'] = Math.max(300, (this.weaponShootRates['sniper'] ?? 1400) - 200) } },
             ],
             aura: [
-              { desc: '+30% damage',                               apply: () => { this.auraDmg = Math.round(this.auraDmg * 1.3) } },
-              { desc: '+25px radius  ·  −80ms cooldown',           apply: () => { this.auraRadius += 25; this.weaponShootRates['aura'] = Math.max(100, (this.weaponShootRates['aura'] ?? 500) - 80) } },
-              { desc: '+50% damage  ·  +25px radius',              apply: () => { this.auraDmg = Math.round(this.auraDmg * 1.5); this.auraRadius += 25 } },
-              { desc: '−100ms cooldown  ·  +30px radius',          apply: () => { this.weaponShootRates['aura'] = Math.max(100, (this.weaponShootRates['aura'] ?? 500) - 100); this.auraRadius += 30 } },
-              { desc: '+60% damage  ·  +30px radius',              apply: () => { this.auraDmg = Math.round(this.auraDmg * 1.6); this.auraRadius += 30 } },
-              { desc: '−100ms cooldown  ·  +35px radius',          apply: () => { this.weaponShootRates['aura'] = Math.max(100, (this.weaponShootRates['aura'] ?? 500) - 100); this.auraRadius += 35 } },
-              { desc: '+80% damage  ·  +35px radius',              apply: () => { this.auraDmg = Math.round(this.auraDmg * 1.8); this.auraRadius += 35 } },
-              { desc: '+100% damage  ·  +50px radius  ·  −100ms',  apply: () => { this.auraDmg = Math.round(this.auraDmg * 2.0); this.auraRadius += 50; this.weaponShootRates['aura'] = Math.max(100, (this.weaponShootRates['aura'] ?? 500) - 100) } },
+              { desc: '+30% damage',                               icon: 'ico_damage',      apply: () => { this.auraDmg = Math.round(this.auraDmg * 1.3) } },
+              { desc: '+25px radius  ·  −80ms cooldown',           icon: 'ico_radius',      apply: () => { this.auraRadius += 25; this.weaponShootRates['aura'] = Math.max(100, (this.weaponShootRates['aura'] ?? 500) - 80) } },
+              { desc: '+50% damage  ·  +25px radius',              icon: 'ico_damage',      apply: () => { this.auraDmg = Math.round(this.auraDmg * 1.5); this.auraRadius += 25 } },
+              { desc: '−100ms cooldown  ·  +30px radius',          icon: 'ico_radius',      apply: () => { this.weaponShootRates['aura'] = Math.max(100, (this.weaponShootRates['aura'] ?? 500) - 100); this.auraRadius += 30 } },
+              { desc: '+60% damage  ·  +30px radius',              icon: 'ico_damage',      apply: () => { this.auraDmg = Math.round(this.auraDmg * 1.6); this.auraRadius += 30 } },
+              { desc: '−100ms cooldown  ·  +35px radius',          icon: 'ico_radius',      apply: () => { this.weaponShootRates['aura'] = Math.max(100, (this.weaponShootRates['aura'] ?? 500) - 100); this.auraRadius += 35 } },
+              { desc: '+80% damage  ·  +35px radius',              icon: 'ico_damage',      apply: () => { this.auraDmg = Math.round(this.auraDmg * 1.8); this.auraRadius += 35 } },
+              { desc: '+100% damage  ·  +50px radius  ·  −100ms',  icon: 'ico_radius',      apply: () => { this.auraDmg = Math.round(this.auraDmg * 2.0); this.auraRadius += 50; this.weaponShootRates['aura'] = Math.max(100, (this.weaponShootRates['aura'] ?? 500) - 100) } },
             ],
             machinegun: [
-              { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 15) } },
-              { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 15) } },
-              { desc: 'Piercing rounds — bullets pass through 1 enemy', apply: () => { this.machineGunPierce = true } },
-              { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 15) } },
-              { desc: 'Burst fire — 2 bullets per shot',           apply: () => { this.machineGunBurst = 2 } },
-              { desc: 'Rear shot  ·  +30% damage',                 apply: () => { this.weaponRearShot['machinegun'] = true; this.machineGunDmg = Math.round(this.machineGunDmg * 1.3) } },
-              { desc: '3-round burst  ·  −20ms cooldown',          apply: () => { this.machineGunBurst = 3; this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 20) } },
-              { desc: '+60% damage  ·  −20ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.6); this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 20) } },
+              { desc: '+40% damage  ·  −15ms cooldown',            icon: 'ico_damage',      apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 15) } },
+              { desc: '+40% damage  ·  −15ms cooldown',            icon: 'ico_damage',      apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 15) } },
+              { desc: 'Piercing rounds — bullets pass through 1 enemy', icon: 'ico_pierce', apply: () => { this.machineGunPierce = true } },
+              { desc: '+40% damage  ·  −15ms cooldown',            icon: 'ico_cooldown',    apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 15) } },
+              { desc: 'Burst fire — 2 bullets per shot',           icon: 'ico_burst',       apply: () => { this.machineGunBurst = 2 } },
+              { desc: 'Rear shot  ·  +30% damage',                 icon: 'ico_rearshot',    apply: () => { this.weaponRearShot['machinegun'] = true; this.machineGunDmg = Math.round(this.machineGunDmg * 1.3) } },
+              { desc: '3-round burst  ·  −20ms cooldown',          icon: 'ico_burst',       apply: () => { this.machineGunBurst = 3; this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 20) } },
+              { desc: '+60% damage  ·  −20ms cooldown',            icon: 'ico_damage',      apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.6); this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 20) } },
             ],
           }
-          const result: { name: string; desc: string; apply: () => void; isWeaponUpgrade: true }[] = []
+          const result: { name: string; desc: string; icon: string; apply: () => void; isWeaponUpgrade: true }[] = []
           for (const wt of this.weapons) {
             const lvl = this.weaponLevels[wt] ?? 1
             if (lvl >= 9) continue
@@ -667,6 +667,7 @@ export default function Game() {
             result.push({
               name: `${WEAPON_NAMES[wt]} Lv ${lvl + 1}`,
               desc: step.desc,
+              icon: step.icon,
               apply: () => { step.apply(); this.weaponLevels[wt] = lvl + 1 },
               isWeaponUpgrade: true,
             })
@@ -676,12 +677,12 @@ export default function Game() {
 
         private getUpgrades() {
           const passives = [
-            { name: 'Swift Feet',    desc: 'Move 25% faster',                         apply: () => { this.moveSpeed = Math.round(this.moveSpeed * 1.25) } },
-            { name: 'XP Magnet',     desc: 'Pull orbs from 80px further away',         apply: () => { this.magnetRadius += 80 } },
-            { name: 'Bounty Hunter', desc: 'Gain 35% more XP from every orb',          apply: () => { this.orbMultiplier += 0.35 } },
-            { name: 'Vital Surge',   desc: 'Restore 40 HP and raise max HP by 20',     apply: () => { this.maxHp += 20; this.hp = Math.min(this.maxHp, this.hp + 40) } },
-            { name: 'Power Core',    desc: '+20% damage for all active weapons',        apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.2); this.sniperDmg = Math.round(this.sniperDmg * 1.2); this.auraDmg = Math.round(this.auraDmg * 1.2); this.machineGunDmg = Math.round(this.machineGunDmg * 1.2) } },
-            { name: 'Overclock',     desc: 'All weapons fire 15% faster',               apply: () => { for (const wt of this.weapons) { this.weaponShootRates[wt] = Math.max(50, Math.round((this.weaponShootRates[wt] ?? WEAPON_BASE[wt].shootRate) * 0.85)) } } },
+            { name: 'Swift Feet',    icon: 'ico_movespeed', desc: 'Move 25% faster',                         apply: () => { this.moveSpeed = Math.round(this.moveSpeed * 1.25) } },
+            { name: 'XP Magnet',     icon: 'ico_magnet',    desc: 'Pull orbs from 80px further away',         apply: () => { this.magnetRadius += 80 } },
+            { name: 'Bounty Hunter', icon: 'ico_orbmult',   desc: 'Gain 35% more XP from every orb',          apply: () => { this.orbMultiplier += 0.35 } },
+            { name: 'Vital Surge',   icon: 'ico_hp',        desc: 'Restore 40 HP and raise max HP by 20',     apply: () => { this.maxHp += 20; this.hp = Math.min(this.maxHp, this.hp + 40) } },
+            { name: 'Power Core',    icon: 'ico_damage',    desc: '+20% damage for all active weapons',        apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.2); this.sniperDmg = Math.round(this.sniperDmg * 1.2); this.auraDmg = Math.round(this.auraDmg * 1.2); this.machineGunDmg = Math.round(this.machineGunDmg * 1.2) } },
+            { name: 'Overclock',     icon: 'ico_cooldown',  desc: 'All weapons fire 15% faster',               apply: () => { for (const wt of this.weapons) { this.weaponShootRates[wt] = Math.max(50, Math.round((this.weaponShootRates[wt] ?? WEAPON_BASE[wt].shootRate) * 0.85)) } } },
           ]
           const weaponUpgrades = this.getWeaponUpgrades()
           const unlockOptions = this.weapons.length < 3
@@ -689,6 +690,7 @@ export default function Game() {
                 .filter(wt => !this.weapons.includes(wt))
                 .map(wt => ({
                   name: `Unlock ${WEAPON_NAMES[wt]}`,
+                  icon: `wico_${wt}`,
                   desc: this.weaponUnlockDesc(wt),
                   apply: () => this.unlockWeapon(wt),
                   isNewWeapon: true as const,
@@ -767,14 +769,19 @@ export default function Game() {
             }
             draw(false)
 
+            const iconKey = (upgrade as any).icon as string | undefined
+            const iconImg = this.add.image(cx, cy - 43, iconKey ?? 'ico_damage')
+              .setDisplaySize(24, 24).setScrollFactor(0).setDepth(42)
+            tag(iconImg)
+
             const nameColor = isNewWeapon ? '#fcd34d' : isWeapon ? '#93c5fd' : '#ffffff'
-            const nameText = this.add.text(cx, cy - 32, upgrade.name, {
+            const nameText = this.add.text(cx, cy - 20, upgrade.name, {
               fontSize: '15px', color: nameColor, stroke: '#000', strokeThickness: 2,
               align: 'center', wordWrap: { width: cardW - 16 },
             }).setOrigin(0.5).setScrollFactor(0).setDepth(42)
 
             const descColor = isNewWeapon ? '#fde68a' : isWeapon ? '#bfdbfe' : '#aaaacc'
-            const descText = this.add.text(cx, cy + 18, upgrade.desc, {
+            const descText = this.add.text(cx, cy + 22, upgrade.desc, {
               fontSize: '12px', color: descColor,
               align: 'center', wordWrap: { width: cardW - 16 },
             }).setOrigin(0.5).setScrollFactor(0).setDepth(42)
@@ -801,46 +808,46 @@ export default function Game() {
         // ─── stats panel ────────────────────────────────────────────────────
 
         private buildStatLines() {
-          const lines: { label: string; value: string }[] = []
+          const lines: { label: string; value: string; icon?: string }[] = []
           for (const wt of this.weapons) {
             const rate = (1000 / (this.weaponShootRates[wt] ?? WEAPON_BASE[wt].shootRate)).toFixed(1)
             const lvl  = this.weaponLevels[wt] ?? 1
             const rear = this.weaponRearShot[wt] ?? false
-            lines.push({ label: `── ${WEAPON_NAMES[wt]}`, value: `Lv${lvl}` })
-            lines.push({ label: 'Fire Rate', value: `${rate}/s` })
+            lines.push({ label: `── ${WEAPON_NAMES[wt]}`, value: `Lv${lvl}`, icon: 'ico_level' })
+            lines.push({ label: 'Fire Rate', value: `${rate}/s`, icon: 'ico_cooldown' })
             if (wt === 'shotgun') {
               lines.push(
-                { label: 'Pellets', value: String(6 + this.extraBullets) },
-                { label: 'Range',   value: String(this.shotgunRange) },
-                { label: 'Damage',  value: String(this.shotgunDmg) },
-                { label: 'Rear',    value: rear ? 'Yes' : 'No' },
+                { label: 'Pellets', value: String(6 + this.extraBullets), icon: 'ico_pellets' },
+                { label: 'Range',   value: String(this.shotgunRange),      icon: 'ico_range' },
+                { label: 'Damage',  value: String(this.shotgunDmg),        icon: 'ico_damage' },
+                { label: 'Rear',    value: rear ? 'Yes' : 'No',            icon: 'ico_rearshot' },
               )
             } else if (wt === 'sniper') {
               lines.push(
-                { label: 'Pierce',     value: String(this.pierceCount) },
-                { label: 'Blt Speed', value: String(this.weaponBulletSpd['sniper'] ?? 680) },
-                { label: 'Damage',    value: String(this.sniperDmg) },
-                { label: 'Rear',      value: rear ? 'Yes' : 'No' },
+                { label: 'Pierce',    value: String(this.pierceCount),                      icon: 'ico_pierce' },
+                { label: 'Blt Speed', value: String(this.weaponBulletSpd['sniper'] ?? 680), icon: 'ico_bulletspeed' },
+                { label: 'Damage',    value: String(this.sniperDmg),                        icon: 'ico_damage' },
+                { label: 'Rear',      value: rear ? 'Yes' : 'No',                           icon: 'ico_rearshot' },
               )
             } else if (wt === 'aura') {
               lines.push(
-                { label: 'Radius', value: String(this.auraRadius) },
-                { label: 'Damage', value: String(this.auraDmg) },
+                { label: 'Radius', value: String(this.auraRadius), icon: 'ico_radius' },
+                { label: 'Damage', value: String(this.auraDmg),    icon: 'ico_damage' },
               )
             } else if (wt === 'machinegun') {
               lines.push(
-                { label: 'Burst',  value: String(this.machineGunBurst) + (rear ? '+rear' : '') },
-                { label: 'Pierce', value: this.machineGunPierce ? 'Yes' : 'No' },
-                { label: 'Damage', value: String(this.machineGunDmg) },
+                { label: 'Burst',  value: String(this.machineGunBurst) + (rear ? '+rear' : ''), icon: 'ico_burst' },
+                { label: 'Pierce', value: this.machineGunPierce ? 'Yes' : 'No',                 icon: 'ico_pierce' },
+                { label: 'Damage', value: String(this.machineGunDmg),                           icon: 'ico_damage' },
               )
             }
           }
           lines.push(
             { label: '── Passive', value: '' },
-            { label: 'HP',          value: `${this.hp} / ${this.maxHp}` },
-            { label: 'Move Speed',  value: String(this.moveSpeed) },
-            { label: 'Magnet',      value: String(this.magnetRadius) },
-            { label: 'Orb ×',       value: this.orbMultiplier.toFixed(2) },
+            { label: 'HP',         value: `${this.hp} / ${this.maxHp}`, icon: 'ico_hp' },
+            { label: 'Move Speed', value: String(this.moveSpeed),        icon: 'ico_movespeed' },
+            { label: 'Magnet',     value: String(this.magnetRadius),     icon: 'ico_magnet' },
+            { label: 'Orb ×',      value: this.orbMultiplier.toFixed(2), icon: 'ico_orbmult' },
           )
           return lines
         }
@@ -867,9 +874,13 @@ export default function Game() {
           }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(47)
           collect(title)
 
-          lines.forEach(({ label, value }, i) => {
+          lines.forEach(({ label, value, icon }, i) => {
             const y = py + 24 + i * rowH
-            collect(this.add.text(px + 10, y, label, {
+            if (icon) {
+              collect(this.add.image(px + 16, y + 6, icon)
+                .setDisplaySize(12, 12).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(47))
+            }
+            collect(this.add.text(px + 26, y, label, {
               fontSize: '11px', color: '#9ca3af',
             }).setScrollFactor(0).setDepth(47))
             collect(this.add.text(px + panelW - 10, y, value, {
@@ -1024,10 +1035,12 @@ export default function Game() {
             g.fillStyle(0xf97316).fillRect(cx - 2, cy + 1, 4, 6)
           } else if (wt === 'sniper') {
             g.lineStyle(1.5, 0x60a5fa)
-            g.lineBetween(cx, cy + 10, cx, cy - 12)
-            g.lineStyle(1, 0x60a5fa)
-            g.lineBetween(cx - 6, cy + 8, cx + 6, cy + 8)
-            g.fillStyle(0x60a5fa).fillCircle(cx, cy - 13, 2)
+            g.strokeCircle(cx, cy, 10)
+            g.lineBetween(cx - 15, cy, cx - 12, cy)
+            g.lineBetween(cx + 12, cy, cx + 15, cy)
+            g.lineBetween(cx, cy - 15, cx, cy - 12)
+            g.lineBetween(cx, cy + 12, cx, cy + 15)
+            g.fillStyle(0x60a5fa).fillCircle(cx, cy, 2)
           } else if (wt === 'aura') {
             g.lineStyle(1.5, 0xa78bfa)
             g.strokeCircle(cx, cy, 9)
@@ -1380,6 +1393,175 @@ export default function Game() {
             g.fillStyle(0xa78bfa); g.fillCircle(5, 5, 5)
             g.lineStyle(1, 0xc4b5fd); g.strokeCircle(5, 5, 4)
           }, 10, 10)
+
+          // ── weapon icon textures (for upgrade cards) ─────────────────────
+          make('wico_shotgun', g => {
+            const cx = 14, cy = 14
+            g.lineStyle(1.5, 0xf97316)
+            const spread = Math.PI / 3
+            for (let i = 0; i < 5; i++) {
+              const a = -Math.PI / 2 - spread / 2 + (i / 4) * spread
+              g.lineBetween(cx, cy + 6, cx + Math.cos(a) * 14, cy + Math.sin(a) * 14 + 6)
+            }
+            g.fillStyle(0xf97316).fillRect(cx - 2, cy + 1, 4, 6)
+          }, 28, 28)
+
+          make('wico_sniper', g => {
+            const cx = 14, cy = 14
+            g.lineStyle(1.5, 0x60a5fa)
+            g.strokeCircle(cx, cy, 10)
+            g.lineBetween(cx - 14, cy, cx - 11, cy)
+            g.lineBetween(cx + 11, cy, cx + 14, cy)
+            g.lineBetween(cx, cy - 14, cx, cy - 11)
+            g.lineBetween(cx, cy + 11, cx, cy + 14)
+            g.fillStyle(0x60a5fa).fillCircle(cx, cy, 2)
+          }, 28, 28)
+
+          make('wico_aura', g => {
+            const cx = 14, cy = 14
+            g.lineStyle(1.5, 0xa78bfa)
+            g.strokeCircle(cx, cy, 9)
+            g.lineStyle(1, 0xa78bfa, 0.45)
+            g.strokeCircle(cx, cy, 13)
+            g.fillStyle(0xa78bfa).fillCircle(cx, cy, 2)
+          }, 28, 28)
+
+          make('wico_machinegun', g => {
+            const cx = 14, cy = 14
+            g.fillStyle(0x4ade80).fillRect(cx - 3, cy - 10, 6, 18)
+            g.fillStyle(0x1e5c30).fillRect(cx - 5, cy - 1, 10, 4)
+            g.lineStyle(1, 0x4ade80)
+            for (let i = 0; i < 3; i++) g.lineBetween(cx - 8, cy - 8 + i * 5, cx - 5, cy - 8 + i * 5)
+          }, 28, 28)
+
+          // ── effect icons (upgrade cards + stats panel) ───────────────────
+          make('ico_damage', g => {
+            g.lineStyle(2, 0xfbbf24)
+            for (let i = 0; i < 6; i++) {
+              const a = (i / 6) * Math.PI * 2
+              g.lineBetween(12, 12, 12 + Math.cos(a) * 9, 12 + Math.sin(a) * 9)
+            }
+            g.fillStyle(0xfbbf24).fillCircle(12, 12, 3)
+          }, 24, 24)
+
+          make('ico_pellets', g => {
+            g.lineStyle(2, 0xf97316)
+            const spread = Math.PI / 2.5
+            for (let i = 0; i < 5; i++) {
+              const a = -Math.PI / 2 - spread / 2 + (i / 4) * spread
+              g.lineBetween(12, 19, 12 + Math.cos(a) * 12, 12 + Math.sin(a) * 12 + 7)
+            }
+          }, 24, 24)
+
+          make('ico_range', g => {
+            g.lineStyle(2, 0xf97316)
+            g.lineBetween(3, 12, 20, 12)
+            g.lineBetween(15, 7, 20, 12)
+            g.lineBetween(15, 17, 20, 12)
+            g.lineStyle(1, 0xf97316, 0.6)
+            g.lineBetween(8, 9, 8, 15)
+            g.lineBetween(13, 9, 13, 15)
+          }, 24, 24)
+
+          make('ico_cooldown', g => {
+            g.lineStyle(2, 0x60a5fa)
+            g.strokeCircle(12, 12, 9)
+            g.lineBetween(12, 12, 12, 5)
+            g.lineBetween(12, 12, 17, 15)
+          }, 24, 24)
+
+          make('ico_pierce', g => {
+            g.lineStyle(1.5, 0x60a5fa)
+            g.strokeCircle(12, 12, 6)
+            g.lineStyle(2, 0x93c5fd)
+            g.lineBetween(2, 12, 22, 12)
+            g.lineBetween(17, 8, 22, 12)
+            g.lineBetween(17, 16, 22, 12)
+          }, 24, 24)
+
+          make('ico_bulletspeed', g => {
+            g.fillStyle(0x60a5fa)
+            g.fillTriangle(21, 12, 13, 8, 13, 16)
+            g.fillRect(5, 10, 9, 4)
+            g.lineStyle(1, 0x93c5fd, 0.7)
+            g.lineBetween(1, 8, 6, 8)
+            g.lineBetween(1, 12, 3, 12)
+            g.lineBetween(1, 16, 6, 16)
+          }, 24, 24)
+
+          make('ico_rearshot', g => {
+            g.lineStyle(2, 0xa78bfa)
+            g.lineBetween(12, 12, 21, 12)
+            g.lineBetween(17, 8, 21, 12)
+            g.lineBetween(17, 16, 21, 12)
+            g.lineBetween(12, 12, 3, 12)
+            g.lineBetween(7, 8, 3, 12)
+            g.lineBetween(7, 16, 3, 12)
+          }, 24, 24)
+
+          make('ico_radius', g => {
+            g.lineStyle(1.5, 0xa78bfa)
+            for (let r = 4; r <= 10; r += 3) {
+              g.beginPath()
+              g.arc(12, 16, r, Math.PI, 0, false)
+              g.strokePath()
+            }
+            g.fillStyle(0xa78bfa).fillCircle(12, 16, 2)
+          }, 24, 24)
+
+          make('ico_burst', g => {
+            g.lineStyle(2.5, 0x4ade80)
+            g.lineBetween(5, 7, 19, 7)
+            g.lineBetween(5, 12, 19, 12)
+            g.lineBetween(5, 17, 19, 17)
+          }, 24, 24)
+
+          make('ico_hp', g => {
+            g.fillStyle(0xef4444)
+            g.fillCircle(8, 9, 5)
+            g.fillCircle(16, 9, 5)
+            g.fillTriangle(3, 11, 21, 11, 12, 22)
+          }, 24, 24)
+
+          make('ico_movespeed', g => {
+            g.lineStyle(3, 0xfbbf24)
+            g.lineBetween(14, 2, 8, 13)
+            g.lineBetween(8, 13, 14, 13)
+            g.lineBetween(14, 13, 8, 22)
+          }, 24, 24)
+
+          make('ico_magnet', g => {
+            g.lineStyle(3, 0xa78bfa)
+            g.beginPath()
+            g.arc(12, 11, 7, Math.PI, 0, false)
+            g.strokePath()
+            g.lineBetween(5, 11, 5, 18)
+            g.lineBetween(19, 11, 19, 18)
+            g.lineStyle(3, 0xef4444)
+            g.lineBetween(5, 18, 9, 18)
+            g.lineStyle(3, 0x60a5fa)
+            g.lineBetween(15, 18, 19, 18)
+          }, 24, 24)
+
+          make('ico_orbmult', g => {
+            g.fillStyle(0xa78bfa)
+            g.fillTriangle(12, 5, 19, 12, 12, 19)
+            g.fillTriangle(12, 5, 5, 12, 12, 19)
+            g.lineStyle(1, 0xc4b5fd)
+            g.strokeTriangle(12, 5, 19, 12, 12, 19)
+            g.strokeTriangle(12, 5, 5, 12, 12, 19)
+            g.fillStyle(0xfde68a)
+            g.fillCircle(4, 4, 1.5)
+            g.fillCircle(20, 4, 1.5)
+            g.fillCircle(4, 20, 1.5)
+            g.fillCircle(20, 20, 1.5)
+          }, 24, 24)
+
+          make('ico_level', g => {
+            g.lineStyle(3, 0xfbbf24)
+            g.lineBetween(4, 17, 12, 7)
+            g.lineBetween(20, 17, 12, 7)
+          }, 24, 24)
         }
       }
 
