@@ -146,6 +146,7 @@ export default function Game() {
           }
 
           this.input.keyboard!.on('keydown-ESC', () => this.togglePause())
+          this.input.keyboard!.on('keydown-L', () => { if (!this.dead && !this.levelUpPending && this.weapons.length > 0) { this.level++; this.levelText.setText(`Level ${this.level}`); this.showUpgradeMenu() } })
 
           this.physics.add.collider(this.enemies, this.enemies)
           this.physics.add.collider(this.player, this.obstacles)
