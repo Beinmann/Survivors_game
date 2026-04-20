@@ -1,5 +1,5 @@
 import { IGameScene } from './_sceneInterface'
-import { WeaponType, WEAPON_BASE, WEAPON_NAMES } from './_types'
+import { WeaponType, PassiveType, WEAPON_BASE, WEAPON_NAMES, PASSIVE_DATA } from './_types'
 
 export function drawUI(scene: IGameScene) {
   const barW = 160
@@ -33,6 +33,21 @@ export function drawWeaponHUD(scene: IGameScene) {
   scene.weapons.forEach((wt, i) => {
     if (scene.weaponHUDLvlTexts[i]) {
       scene.weaponHUDLvlTexts[i].setText(`Lv${scene.weaponLevels[wt] ?? 1}`)
+    }
+  })
+
+  const psy = sy + slotH + 18
+  for (let i = 0; i < 3; i++) {
+    const x = sx + i * (slotW + gap)
+    const pt = scene.passives[i]
+    scene.weaponHUDGfx.fillStyle(pt ? 0x162416 : 0x0d0d0d)
+    scene.weaponHUDGfx.fillRoundedRect(x, psy, slotW, slotH, 5)
+    scene.weaponHUDGfx.lineStyle(1, pt ? 0x4a8a4a : 0x223622)
+    scene.weaponHUDGfx.strokeRoundedRect(x, psy, slotW, slotH, 5)
+  }
+  scene.passives.forEach((pt, i) => {
+    if (scene.passiveHUDLvlTexts[i]) {
+      scene.passiveHUDLvlTexts[i].setText(`Lv${scene.passiveLevels[pt] ?? 1}`)
     }
   })
 }
@@ -104,8 +119,12 @@ export function buildStatLines(scene: IGameScene) {
       )
     }
   }
+  lines.push({ label: '── Passive', value: '' })
+  for (const pt of scene.passives) {
+    const data = PASSIVE_DATA[pt]
+    lines.push({ label: data.name, value: `Lv${scene.passiveLevels[pt]}`, icon: data.icon })
+  }
   lines.push(
-    { label: '── Passive', value: '' },
     { label: 'HP',         value: `${scene.hp} / ${scene.maxHp}`, icon: 'ico_hp' },
     { label: 'Move Speed', value: String(scene.moveSpeed),        icon: 'ico_movespeed' },
     { label: 'Magnet',     value: String(scene.magnetRadius),     icon: 'ico_magnet' },
@@ -152,10 +171,21 @@ export function addStatsPanel(scene: IGameScene, collect: (o: any) => void) {
 
 export function rebuildWeaponHUDTexts(scene: IGameScene) {
   scene.weaponHUDLvlTexts.forEach(t => t.destroy())
+  scene.passiveHUDLvlTexts.forEach(t => t.destroy())
+  scene.passiveHUDIcons.forEach(i => i.destroy())
   const slotW = 44, gap = 4
   scene.weaponHUDLvlTexts = scene.weapons.map((_, i) =>
     scene.add.text(10 + i * (slotW + gap) + slotW / 2, 118 + 2, '', {
       fontSize: '9px', color: '#a0a0c0',
     }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(21)
+  )
+  scene.passiveHUDLvlTexts = scene.passives.map((_, i) =>
+    scene.add.text(10 + i * (slotW + gap) + slotW / 2, 118 + 18 + 44 + 2, '', {
+      fontSize: '9px', color: '#a0c0a0',
+    }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(21)
+  )
+  scene.passiveHUDIcons = scene.passives.map((pt, i) =>
+    scene.add.image(10 + i * (slotW + gap) + slotW / 2, 118 + 18 + 44 / 2, PASSIVE_DATA[pt].icon)
+      .setDisplaySize(20, 20).setScrollFactor(0).setDepth(21)
   )
 }

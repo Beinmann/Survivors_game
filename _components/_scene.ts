@@ -1,5 +1,5 @@
 import { WORLD, SPAWN_INTERVAL_MS, MAX_ORBS, DESPAWN_DIST, CONSOLIDATE_NEARBY_RADIUS, CONSOLIDATE_THRESHOLD, CONSOLIDATE_EDGE_MIN, CONSOLIDATE_EDGE_MAX } from './_constants'
-import { WeaponType, ALL_WEAPON_TYPES, WEAPON_NAMES, WEAPON_BASE } from './_types'
+import { WeaponType, PassiveType, ALL_WEAPON_TYPES, WEAPON_NAMES, WEAPON_BASE, PASSIVE_DATA } from './_types'
 import { ENEMY_TYPES } from './_enemyTypes'
 import { ICON_DEFS } from './iconDefs'
 import { IGameScene } from './_sceneInterface'
@@ -42,6 +42,8 @@ export function createGameScene(Phaser: any) {
     public weaponShootRates: Partial<Record<WeaponType, number>> = {}
     public weaponBulletSpd: Partial<Record<WeaponType, number>> = {}
     public weaponRearShot: Partial<Record<WeaponType, boolean>> = {}
+    public passives: PassiveType[] = []
+    public passiveLevels: Partial<Record<PassiveType, number>> = {}
     public hp = 0
     public maxHp = 0
     public xp = 0
@@ -84,6 +86,8 @@ export function createGameScene(Phaser: any) {
     public xpBar!: any
     public weaponHUDGfx!: any
     public weaponHUDLvlTexts: any[] = []
+    public passiveHUDLvlTexts: any[] = []
+    public passiveHUDIcons: any[] = []
     public levelText!: any
     public scoreText!: any
     public timerText!: any
@@ -183,6 +187,7 @@ export function createGameScene(Phaser: any) {
     public resetState() {
       this.weapons = []; this.weaponLevels = {}; this.weaponCooldowns = {}
       this.weaponShootRates = {}; this.weaponBulletSpd = {}; this.weaponRearShot = {}
+      this.passives = []; this.passiveLevels = {}
       this.hp = 100; this.maxHp = 100; this.xp = 0; this.xpNeeded = 10
       this.level = 1; this.score = 0
       this.spawnTimer = 0; this.spawnRate = SPAWN_INTERVAL_MS
@@ -389,6 +394,31 @@ export function createGameScene(Phaser: any) {
 
     public rebuildWeaponHUDTexts() {
       rebuildWeaponHUDTexts(this)
+    }
+
+    public unlockPassive(pt: PassiveType) {
+      this.passives.push(pt)
+      this.passiveLevels[pt] = 1
+      this.applyPassiveBoost(pt)
+      this.rebuildWeaponHUDTexts()
+    }
+
+    public applyPassiveBoost(pt: PassiveType) {
+      if (pt === 'movespeed') this.moveSpeed = Math.round(this.moveSpeed * 1.2)
+      if (pt === 'magnet')    this.magnetRadius += 50
+      if (pt === 'orbmult')   this.orbMultiplier += 0.25
+      if (pt === 'hp')        { this.maxHp += 20; this.hp = Math.min(this.maxHp, this.hp + 40) }
+      if (pt === 'damage')    {
+        this.shotgunDmg = Math.round(this.shotgunDmg * 1.15)
+        this.sniperDmg = Math.round(this.sniperDmg * 1.15)
+        this.auraDmg = Math.round(this.auraDmg * 1.15)
+        this.machineGunDmg = Math.round(this.machineGunDmg * 1.15)
+      }
+      if (pt === 'cooldown')  {
+        for (const wt of ALL_WEAPON_TYPES) {
+          this.weaponShootRates[wt] = Math.max(50, Math.round((this.weaponShootRates[wt] ?? WEAPON_BASE[wt].shootRate) * 0.88))
+        }
+      }
     }
 
     // ─── ui ─────────────────────────────────────────────────────────────

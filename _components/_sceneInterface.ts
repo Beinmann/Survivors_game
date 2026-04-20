@@ -1,4 +1,4 @@
-import { WeaponType } from './_types'
+import { WeaponType, PassiveType } from './_types'
 
 export interface IGameScene {
   // --- objects ---
@@ -28,6 +28,8 @@ export interface IGameScene {
   weaponShootRates: Partial<Record<WeaponType, number>>
   weaponBulletSpd: Partial<Record<WeaponType, number>>
   weaponRearShot: Partial<Record<WeaponType, boolean>>
+  passives: PassiveType[]
+  passiveLevels: Partial<Record<PassiveType, number>>
   hp: number
   maxHp: number
   xp: number
@@ -66,6 +68,8 @@ export interface IGameScene {
   xpBar: any
   weaponHUDGfx: any
   weaponHUDLvlTexts: any[]
+  passiveHUDLvlTexts: any[]
+  passiveHUDIcons: any[]
   levelText: any
   scoreText: any
   timerText: any
@@ -98,6 +102,8 @@ export interface IGameScene {
   showGameOver(): void
   unlockWeapon(wt: WeaponType): void
   rebuildWeaponHUDTexts(): void
+  unlockPassive(pt: PassiveType): void
+  applyPassiveBoost(pt: PassiveType): void
   buildTextures(): void
   effectiveShootRate(wt: WeaponType): number
   fireShotgun(angle: number, wt: WeaponType): void

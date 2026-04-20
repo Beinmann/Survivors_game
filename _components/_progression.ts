@@ -1,5 +1,5 @@
 import { IGameScene } from './_sceneInterface'
-import { WeaponType, WEAPON_NAMES, ALL_WEAPON_TYPES, WEAPON_BASE } from './_types'
+import { WeaponType, PassiveType, WEAPON_NAMES, ALL_WEAPON_TYPES, WEAPON_BASE, PASSIVE_DATA, ALL_PASSIVE_TYPES } from './_types'
 
 export function onCollectOrb(scene: IGameScene, _p: any, orb: any) {
   const o = orb as any
@@ -77,16 +77,21 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
 }
 
 export function getUpgrades(scene: IGameScene) {
-  const passives = [
-    { name: 'Swift Feet',    icon: 'ico_movespeed', desc: 'Move 25% faster',                         apply: () => { scene.moveSpeed = Math.round(scene.moveSpeed * 1.25) } },
-    { name: 'XP Magnet',     icon: 'ico_magnet',    desc: 'Pull orbs from 80px further away',         apply: () => { scene.magnetRadius += 80 } },
-    { name: 'Bounty Hunter', icon: 'ico_orbmult',   desc: 'Gain 35% more XP from every orb',          apply: () => { scene.orbMultiplier += 0.35 } },
-    { name: 'Vital Surge',   icon: 'ico_hp',        desc: 'Restore 40 HP and raise max HP by 20',     apply: () => { scene.maxHp += 20; scene.hp = Math.min(scene.maxHp, scene.hp + 40) } },
-    { name: 'Power Core',    icon: 'ico_damage',    desc: '+20% damage for all active weapons',        apply: () => { scene.shotgunDmg = Math.round(scene.shotgunDmg * 1.2); scene.sniperDmg = Math.round(scene.sniperDmg * 1.2); scene.auraDmg = Math.round(scene.auraDmg * 1.2); scene.machineGunDmg = Math.round(scene.machineGunDmg * 1.2) } },
-    { name: 'Overclock',     icon: 'ico_cooldown',  desc: 'All weapons fire 15% faster',               apply: () => { for (const wt of scene.weapons) { scene.weaponShootRates[wt] = Math.max(50, Math.round((scene.weaponShootRates[wt] ?? WEAPON_BASE[wt].shootRate) * 0.85)) } } },
-  ]
   const weaponUpgrades = scene.getWeaponUpgrades()
-  const unlockOptions = scene.weapons.length < 3
+  const passiveUpgrades = scene.passives.map(pt => {
+    const lvl = scene.passiveLevels[pt] ?? 1
+    if (lvl >= 5) return null
+    const data = PASSIVE_DATA[pt]
+    return {
+      name: `${data.name} Lv ${lvl + 1}`,
+      icon: data.icon,
+      desc: data.desc,
+      apply: () => { scene.passiveLevels[pt] = lvl + 1; scene.applyPassiveBoost(pt) },
+      isPassiveUpgrade: true,
+    }
+  }).filter(Boolean) as any[]
+
+  const weaponUnlockOptions = scene.weapons.length < 3
     ? ALL_WEAPON_TYPES
         .filter(wt => !scene.weapons.includes(wt))
         .map(wt => ({
@@ -98,10 +103,23 @@ export function getUpgrades(scene: IGameScene) {
         }))
     : []
 
+  const passiveUnlockOptions = scene.passives.length < 3
+    ? ALL_PASSIVE_TYPES
+        .filter(pt => !scene.passives.includes(pt))
+        .map(pt => ({
+          name: `Unlock ${PASSIVE_DATA[pt].name}`,
+          icon: PASSIVE_DATA[pt].icon,
+          desc: PASSIVE_DATA[pt].desc,
+          apply: () => scene.unlockPassive(pt),
+          isNewPassive: true as const,
+        }))
+    : []
+
   const pool = [
-    ...passives,
     ...weaponUpgrades.flatMap(u => [u, u, u]),
-    ...unlockOptions.flatMap(u => [u, u]),
+    ...passiveUpgrades.flatMap(u => [u, u, u]),
+    ...weaponUnlockOptions.flatMap(u => [u, u]),
+    ...passiveUnlockOptions.flatMap(u => [u, u]),
   ]
   pool.sort(() => Math.random() - 0.5)
   const seen = new Set<string>()
@@ -149,19 +167,22 @@ export function showUpgradeMenu(scene: IGameScene) {
     const cy = h / 2
 
     const u = upgrade as any
-    const isWeapon    = !!u.isWeaponUpgrade
-    const isNewWeapon = !!u.isNewWeapon
-    const idleColor   = isNewWeapon ? 0x1f1a0a : isWeapon ? 0x1a1f2e : 0x16161e
-    const hoverColor  = isNewWeapon ? 0x2e2210 : isWeapon ? 0x1e2a40 : 0x2a2a3e
-    const idleBorder  = isNewWeapon ? 0xd97706 : isWeapon ? 0x3b82f6 : 0x3a3a5a
-    const hoverBorder = isNewWeapon ? 0xfbbf24 : isWeapon ? 0x60a5fa : 0xfbbf24
+    const isWeapon     = !!u.isWeaponUpgrade
+    const isNewWeapon  = !!u.isNewWeapon
+    const isPassive    = !!u.isPassiveUpgrade
+    const isNewPassive = !!u.isNewPassive
+
+    const idleColor   = (isNewWeapon || isNewPassive) ? 0x1f1a0a : isWeapon ? 0x1a1f2e : isPassive ? 0x161f16 : 0x16161e
+    const hoverColor  = (isNewWeapon || isNewPassive) ? 0x2e2210 : isWeapon ? 0x1e2a40 : isPassive ? 0x1e2e1e : 0x2a2a3e
+    const idleBorder  = (isNewWeapon || isNewPassive) ? 0xd97706 : isWeapon ? 0x3b82f6 : isPassive ? 0x10b981 : 0x3a3a5a
+    const hoverBorder = (isNewWeapon || isNewPassive) ? 0xfbbf24 : isWeapon ? 0x60a5fa : isPassive ? 0x34d399 : 0xfbbf24
 
     const bg = scene.add.graphics().setScrollFactor(0).setDepth(41)
     const draw = (hover: boolean) => {
       bg.clear()
       bg.fillStyle(hover ? hoverColor : idleColor)
       bg.fillRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 10)
-      bg.lineStyle(hover || isWeapon || isNewWeapon ? 2 : 1, hover ? hoverBorder : idleBorder)
+      bg.lineStyle(hover || isWeapon || isNewWeapon || isPassive || isNewPassive ? 2 : 1, hover ? hoverBorder : idleBorder)
       bg.strokeRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 10)
     }
     draw(false)
@@ -171,13 +192,13 @@ export function showUpgradeMenu(scene: IGameScene) {
       .setDisplaySize(24, 24).setScrollFactor(0).setDepth(42)
     tag(iconImg)
 
-    const nameColor = isNewWeapon ? '#fcd34d' : isWeapon ? '#93c5fd' : '#ffffff'
+    const nameColor = (isNewWeapon || isNewPassive) ? '#fcd34d' : isWeapon ? '#93c5fd' : isPassive ? '#6ee7b7' : '#ffffff'
     const nameText = scene.add.text(cx, cy - 20, upgrade.name, {
       fontSize: '15px', color: nameColor, stroke: '#000', strokeThickness: 2,
       align: 'center', wordWrap: { width: cardW - 16 },
     }).setOrigin(0.5).setScrollFactor(0).setDepth(42)
 
-    const descColor = isNewWeapon ? '#fde68a' : isWeapon ? '#bfdbfe' : '#aaaacc'
+    const descColor = (isNewWeapon || isNewPassive) ? '#fde68a' : isWeapon ? '#bfdbfe' : isPassive ? '#a7f3d0' : '#aaaacc'
     const descText = scene.add.text(cx, cy + 22, upgrade.desc, {
       fontSize: '12px', color: descColor,
       align: 'center', wordWrap: { width: cardW - 16 },
@@ -219,8 +240,12 @@ export function pullOrbs(scene: IGameScene) {
 export function unlockWeapon(scene: IGameScene, wt: WeaponType) {
   scene.weapons.push(wt)
   scene.weaponLevels[wt]     = 1
-  scene.weaponShootRates[wt] = WEAPON_BASE[wt].shootRate
-  scene.weaponBulletSpd[wt]  = WEAPON_BASE[wt].bulletSpd
+  if (scene.weaponShootRates[wt] === undefined) {
+    scene.weaponShootRates[wt] = WEAPON_BASE[wt].shootRate
+  }
+  if (scene.weaponBulletSpd[wt] === undefined) {
+    scene.weaponBulletSpd[wt] = WEAPON_BASE[wt].bulletSpd
+  }
   scene.weaponCooldowns[wt]  = 0
   scene.weaponRearShot[wt]   = false
   scene.rebuildWeaponHUDTexts()
