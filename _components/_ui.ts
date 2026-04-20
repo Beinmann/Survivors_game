@@ -103,7 +103,8 @@ export function buildStatLines(scene: IGameScene) {
   lines.push(
     { label: 'HP',         value: `${scene.hp} / ${scene.maxHp}`, icon: 'ico_hp' },
     { label: 'Move Speed', value: String(scene.moveSpeed),        icon: 'ico_movespeed' },
-    { label: 'Dmg Boost',  value: `+${Math.round(scene.bonusDamage * 100)}%`, icon: 'ico_damage' },
+    { label: 'Dmg Boost',  value: `+${Math.round(scene.bonusDamage * 100)}%`,    icon: 'ico_damage' },
+    { label: 'Fire Rate',  value: `+${Math.round(scene.bonusCooldown * 100)}%`, icon: 'ico_cooldown' },
     { label: 'XP Boost',   value: `+${Math.round((scene.orbMultiplier - 1) * 100)}%`, icon: 'ico_orbmult' },
     { label: 'Magnet',     value: String(scene.magnetRadius),     icon: 'ico_magnet' },
     { label: 'Orb ×',      value: scene.orbMultiplier.toFixed(2), icon: 'ico_orbmult' },
