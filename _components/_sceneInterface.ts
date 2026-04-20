@@ -134,7 +134,6 @@ export interface IGameScene {
   playerSkin: string
   oneWeaponMode: boolean
   showTitleScreen(): void
-  showIconSelection(): void
   showModeSelection(): void
   showWeaponSelection(): void
   showGameOver(): void

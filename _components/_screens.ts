@@ -46,79 +46,13 @@ export function showTitleScreen(scene: IGameScene) {
   const dismiss = () => {
     scene.input.keyboard?.off('keydown-SPACE', dismiss)
     ui.forEach(o => o.destroy())
-    scene.showIconSelection()
+    scene.showModeSelection()
   }
 
   btn.on('pointerover', () => btn.setColor('#86efac'))
   btn.on('pointerout', () => btn.setColor('#4ade80'))
   btn.on('pointerdown', dismiss)
   scene.input.keyboard?.on('keydown-SPACE', dismiss)
-}
-
-export function showIconSelection(scene: IGameScene) {
-  const { width: w, height: h } = scene.cameras.main
-  const ui: any[] = []
-
-  const overlay = scene.add.graphics().setScrollFactor(0).setDepth(50)
-  overlay.fillStyle(0x000000, 0.92).fillRect(0, 0, w, h)
-  ui.push(overlay)
-
-  ui.push(scene.add.text(w / 2, h / 2 - 145, 'Choose your character', {
-    fontSize: '28px', color: '#ffffff', stroke: '#000', strokeThickness: 4,
-  }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
-
-  const OPTIONS = [
-    { key: 'player_a', name: 'Ranger', desc: 'Precise and disciplined.\nReady for any engagement.', accent: 0x22d3ee },
-    { key: 'player_b', name: 'Mage',   desc: 'Arcane power channeled\ninto raw destruction.',     accent: 0xa78bfa },
-    { key: 'player_c', name: 'Scout',  desc: 'Fast and aggressive.\nAlways pushing forward.',     accent: 0xfbbf24 },
-  ]
-
-  const cardW = 160
-  const cardH = 220
-  const gap = 180
-  const startX = w / 2 - gap
-
-  OPTIONS.forEach((opt, i) => {
-    const cx = startX + i * gap
-    const cy = h / 2 + 20
-
-    const bg = scene.add.graphics().setScrollFactor(0).setDepth(51)
-    const draw = (hover: boolean) => {
-      bg.clear()
-      bg.fillStyle(hover ? 0x1e1e30 : 0x111118)
-      bg.fillRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 12)
-      bg.lineStyle(hover ? 3 : 2, hover ? opt.accent : 0x2a2a3a)
-      bg.strokeRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 12)
-    }
-    draw(false)
-
-    const icon = scene.add.image(cx, cy - 65, opt.key)
-      .setScrollFactor(0).setDepth(52).setDisplaySize(64, 64)
-
-    const nameText = scene.add.text(cx, cy - 15, opt.name, {
-      fontSize: '20px', color: `#${opt.accent.toString(16).padStart(6, '0')}`,
-      stroke: '#000', strokeThickness: 2, fontStyle: 'bold',
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
-
-    const descText = scene.add.text(cx, cy + 35, opt.desc, {
-      fontSize: '13px', color: '#ccccdd',
-      align: 'center', wordWrap: { width: cardW - 20 },
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
-
-    const zone = scene.add.zone(cx, cy, cardW, cardH)
-      .setScrollFactor(0).setDepth(53).setInteractive({ useHandCursor: true })
-
-    zone.on('pointerover', () => draw(true))
-    zone.on('pointerout', () => draw(false))
-    zone.on('pointerdown', () => {
-      scene.playerSkin = opt.key
-      scene.player.setTexture(opt.key)
-      ui.forEach(o => o.destroy())
-      scene.showModeSelection()
-    })
-
-    ui.push(bg, icon, nameText, descText, zone)
-  })
 }
 
 export function showModeSelection(scene: IGameScene) {

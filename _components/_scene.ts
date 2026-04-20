@@ -4,7 +4,7 @@ import { ENEMY_TYPES } from './_enemyTypes'
 import { ICON_DEFS } from './iconDefs'
 import { IGameScene } from './_sceneInterface'
 import { buildTextures } from './_textures'
-import { showTitleScreen, showIconSelection, showModeSelection, showWeaponSelection, showGameOver } from './_screens'
+import { showTitleScreen, showModeSelection, showWeaponSelection, showGameOver } from './_screens'
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
 import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies } from './_spawning'
@@ -112,7 +112,7 @@ export function createGameScene(Phaser: any) {
     public flatWeaponShootRateReductions: Partial<Record<WeaponType, number>> = {}
 
     // --- persisted across restarts ---
-    public playerSkin = 'player_a'
+    public playerSkin = 'player_b'
     public oneWeaponMode = false
 
     // --- ui ---
@@ -685,10 +685,6 @@ export function createGameScene(Phaser: any) {
 
     public showTitleScreen() {
       showTitleScreen(this)
-    }
-
-    public showIconSelection() {
-      showIconSelection(this)
     }
 
     public showModeSelection() {
