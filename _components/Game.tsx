@@ -956,12 +956,16 @@ export default function Game() {
             fontSize: '12px', color: '#4b5563',
           }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
 
-          ui.push(this.add.text(w / 2, h / 2 + 100, 'Photosensitivity warning: contains flashing lights', {
-            fontSize: '10px', color: '#6b7280',
+          ui.push(this.add.text(w / 2, h / 2 + 95, '⚠ Photosensitivity warning', {
+            fontSize: '13px', color: '#f59e0b', fontStyle: 'bold',
           }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
 
-          ui.push(this.add.text(w / 2, h / 2 + 116, 'and rapidly changing visuals. Play with caution if photosensitive.', {
-            fontSize: '10px', color: '#4b5563',
+          ui.push(this.add.text(w / 2, h / 2 + 114, 'Contains flashing lights and rapidly changing visuals.', {
+            fontSize: '11px', color: '#d1d5db',
+          }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
+
+          ui.push(this.add.text(w / 2, h / 2 + 130, 'Play with caution if photosensitive.', {
+            fontSize: '11px', color: '#d1d5db',
           }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
 
           const dismiss = () => {
