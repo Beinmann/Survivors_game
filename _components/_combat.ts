@@ -131,8 +131,8 @@ export function fireTesla(scene: IGameScene, angle: number, wt: WeaponType) {
     jumps--
 
     // Find next target
-    const next = targets.find(e => e.active && !hitSet.has(e) && 
-      Math.sqrt((e.x - currentTarget.x) ** 2 + (e.y - currentTarget.y) ** 2) < 150)
+    const next = targets.find(e => e.active && !hitSet.has(e) &&
+      Math.sqrt((e.x - currentTarget.x) ** 2 + (e.y - currentTarget.y) ** 2) < 85)
     
     const targetToZap = next || (scene.teslaArcBack ? currentTarget : null)
     if (targetToZap) {

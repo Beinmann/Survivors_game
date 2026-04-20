@@ -15,12 +15,12 @@ export const WEAPON_NAMES: Record<WeaponType, string> = {
 }
 
 export const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: number; damage: number }> = {
-  shotgun:    { shootRate: 550,  bulletSpd: 320, damage: 30 },
+  shotgun:    { shootRate: 950,  bulletSpd: 320, damage: 30 },
   sniper:     { shootRate: 1400, bulletSpd: 680, damage: 150 },
   aura:       { shootRate: 500,  bulletSpd: 0,   damage: 10 },
   machinegun: { shootRate: 200,  bulletSpd: 520, damage: 4 },
   scythes:    { shootRate: 1500, bulletSpd: 0,   damage: 25 },
-  tesla:      { shootRate: 800,  bulletSpd: 0,   damage: 18 },
+  tesla:      { shootRate: 1400, bulletSpd: 0,   damage: 13 },
   boomerang:  { shootRate: 1000, bulletSpd: 350, damage: 22 },
   rocket:     { shootRate: 1500, bulletSpd: 250, damage: 45 },
   trail:      { shootRate: 400,  bulletSpd: 0,   damage: 12 },
