@@ -242,11 +242,11 @@ export function createGameScene(Phaser: any) {
       this.magnetRadius = 70; this.orbMultiplier = 1.0
       this.auraRadius = 110; this.shotgunRange = 220
       this.machineGunBurst = 1; this.machineGunPierce = false
-      this.scythesDmg = 0; this.scythesCount = 0; this.scythesRadius = 100; this.scythesLifeSteal = false
-      this.teslaDmg = 0; this.teslaJumps = 2; this.teslaStun = false; this.teslaArcBack = false
-      this.boomerangDmg = 0; this.boomerangCount = 1; this.boomerangDist = 250; this.boomerangPierce = false
-      this.rocketDmg = 0; this.rocketRadius = 40; this.rocketBurst = 1; this.rocketSplit = false
-      this.trailDmg = 0; this.trailDuration = 3000; this.trailSize = 20; this.trailBurn = false; this.trailExplode = false
+      this.scythesCount = 0; this.scythesRadius = 100; this.scythesLifeSteal = false
+      this.teslaJumps = 2; this.teslaStun = false; this.teslaArcBack = false
+      this.boomerangCount = 1; this.boomerangDist = 250; this.boomerangPierce = false
+      this.rocketRadius = 40; this.rocketBurst = 1; this.rocketSplit = false
+      this.trailDuration = 3000; this.trailSize = 20; this.trailBurn = false; this.trailExplode = false
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
       this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
