@@ -85,6 +85,7 @@ export function createGameScene(Phaser: any) {
     public hpBar!: any
     public xpBar!: any
     public weaponHUDGfx!: any
+    public auraGfx!: any
     public weaponHUDLvlTexts: any[] = []
     public passiveHUDLvlTexts: any[] = []
     public passiveHUDIcons: any[] = []
@@ -168,6 +169,7 @@ export function createGameScene(Phaser: any) {
       this.hpBar = this.add.graphics().setScrollFactor(0).setDepth(20)
       this.xpBar = this.add.graphics().setScrollFactor(0).setDepth(20)
       this.weaponHUDGfx = this.add.graphics().setScrollFactor(0).setDepth(20)
+      this.auraGfx = this.add.graphics().setDepth(4)
       this.levelText = this.add.text(12, 12, 'Level 1', {
         fontSize: '14px', color: '#ffffff', stroke: '#000000', strokeThickness: 3,
       }).setScrollFactor(0).setDepth(20)
@@ -201,6 +203,7 @@ export function createGameScene(Phaser: any) {
       this.machineGunDmg = 4; this.machineGunBurst = 1; this.machineGunPierce = false
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
       this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
+      if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
     }
 
     public togglePause() {
@@ -283,6 +286,22 @@ export function createGameScene(Phaser: any) {
       }
 
       this.drawUI()
+      this.updateAura()
+    }
+
+    public updateAura() {
+      if (this.weapons.includes('aura')) {
+        this.auraGfx.setVisible(true)
+        this.auraGfx.clear()
+        this.auraGfx.x = this.player.x
+        this.auraGfx.y = this.player.y
+        this.auraGfx.fillStyle(0xa78bfa, 0.06)
+        this.auraGfx.fillCircle(0, 0, this.auraRadius)
+        this.auraGfx.lineStyle(1, 0xc4b5fd, 0.15)
+        this.auraGfx.strokeCircle(0, 0, this.auraRadius)
+      } else {
+        this.auraGfx.setVisible(false)
+      }
     }
 
     // ─── weapons ────────────────────────────────────────────────────────

@@ -90,17 +90,19 @@ export function fireMachineGun(scene: IGameScene, angle: number, wt: WeaponType)
 }
 
 export function fireAura(scene: IGameScene) {
+  let hit = false
   for (const e of [...scene.enemies.getChildren()] as any[]) {
     if (!e.active) continue
     const dist = Math.sqrt((scene.player.x - e.x) ** 2 + (scene.player.y - e.y) ** 2)
-    if (dist <= scene.auraRadius) scene.damageEnemy(e, scene.auraDmg, false)
+    if (dist <= scene.auraRadius) {
+      scene.damageEnemy(e, scene.auraDmg, false)
+      hit = true
+    }
   }
-  scene.showAuraPulse()
+  if (hit) scene.showAuraPulse()
 }
 
 export function showAuraPulse(scene: IGameScene) {
-  const cx = scene.player.x
-  const cy = scene.player.y
   const spikes = 14
   const outerR = scene.auraRadius
   const innerR = scene.auraRadius * 0.68
@@ -121,7 +123,7 @@ export function showAuraPulse(scene: IGameScene) {
     } else {
       r = innerR + (Math.random() - 0.5) * 10
     }
-    pts.push({ x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r })
+    pts.push({ x: Math.cos(angle) * r, y: Math.sin(angle) * r })
   }
 
   const draw = (g: any) => {
@@ -131,12 +133,25 @@ export function showAuraPulse(scene: IGameScene) {
   }
 
   const ring = scene.add.graphics().setDepth(4)
+  ring.x = scene.player.x
+  ring.y = scene.player.y
   ring.fillStyle(0xa78bfa, 0.13)
   ring.beginPath(); draw(ring); ring.fillPath()
   ring.lineStyle(2, 0xc4b5fd, 0.9)
   ring.beginPath(); draw(ring); ring.strokePath()
 
-  scene.tweens.add({ targets: ring, alpha: 0, duration: 420, onComplete: () => ring.destroy() })
+  scene.tweens.add({ 
+    targets: ring, 
+    alpha: 0, 
+    duration: 420, 
+    onUpdate: () => {
+      if (scene.player) {
+        ring.x = scene.player.x
+        ring.y = scene.player.y
+      }
+    },
+    onComplete: () => ring.destroy() 
+  })
 }
 
 export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
