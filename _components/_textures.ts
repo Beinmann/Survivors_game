@@ -75,6 +75,34 @@ export function buildTextures(scene: IGameScene) {
     g.lineStyle(1, 0xbfdbfe); g.strokeRect(0, 1, 14, 6)
   }, 14, 8)
 
+  make('scythe', g => {
+    g.lineStyle(3, 0x94a3b8)
+    g.beginPath()
+    g.arc(10, 10, 8, -Math.PI/2, Math.PI/2)
+    g.strokePath()
+    g.lineStyle(1, 0xe2e8f0)
+    g.beginPath()
+    g.arc(10, 10, 6, -Math.PI/2, Math.PI/2)
+    g.strokePath()
+  }, 20, 20)
+
+  make('boomerang', g => {
+    g.lineStyle(2, 0xf87171)
+    g.beginPath()
+    g.moveTo(2, 2); g.lineTo(14, 8); g.lineTo(2, 14)
+    g.strokePath()
+  }, 16, 16)
+
+  make('rocket', g => {
+    g.fillStyle(0x475569); g.fillRect(2, 2, 12, 6)
+    g.fillStyle(0xef4444); g.fillRect(0, 3, 3, 4)
+  }, 16, 10)
+
+  make('fire', g => {
+    g.fillStyle(0xf97316, 0.8); g.fillCircle(8, 8, 8)
+    g.fillStyle(0xfacc15, 0.5); g.fillCircle(8, 8, 5)
+  }, 16, 16)
+
   make('orb', g => {
     g.fillStyle(0xa78bfa); g.fillCircle(5, 5, 5)
     g.lineStyle(1, 0xc4b5fd); g.strokeCircle(5, 5, 4)

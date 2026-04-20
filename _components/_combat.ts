@@ -20,11 +20,18 @@ export function autoShoot(scene: IGameScene, time: number) {
     if (time < (scene.weaponCooldowns[wt] ?? 0)) continue
     if (wt === 'aura') {
       scene.fireAura()
+    } else if (wt === 'scythes') {
+      scene.fireScythes()
+    } else if (wt === 'trail') {
+      scene.fireTrail()
     } else {
       if (!nearest) continue
       if (wt === 'shotgun')    scene.fireShotgun(angle, wt)
       else if (wt === 'sniper')     scene.fireSniper(angle, wt)
       else if (wt === 'machinegun') scene.fireMachineGun(angle, wt)
+      else if (wt === 'tesla')      scene.fireTesla(angle, wt)
+      else if (wt === 'boomerang')  scene.fireBoomerang(angle, wt)
+      else if (wt === 'rocket')     scene.fireRocket(angle, wt)
     }
     scene.weaponCooldowns[wt] = time + scene.effectiveShootRate(wt)
   }
@@ -90,16 +97,132 @@ export function fireMachineGun(scene: IGameScene, angle: number, wt: WeaponType)
 }
 
 export function fireAura(scene: IGameScene) {
-  for (const e of [...scene.enemies.getChildren()] as any[]) {
-    if (!e.active) continue
-    const dist = Math.sqrt((scene.player.x - e.x) ** 2 + (scene.player.y - e.y) ** 2)
-    if (dist <= scene.auraRadius) {
-      scene.damageEnemy(e, scene.auraDmg, false)
-      const shock = scene.add.sprite(e.x, e.y, 'shock').setDepth(15).setScale(0.7 + Math.random() * 0.6)
-      shock.setRotation(Math.random() * Math.PI * 2)
-      scene.tweens.add({ targets: shock, alpha: 0, duration: 250, onComplete: () => shock.destroy() })
+  const r = scene.auraRadius
+  const dmg = scene.auraDmg
+  for (const e of scene.enemies.getChildren() as any[]) {
+    if (e.active && Math.sqrt((scene.player.x - e.x) ** 2 + (scene.player.y - e.y) ** 2) < r) {
+      scene.damageEnemy(e, dmg, false)
     }
   }
+}
+
+export function fireTesla(scene: IGameScene, angle: number, wt: WeaponType) {
+  const targets = scene.enemies.getChildren() as any[]
+  if (targets.length === 0) return
+
+  let currentTarget = targets.reduce((a, b) => {
+    const distA = Math.sqrt((scene.player.x - a.x) ** 2 + (scene.player.y - a.y) ** 2)
+    const distB = Math.sqrt((scene.player.x - b.x) ** 2 + (scene.player.y - b.y) ** 2)
+    return distA <= distB ? a : b
+  })
+
+  const hitSet = new Set()
+  let jumps = scene.teslaJumps
+  const chain = () => {
+    if (!currentTarget || !currentTarget.active) return
+    hitSet.add(currentTarget)
+    scene.damageEnemy(currentTarget, scene.teslaDmg, true)
+    
+    if (scene.teslaStun) {
+      currentTarget.setData('stunned', 1000)
+    }
+
+    if (jumps <= 0) return
+    jumps--
+
+    // Find next target
+    const next = targets.find(e => e.active && !hitSet.has(e) && 
+      Math.sqrt((e.x - currentTarget.x) ** 2 + (e.y - currentTarget.y) ** 2) < 150)
+    
+    const targetToZap = next || (scene.teslaArcBack ? currentTarget : null)
+    if (targetToZap) {
+      const line = scene.add.graphics().setDepth(15)
+      line.lineStyle(2, 0xbfdbfe, 0.8)
+      line.lineBetween(currentTarget.x, currentTarget.y, targetToZap.x, targetToZap.y)
+      scene.tweens.add({ targets: line, alpha: 0, duration: 150, onComplete: () => line.destroy() })
+      currentTarget = targetToZap
+      if (!next) hitSet.delete(currentTarget) // allow arc back
+      scene.time.delayedCall(50, chain)
+    }
+  }
+
+  const startLine = scene.add.graphics().setDepth(15)
+  startLine.lineStyle(2, 0xffffff, 0.9)
+  startLine.lineBetween(scene.player.x, scene.player.y, currentTarget.x, currentTarget.y)
+  scene.tweens.add({ targets: startLine, alpha: 0, duration: 150, onComplete: () => startLine.destroy() })
+  chain()
+}
+
+export function fireBoomerang(scene: IGameScene, angle: number, wt: WeaponType) {
+  const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
+  const count = scene.boomerangCount
+  for (let i = 0; i < count; i++) {
+    const a = angle + (i * Math.PI * 2) / count
+    const b = scene.bullets.create(scene.player.x, scene.player.y, 'boomerang') as any
+    b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
+    b.setData('dmg', scene.boomerangDmg)
+    b.setData('dist', scene.boomerangDist)
+    b.setData('sx', scene.player.x).setData('sy', scene.player.y)
+    b.setData('returning', false)
+    b.setData('wt', 'boomerang')
+    if (scene.boomerangPierce) {
+      b.setData('pierceLeft', 999)
+      b.setData('hitEnemies', new Set())
+    }
+    b.setDepth(4)
+  }
+}
+
+export function fireRocket(scene: IGameScene, angle: number, wt: WeaponType) {
+  const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
+  const burst = scene.rocketBurst
+  for (let i = 0; i < burst; i++) {
+    scene.time.delayedCall(i * 100, () => {
+      if (!scene.player.active) return
+      const b = scene.bullets.create(scene.player.x, scene.player.y, 'rocket') as any
+      b.setVelocity(Math.cos(angle) * spd, Math.sin(angle) * spd)
+      b.setRotation(angle)
+      b.setData('dmg', scene.rocketDmg)
+      b.setData('wt', 'rocket')
+      b.setData('homing', true)
+      b.setDepth(4)
+    })
+  }
+}
+
+export function fireTrail(scene: IGameScene) {
+  const f = scene.add.sprite(scene.player.x, scene.player.y, 'fire').setDepth(3).setScale(scene.trailSize / 16)
+  f.setData('dmg', scene.trailDmg)
+  f.setData('isTrail', true)
+  f.setData('expiry', scene.time.now + scene.trailDuration)
+  
+  const checkHit = () => {
+    if (!f.active) return
+    for (const e of scene.enemies.getChildren() as any[]) {
+      if (!e.active) continue
+      const dist = Math.sqrt((f.x - e.x) ** 2 + (f.y - e.y) ** 2)
+      if (dist < (scene.trailSize * 0.8)) {
+        scene.damageEnemy(e, scene.trailDmg, false)
+        if (scene.trailBurn) e.setData('burnTicks', 5)
+      }
+    }
+    if (scene.time.now < f.getData('expiry')) {
+      scene.time.delayedCall(250, checkHit)
+    } else {
+      if (scene.trailExplode) {
+        const exp = scene.add.graphics().setDepth(4)
+        exp.fillStyle(0xf97316, 0.6).fillCircle(f.x, f.y, 40)
+        scene.tweens.add({ targets: exp, alpha: 0, duration: 300, onComplete: () => exp.destroy() })
+        for (const e of scene.enemies.getChildren() as any[]) {
+          if (e.active && Math.sqrt((f.x - e.x) ** 2 + (f.y - e.y) ** 2) < 40) {
+            scene.damageEnemy(e, scene.trailDmg * 2)
+          }
+        }
+      }
+      f.destroy()
+    }
+  }
+  checkHit()
 }
 
 export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
@@ -113,15 +236,34 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
     const hitSet: Set<any> = b.getData('hitEnemies')
     if (hitSet.has(e)) return
     hitSet.add(e)
-    const dmg = b.getData('dmg') ?? scene.sniperDmg
+    const dmg = b.getData('dmg') ?? (b.getData('wt') === 'boomerang' ? scene.boomerangDmg : scene.sniperDmg)
     scene.damageEnemy(e, dmg)
     const remaining = pierceLeft - 1
     if (remaining <= 0) b.destroy()
     else b.setData('pierceLeft', remaining)
   } else {
-    const dmg = b.getData('dmg') ?? scene.shotgunDmg
+    const wt = b.getData('wt')
+    const dmg = b.getData('dmg') ?? (wt === 'rocket' ? scene.rocketDmg : scene.shotgunDmg)
+    if (wt === 'rocket') {
+      const exp = scene.add.graphics().setDepth(15)
+      exp.fillStyle(0xef4444, 0.4).fillCircle(b.x, b.y, scene.rocketRadius)
+      scene.tweens.add({ targets: exp, alpha: 0, duration: 200, onComplete: () => exp.destroy() })
+      for (const enemyObj of scene.enemies.getChildren() as any[]) {
+        if (enemyObj.active && Math.sqrt((b.x - enemyObj.x) ** 2 + (b.y - enemyObj.y) ** 2) < scene.rocketRadius) {
+          scene.damageEnemy(enemyObj, dmg)
+        }
+      }
+      if (scene.rocketSplit) {
+        for (let i = 0; i < 3; i++) {
+          const m = scene.bullets.create(b.x, b.y, 'rocket') as any
+          m.setScale(0.5).setData('dmg', Math.floor(dmg / 2)).setData('wt', 'rocket').setData('homing', true).setDepth(4)
+          const ma = Math.random() * Math.PI * 2
+          m.setVelocity(Math.cos(ma) * 400, Math.sin(ma) * 400)
+        }
+      }
+    }
     b.destroy()
-    scene.damageEnemy(e, dmg)
+    if (wt !== 'rocket') scene.damageEnemy(e, dmg)
   }
 }
 

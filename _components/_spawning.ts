@@ -99,6 +99,13 @@ export function moveEnemies(scene: IGameScene, delta: number) {
     if (distToPlayer > DESPAWN_DIST) { e.destroy(); continue }
     if (scene.freezeTimer > 0) { e.setVelocity(0, 0); continue }
 
+    const stunned = e.getData('stunned') ?? 0
+    if (stunned > 0) {
+      e.setData('stunned', stunned - delta)
+      e.setVelocity(0, 0)
+      continue
+    }
+
     const angle = Math.atan2(scene.player.y - e.y, scene.player.x - e.x)
     const speed = (e.getData('speed') ?? 70) * scene.globalSpeedMult
 

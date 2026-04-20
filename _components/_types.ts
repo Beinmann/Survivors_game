@@ -1,19 +1,29 @@
-export type WeaponType = 'shotgun' | 'sniper' | 'aura' | 'machinegun'
+export type WeaponType = 'shotgun' | 'sniper' | 'aura' | 'machinegun' | 'scythes' | 'tesla' | 'boomerang' | 'rocket' | 'trail'
 
-export const ALL_WEAPON_TYPES: WeaponType[] = ['shotgun', 'sniper', 'aura', 'machinegun']
+export const ALL_WEAPON_TYPES: WeaponType[] = ['shotgun', 'sniper', 'aura', 'machinegun', 'scythes', 'tesla', 'boomerang', 'rocket', 'trail']
 
 export const WEAPON_NAMES: Record<WeaponType, string> = {
   shotgun: 'Shotgun',
   sniper: 'Sniper',
   aura: 'Shock Aura',
   machinegun: 'Machine Gun',
+  scythes: 'Spectral Scythes',
+  tesla: 'Tesla Chain',
+  boomerang: 'Ricochet Boomerang',
+  rocket: 'Homing Rockets',
+  trail: 'Incendiary Trail',
 }
 
 export const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: number; damage: number }> = {
   shotgun:    { shootRate: 550,  bulletSpd: 320, damage: 30 },
   sniper:     { shootRate: 1400, bulletSpd: 680, damage: 150 },
   aura:       { shootRate: 500,  bulletSpd: 0,   damage: 10 },
-  machinegun: { shootRate: 100,  bulletSpd: 520, damage: 4 },
+  machinegun: { shootRate: 200,  bulletSpd: 520, damage: 4 },
+  scythes:    { shootRate: 1500, bulletSpd: 0,   damage: 25 },
+  tesla:      { shootRate: 800,  bulletSpd: 0,   damage: 18 },
+  boomerang:  { shootRate: 1000, bulletSpd: 350, damage: 22 },
+  rocket:     { shootRate: 1500, bulletSpd: 250, damage: 45 },
+  trail:      { shootRate: 400,  bulletSpd: 0,   damage: 12 },
 }
 
 export type PassiveType = 'movespeed' | 'magnet' | 'orbmult' | 'hp' | 'damage' | 'cooldown'

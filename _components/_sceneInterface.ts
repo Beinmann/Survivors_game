@@ -54,6 +54,27 @@ export interface IGameScene {
   machineGunDmg: number
   machineGunBurst: number
   machineGunPierce: boolean
+  scythesDmg: number
+  scythesCount: number
+  scythesRadius: number
+  scythesLifeSteal: boolean
+  teslaDmg: number
+  teslaJumps: number
+  teslaStun: boolean
+  teslaArcBack: boolean
+  boomerangDmg: number
+  boomerangCount: number
+  boomerangDist: number
+  boomerangPierce: boolean
+  rocketDmg: number
+  rocketRadius: number
+  rocketBurst: number
+  rocketSplit: boolean
+  trailDmg: number
+  trailDuration: number
+  trailSize: number
+  trailBurn: boolean
+  trailExplode: boolean
   powerUpSpawnTimer: number
   frenzyTimer: number
   freezeTimer: number
@@ -121,6 +142,11 @@ export interface IGameScene {
   fireSniper(angle: number, wt: WeaponType): void
   fireMachineGun(angle: number, wt: WeaponType): void
   fireAura(): void
+  fireScythes(): void
+  fireTesla(angle: number, wt: WeaponType): void
+  fireBoomerang(angle: number, wt: WeaponType): void
+  fireRocket(angle: number, wt: WeaponType): void
+  fireTrail(): void
   move(): void
   autoShoot(time: number): void
   moveEnemies(delta: number): void

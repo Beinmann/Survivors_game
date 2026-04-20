@@ -8,7 +8,7 @@ import { showTitleScreen, showWeaponSelection, showGameOver } from './_screens'
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
 import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies } from './_spawning'
-import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura } from './_combat'
+import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireTrail } from './_combat'
 import { onCollectOrb, getWeaponUpgrades, getUpgrades, showUpgradeMenu, pullOrbs, unlockWeapon } from './_progression'
 
 export function createGameScene(Phaser: any) {
@@ -70,6 +70,27 @@ export function createGameScene(Phaser: any) {
     public machineGunDmg = 0
     public machineGunBurst = 0
     public machineGunPierce = false
+    public scythesDmg = 0
+    public scythesCount = 0
+    public scythesRadius = 0
+    public scythesLifeSteal = false
+    public teslaDmg = 0
+    public teslaJumps = 0
+    public teslaStun = false
+    public teslaArcBack = false
+    public boomerangDmg = 0
+    public boomerangCount = 0
+    public boomerangDist = 0
+    public boomerangPierce = false
+    public rocketDmg = 0
+    public rocketRadius = 0
+    public rocketBurst = 0
+    public rocketSplit = false
+    public trailDmg = 0
+    public trailDuration = 0
+    public trailSize = 0
+    public trailBurn = false
+    public trailExplode = false
 
     // --- power-up state ---
     public powerUpSpawnTimer = 0
@@ -132,6 +153,7 @@ export function createGameScene(Phaser: any) {
       this.obstacles = this.physics.add.staticGroup()
       this.spawnObstacles()
       this.powerUps = this.physics.add.group()
+      this.scythes = this.physics.add.group()
 
       this.cameras.main.startFollow(this.player, true, 0.08, 0.08)
 
@@ -171,6 +193,13 @@ export function createGameScene(Phaser: any) {
         this
       )
       this.physics.add.overlap(this.bullets, this.enemies, this.onBulletHitEnemy as any, undefined, this)
+      this.physics.add.overlap(this.scythes, this.enemies, (scythe: any, enemy: any) => {
+        if (!enemy.active) return
+        this.damageEnemy(enemy, this.scythesDmg, false)
+        if (this.scythesLifeSteal && Math.random() < 0.05) {
+          this.hp = Math.min(this.maxHp, this.hp + 1)
+        }
+      }, undefined, this)
       this.physics.add.overlap(this.player, this.enemies, this.onPlayerHitEnemy as any, undefined, this)
       this.physics.add.overlap(this.player, this.xpOrbs, this.onCollectOrb as any, undefined, this)
       this.physics.add.overlap(this.player, this.powerUps, this.onCollectPowerUp as any, undefined, this)
@@ -212,6 +241,11 @@ export function createGameScene(Phaser: any) {
       this.magnetRadius = 70; this.orbMultiplier = 1.0
       this.auraRadius = 110; this.shotgunRange = 220
       this.machineGunBurst = 1; this.machineGunPierce = false
+      this.scythesDmg = 0; this.scythesCount = 0; this.scythesRadius = 100; this.scythesLifeSteal = false
+      this.teslaDmg = 0; this.teslaJumps = 2; this.teslaStun = false; this.teslaArcBack = false
+      this.boomerangDmg = 0; this.boomerangCount = 1; this.boomerangDist = 250; this.boomerangPierce = false
+      this.rocketDmg = 0; this.rocketRadius = 40; this.rocketBurst = 1; this.rocketSplit = false
+      this.trailDmg = 0; this.trailDuration = 3000; this.trailSize = 20; this.trailBurn = false; this.trailExplode = false
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
       this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
@@ -289,15 +323,73 @@ export function createGameScene(Phaser: any) {
           img.destroy(); continue
         }
         // shotgun range check
-        const sx = img.getData('sx')
+        const sx = img.getData('sx'), sy = img.getData('sy')
         if (sx !== undefined) {
-          const dist = Phaser.Math.Distance.Between(sx, img.getData('sy'), img.x, img.y)
-          if (dist > this.shotgunRange) img.destroy()
+          const dist = Phaser.Math.Distance.Between(sx, sy, img.x, img.y)
+          if (img.getData('wt') === 'boomerang') {
+            if (!img.getData('returning')) {
+              if (dist > img.getData('dist')) {
+                img.setData('returning', true)
+                img.setData('hitEnemies', new Set()) // Reset hits for return trip
+              }
+            } else {
+              const angle = Phaser.Math.Angle.Between(img.x, img.y, this.player.x, this.player.y)
+              const spd = WEAPON_BASE['boomerang'].bulletSpd * 1.5
+              img.setVelocity(Math.cos(angle) * spd, Math.sin(angle) * spd)
+              if (Phaser.Math.Distance.Between(img.x, img.y, this.player.x, this.player.y) < 20) {
+                img.destroy(); continue
+              }
+            }
+          } else if (dist > this.shotgunRange) {
+            img.destroy(); continue
+          }
+        }
+
+        if (img.getData('homing')) {
+          const targets = this.enemies.getChildren()
+          if (targets.length > 0) {
+            const nearest = this.physics.closest(img, targets) as any
+            if (nearest) {
+              const angle = Phaser.Math.Angle.Between(img.x, img.y, nearest.x, nearest.y)
+              const curAngle = img.rotation
+              const newAngle = Phaser.Math.Angle.RotateTo(curAngle, angle, 0.1)
+              img.setRotation(newAngle)
+              const spd = Phaser.Math.Distance.Between(0, 0, img.body.velocity.x, img.body.velocity.y)
+              img.setVelocity(Math.cos(newAngle) * spd, Math.sin(newAngle) * spd)
+            }
+          }
         }
       }
 
       this.drawUI()
       this.updateAura()
+      this.updateScythes(delta)
+    }
+
+    public updateScythes(delta: number) {
+      if (!this.weapons.includes('scythes')) {
+        this.scythes.clear(true, true)
+        return
+      }
+      const count = this.scythesCount
+      const children = this.scythes.getChildren()
+      if (children.length !== count) {
+        this.scythes.clear(true, true)
+        for (let i = 0; i < count; i++) {
+          const s = this.scythes.create(this.player.x, this.player.y, 'scythe')
+          s.setDepth(6)
+        }
+      }
+
+      const rotSpeed = 0.004
+      const angleBase = this.gameTime * rotSpeed
+      children.forEach((s: any, i: number) => {
+        const angle = angleBase + (i / count) * Math.PI * 2
+        const x = this.player.x + Math.cos(angle) * this.scythesRadius
+        const y = this.player.y + Math.sin(angle) * this.scythesRadius
+        s.setPosition(x, y)
+        s.setRotation(angle + Math.PI / 2)
+      })
     }
 
     public updateAura() {
@@ -375,6 +467,29 @@ export function createGameScene(Phaser: any) {
       fireAura(this)
     }
 
+    public fireScythes() {
+      // Logic handled in updateScythes for movement, 
+      // but we need to check for hits.
+      // We'll reuse fireAura-like logic or use physics overlap.
+      // For simplicity, scythes damage is handled via physics overlap in create()
+    }
+
+    public fireTesla(angle: number, wt: WeaponType) {
+      fireTesla(this, angle, wt)
+    }
+
+    public fireBoomerang(angle: number, wt: WeaponType) {
+      fireBoomerang(this, angle, wt)
+    }
+
+    public fireRocket(angle: number, wt: WeaponType) {
+      fireRocket(this, angle, wt)
+    }
+
+    public fireTrail() {
+      fireTrail(this)
+    }
+
     // ─── movement / orbs ────────────────────────────────────────────────
 
     public moveEnemies(delta: number) {
@@ -431,6 +546,11 @@ export function createGameScene(Phaser: any) {
       this.sniperDmg = Math.round(WEAPON_BASE['sniper'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['sniper'] ?? 0)))
       this.auraDmg = Math.round(WEAPON_BASE['aura'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['aura'] ?? 0)))
       this.machineGunDmg = Math.round(WEAPON_BASE['machinegun'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['machinegun'] ?? 0)))
+      this.scythesDmg = Math.round(WEAPON_BASE['scythes'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['scythes'] ?? 0)))
+      this.teslaDmg = Math.round(WEAPON_BASE['tesla'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['tesla'] ?? 0)))
+      this.boomerangDmg = Math.round(WEAPON_BASE['boomerang'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['boomerang'] ?? 0)))
+      this.rocketDmg = Math.round(WEAPON_BASE['rocket'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['rocket'] ?? 0)))
+      this.trailDmg = Math.round(WEAPON_BASE['trail'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['trail'] ?? 0)))
 
       for (const wt of ALL_WEAPON_TYPES) {
         const baseSpd = WEAPON_BASE[wt].bulletSpd

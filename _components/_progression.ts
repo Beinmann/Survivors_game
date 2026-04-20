@@ -39,24 +39,74 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: '+3 pierce  ·  +100% damage  ·  −200ms',     apply: () => { scene.pierceCount += 3; scene.bonusWeaponDmg['sniper'] = (scene.bonusWeaponDmg['sniper'] ?? 0) + 1.0; scene.flatWeaponShootRateReductions['sniper'] = (scene.flatWeaponShootRateReductions['sniper'] ?? 0) + 200; scene.recalculateStats() } },
     ],
     aura: [
-      { desc: '+30% damage',                               apply: () => { scene.bonusWeaponDmg['aura'] = (scene.bonusWeaponDmg['aura'] ?? 0) + 0.3; scene.recalculateStats() } },
-      { desc: '+25px radius  ·  −80ms cooldown',           apply: () => { scene.auraRadius += 25; scene.flatWeaponShootRateReductions['aura'] = (scene.flatWeaponShootRateReductions['aura'] ?? 0) + 80; scene.recalculateStats() } },
-      { desc: '+50% damage  ·  +25px radius',              apply: () => { scene.bonusWeaponDmg['aura'] = (scene.bonusWeaponDmg['aura'] ?? 0) + 0.5; scene.auraRadius += 25; scene.recalculateStats() } },
-      { desc: '−100ms cooldown  ·  +30px radius',          apply: () => { scene.flatWeaponShootRateReductions['aura'] = (scene.flatWeaponShootRateReductions['aura'] ?? 0) + 100; scene.auraRadius += 30; scene.recalculateStats() } },
-      { desc: '+60% damage  ·  +30px radius',              apply: () => { scene.bonusWeaponDmg['aura'] = (scene.bonusWeaponDmg['aura'] ?? 0) + 0.6; scene.auraRadius += 30; scene.recalculateStats() } },
-      { desc: '−100ms cooldown  ·  +35px radius',          apply: () => { scene.flatWeaponShootRateReductions['aura'] = (scene.flatWeaponShootRateReductions['aura'] ?? 0) + 100; scene.auraRadius += 35; scene.recalculateStats() } },
-      { desc: '+80% damage  ·  +35px radius',              apply: () => { scene.bonusWeaponDmg['aura'] = (scene.bonusWeaponDmg['aura'] ?? 0) + 0.8; scene.auraRadius += 35; scene.recalculateStats() } },
-      { desc: '+100% damage  ·  +50px radius  ·  −100ms',  apply: () => { scene.bonusWeaponDmg['aura'] = (scene.bonusWeaponDmg['aura'] ?? 0) + 1.0; scene.auraRadius += 50; scene.flatWeaponShootRateReductions['aura'] = (scene.flatWeaponShootRateReductions['aura'] ?? 0) + 100; scene.recalculateStats() } },
+      { desc: '+15% damage',                               apply: () => { scene.bonusWeaponDmg['aura'] = (scene.bonusWeaponDmg['aura'] ?? 0) + 0.15; scene.recalculateStats() } },
+      { desc: '+10px radius  ·  −50ms cooldown',           apply: () => { scene.auraRadius += 10; scene.flatWeaponShootRateReductions['aura'] = (scene.flatWeaponShootRateReductions['aura'] ?? 0) + 50; scene.recalculateStats() } },
+      { desc: '+25% damage  ·  +10px radius',              apply: () => { scene.bonusWeaponDmg['aura'] = (scene.bonusWeaponDmg['aura'] ?? 0) + 0.25; scene.auraRadius += 10; scene.recalculateStats() } },
+      { desc: '−80ms cooldown  ·  +15px radius',           apply: () => { scene.flatWeaponShootRateReductions['aura'] = (scene.flatWeaponShootRateReductions['aura'] ?? 0) + 80; scene.auraRadius += 15; scene.recalculateStats() } },
+      { desc: '+30% damage  ·  +15px radius',              apply: () => { scene.bonusWeaponDmg['aura'] = (scene.bonusWeaponDmg['aura'] ?? 0) + 0.30; scene.auraRadius += 15; scene.recalculateStats() } },
+      { desc: '−80ms cooldown  ·  +20px radius',           apply: () => { scene.flatWeaponShootRateReductions['aura'] = (scene.flatWeaponShootRateReductions['aura'] ?? 0) + 80; scene.auraRadius += 20; scene.recalculateStats() } },
+      { desc: '+40% damage  ·  +20px radius',              apply: () => { scene.bonusWeaponDmg['aura'] = (scene.bonusWeaponDmg['aura'] ?? 0) + 0.40; scene.auraRadius += 20; scene.recalculateStats() } },
+      { desc: '+50% damage  ·  +25px radius  ·  −80ms',    apply: () => { scene.bonusWeaponDmg['aura'] = (scene.bonusWeaponDmg['aura'] ?? 0) + 0.50; scene.auraRadius += 25; scene.flatWeaponShootRateReductions['aura'] = (scene.flatWeaponShootRateReductions['aura'] ?? 0) + 80; scene.recalculateStats() } },
     ],
     machinegun: [
-      { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.4; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 15; scene.recalculateStats() } },
-      { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.4; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 15; scene.recalculateStats() } },
+      { desc: '+50% damage  ·  −30ms cooldown',            apply: () => { scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.5; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 30; scene.recalculateStats() } },
+      { desc: '+50% damage  ·  −30ms cooldown',            apply: () => { scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.5; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 30; scene.recalculateStats() } },
       { desc: 'Piercing rounds — bullets pass through 1 enemy', apply: () => { scene.machineGunPierce = true } },
-      { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.4; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 15; scene.recalculateStats() } },
+      { desc: '+50% damage  ·  −30ms cooldown',            apply: () => { scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.5; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 30; scene.recalculateStats() } },
       { desc: 'Burst fire — 2 bullets per shot',           apply: () => { scene.machineGunBurst = 2 } },
-      { desc: 'Rear shot  ·  +30% damage',                 apply: () => { scene.weaponRearShot['machinegun'] = true; scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.3; scene.recalculateStats() } },
-      { desc: '3-round burst  ·  −20ms cooldown',          apply: () => { scene.machineGunBurst = 3; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 20; scene.recalculateStats() } },
-      { desc: '+60% damage  ·  −20ms cooldown',            apply: () => { scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.6; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 20; scene.recalculateStats() } },
+      { desc: 'Rear shot  ·  +40% damage',                 apply: () => { scene.weaponRearShot['machinegun'] = true; scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.4; scene.recalculateStats() } },
+      { desc: '3-round burst  ·  −30ms cooldown',          apply: () => { scene.machineGunBurst = 3; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 30; scene.recalculateStats() } },
+      { desc: '+80% damage  ·  −30ms cooldown',            apply: () => { scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.8; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 30; scene.recalculateStats() } },
+    ],
+    scythes: [
+      { desc: '+1 blade',                                  apply: () => { scene.scythesCount++; scene.recalculateStats() } },
+      { desc: '+30% damage  ·  +20px radius',              apply: () => { scene.bonusWeaponDmg['scythes'] = (scene.bonusWeaponDmg['scythes'] ?? 0) + 0.3; scene.scythesRadius += 20; scene.recalculateStats() } },
+      { desc: '+1 blade',                                  apply: () => { scene.scythesCount++; scene.recalculateStats() } },
+      { desc: '+40% damage  ·  +20px radius',              apply: () => { scene.bonusWeaponDmg['scythes'] = (scene.bonusWeaponDmg['scythes'] ?? 0) + 0.4; scene.scythesRadius += 20; scene.recalculateStats() } },
+      { desc: '−200ms cooldown  ·  +30% damage',           apply: () => { scene.flatWeaponShootRateReductions['scythes'] = (scene.flatWeaponShootRateReductions['scythes'] ?? 0) + 200; scene.bonusWeaponDmg['scythes'] = (scene.bonusWeaponDmg['scythes'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+1 blade',                                  apply: () => { scene.scythesCount++; scene.recalculateStats() } },
+      { desc: '+60% damage  ·  +30px radius',              apply: () => { scene.bonusWeaponDmg['scythes'] = (scene.bonusWeaponDmg['scythes'] ?? 0) + 0.6; scene.scythesRadius += 30; scene.recalculateStats() } },
+      { desc: '+1 blade  ·  Life steal on hit',            apply: () => { scene.scythesCount++; scene.scythesLifeSteal = true; scene.recalculateStats() } },
+    ],
+    tesla: [
+      { desc: '+1 jump  ·  +30% damage',                   apply: () => { scene.teslaJumps++; scene.bonusWeaponDmg['tesla'] = (scene.bonusWeaponDmg['tesla'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '−150ms cooldown  ·  +30% damage',           apply: () => { scene.flatWeaponShootRateReductions['tesla'] = (scene.flatWeaponShootRateReductions['tesla'] ?? 0) + 150; scene.bonusWeaponDmg['tesla'] = (scene.bonusWeaponDmg['tesla'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+2 jumps  ·  +40% damage',                  apply: () => { scene.teslaJumps += 2; scene.bonusWeaponDmg['tesla'] = (scene.bonusWeaponDmg['tesla'] ?? 0) + 0.4; scene.recalculateStats() } },
+      { desc: 'Stunning bolts — slows enemies',            apply: () => { scene.teslaStun = true } },
+      { desc: '−150ms cooldown  ·  +50% damage',           apply: () => { scene.flatWeaponShootRateReductions['tesla'] = (scene.flatWeaponShootRateReductions['tesla'] ?? 0) + 150; scene.bonusWeaponDmg['tesla'] = (scene.bonusWeaponDmg['tesla'] ?? 0) + 0.5; scene.recalculateStats() } },
+      { desc: '+2 jumps  ·  +60% damage',                  apply: () => { scene.teslaJumps += 2; scene.bonusWeaponDmg['tesla'] = (scene.bonusWeaponDmg['tesla'] ?? 0) + 0.6; scene.recalculateStats() } },
+      { desc: '−200ms cooldown  ·  +80% damage',           apply: () => { scene.flatWeaponShootRateReductions['tesla'] = (scene.flatWeaponShootRateReductions['tesla'] ?? 0) + 200; scene.bonusWeaponDmg['tesla'] = (scene.bonusWeaponDmg['tesla'] ?? 0) + 0.8; scene.recalculateStats() } },
+      { desc: 'Arc back — can hit same target twice',      apply: () => { scene.teslaArcBack = true } },
+    ],
+    boomerang: [
+      { desc: '+50px range  ·  +30% damage',               apply: () => { scene.boomerangDist += 50; scene.bonusWeaponDmg['boomerang'] = (scene.bonusWeaponDmg['boomerang'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+1 boomerang  ·  −100ms cooldown',          apply: () => { scene.boomerangCount++; scene.flatWeaponShootRateReductions['boomerang'] = (scene.flatWeaponShootRateReductions['boomerang'] ?? 0) + 100; scene.recalculateStats() } },
+      { desc: 'Piercing blades — pass through enemies',    apply: () => { scene.boomerangPierce = true } },
+      { desc: '+50px range  ·  +40% damage',               apply: () => { scene.boomerangDist += 50; scene.bonusWeaponDmg['boomerang'] = (scene.bonusWeaponDmg['boomerang'] ?? 0) + 0.4; scene.recalculateStats() } },
+      { desc: '+1 boomerang  ·  −150ms cooldown',          apply: () => { scene.boomerangCount++; scene.flatWeaponShootRateReductions['boomerang'] = (scene.flatWeaponShootRateReductions['boomerang'] ?? 0) + 150; scene.recalculateStats() } },
+      { desc: '+60% damage  ·  +30% bullet speed',         apply: () => { scene.bonusWeaponDmg['boomerang'] = (scene.bonusWeaponDmg['boomerang'] ?? 0) + 0.6; scene.bonusWeaponBulletSpd['boomerang'] = (scene.bonusWeaponBulletSpd['boomerang'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+80% damage  ·  +1 boomerang',              apply: () => { scene.bonusWeaponDmg['boomerang'] = (scene.bonusWeaponDmg['boomerang'] ?? 0) + 0.8; scene.boomerangCount++; scene.recalculateStats() } },
+      { desc: 'Spark trail — leaves damaging sparks',      apply: () => { scene.trailDmg += 5; scene.trailBurn = true } },
+    ],
+    rocket: [
+      { desc: '+20px explosion radius',                    apply: () => { scene.rocketRadius += 20; scene.recalculateStats() } },
+      { desc: '+50% damage  ·  −100ms cooldown',           apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 0.5; scene.flatWeaponShootRateReductions['rocket'] = (scene.flatWeaponShootRateReductions['rocket'] ?? 0) + 100; scene.recalculateStats() } },
+      { desc: 'Burst fire — 2 rockets per shot',           apply: () => { scene.rocketBurst = 2 } },
+      { desc: '+30px explosion radius',                    apply: () => { scene.rocketRadius += 30; scene.recalculateStats() } },
+      { desc: '+70% damage  ·  −200ms cooldown',           apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 0.7; scene.flatWeaponShootRateReductions['rocket'] = (scene.flatWeaponShootRateReductions['rocket'] ?? 0) + 200; scene.recalculateStats() } },
+      { desc: 'Burst fire — 3 rockets per shot',           apply: () => { scene.rocketBurst = 3 } },
+      { desc: '+100% damage  ·  +30px radius',             apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 1.0; scene.rocketRadius += 30; scene.recalculateStats() } },
+      { desc: 'Cluster impact — rockets split on hit',     apply: () => { scene.rocketSplit = true } },
+    ],
+    trail: [
+      { desc: '+1s duration  ·  +10px size',               apply: () => { scene.trailDuration += 1000; scene.trailSize += 10; scene.recalculateStats() } },
+      { desc: '+40% damage  ·  −50ms cooldown',            apply: () => { scene.bonusWeaponDmg['trail'] = (scene.bonusWeaponDmg['trail'] ?? 0) + 0.4; scene.flatWeaponShootRateReductions['trail'] = (scene.flatWeaponShootRateReductions['trail'] ?? 0) + 50; scene.recalculateStats() } },
+      { desc: '+2s duration  ·  +15px size',               apply: () => { scene.trailDuration += 2000; scene.trailSize += 15; scene.recalculateStats() } },
+      { desc: 'Burn effect — enemies keep taking damage',  apply: () => { scene.trailBurn = true } },
+      { desc: '+60% damage  ·  −50ms cooldown',            apply: () => { scene.bonusWeaponDmg['trail'] = (scene.bonusWeaponDmg['trail'] ?? 0) + 0.6; scene.flatWeaponShootRateReductions['trail'] = (scene.flatWeaponShootRateReductions['trail'] ?? 0) + 50; scene.recalculateStats() } },
+      { desc: '+80% damage  ·  +2s duration',              apply: () => { scene.bonusWeaponDmg['trail'] = (scene.bonusWeaponDmg['trail'] ?? 0) + 0.8; scene.trailDuration += 2000; scene.recalculateStats() } },
+      { desc: '−100ms cooldown  ·  +20px size',            apply: () => { scene.flatWeaponShootRateReductions['trail'] = (scene.flatWeaponShootRateReductions['trail'] ?? 0) + 100; scene.trailSize += 20; scene.recalculateStats() } },
+      { desc: 'Volatile fire — patches explode on expiry', apply: () => { scene.trailExplode = true } },
     ],
   }
   const result: any[] = []
@@ -136,6 +186,11 @@ function weaponUnlockDesc(wt: WeaponType): string {
     sniper:     'Piercing shot · slow but powerful',
     aura:       'Electric pulse · hits all nearby enemies',
     machinegun: 'Rapid fire · scales to burst spread',
+    scythes:    'Orbiting blades · slice through swarms',
+    tesla:      'Chain lightning · jumps between targets',
+    boomerang:  'Returning blade · hits enemies twice',
+    rocket:     'Seeking missiles · explosive impact',
+    trail:      'Fire walk · leaves damaging path',
   }
   return descs[wt]
 }
@@ -240,6 +295,13 @@ export function pullOrbs(scene: IGameScene) {
 export function unlockWeapon(scene: IGameScene, wt: WeaponType) {
   scene.weapons.push(wt)
   scene.weaponLevels[wt]     = 1
+  
+  if (wt === 'scythes')  scene.scythesCount = 1
+  if (wt === 'tesla')    scene.teslaJumps = 2
+  if (wt === 'boomerang') scene.boomerangCount = 1
+  if (wt === 'rocket')   scene.rocketBurst = 1
+  if (wt === 'trail')    scene.trailSize = 20
+
   if (scene.weaponShootRates[wt] === undefined) {
     scene.weaponShootRates[wt] = WEAPON_BASE[wt].shootRate
   }
