@@ -5,7 +5,7 @@
 Phaser 3 top-down survivor. Pick a starting weapon, kill enemies, collect XP orbs, level up, unlock more weapons, survive as long as possible.
 
 **Route:** `/projects/survivors_game`  
-**Source:** `src/app/projects/survivors_game/_components/Game.tsx`
+**Source:** `src/app/projects/survivors_game/` (Modular structure)
 
 ---
 
@@ -96,12 +96,12 @@ Difficulty is time-based:
 
 | Name | Effect |
 |------|--------|
-| Swift Feet | +25% move speed |
-| XP Magnet | +80px magnet radius |
-| Bounty Hunter | +35% XP per orb collected |
+| Swift Feet | +20% move speed |
+| XP Magnet | +50px magnet radius |
+| Bounty Hunter | +25% XP per orb collected |
 | Vital Surge | +20 max HP, restore 40 HP |
-| Power Core | +20% damage to all active weapons |
-| Overclock | −15% cooldown on all active weapons |
+| Power Core | +15% damage to all active weapons |
+| Overclock | −12% cooldown on all active weapons |
 
 ---
 
@@ -142,27 +142,34 @@ Obstacles spawn at least 700px from the world center (player start). Ghosts igno
 
 ## Code architecture
 
-All game logic lives in a single file: `_components/Game.tsx` (~1400 lines).
+The game logic is modularized across several files in `_components/` to maintain clean separation of concerns.
 
-**Why one file:** Phaser must be dynamically imported (browser-only ESM). `GameScene` extends `Phaser.Scene`, so it must be defined inside the `async init()` closure. This prevents `import GameScene from './GameScene'` without a factory-function refactor.
+| File | Responsibility |
+|------|----------------|
+| `Game.tsx` | React wrapper, Phaser initialization, dynamic imports |
+| `_scene.ts` | Main `GameScene` class, state management, and main loop |
+| `_combat.ts` | Shooting logic, collision handlers, and damage calculation |
+| `_progression.ts` | XP collection, level-up logic, and upgrade definitions |
+| `_spawning.ts` | Enemy wave spawning and obstacle generation |
+| `_textures.ts` | Procedural texture generation (Canvas-based) |
+| `_ui.ts` / `_screens.ts` | Heads-up display, upgrade menu, and screen overlays |
+| `_types.ts` / `_constants.ts` | Shared type definitions and game-wide constants |
 
-### Key methods
+Phaser must be dynamically imported as it is a browser-only ESM. The `createGameScene` factory in `_scene.ts` allows passing the `Phaser` instance into the scene class.
 
-| Method | What it does |
-|--------|-------------|
-| `create()` | Resets state, builds textures, creates physics groups, registers colliders, spawns obstacles, shows title screen |
-| `resetState()` | Canonical initial values for all fields |
-| `update(time, delta)` | Main loop: timer, global speed mult, boss check, movement, shooting, enemy movement, orb pulling, power-up tick, bullet cleanup, UI draw |
-| `buildTextures()` | Generates all textures procedurally — player, 10 enemy types, 6 power-up types, 3 obstacle types, 3 bullet types, orb |
-| `spawnWave()` | Weighted-random enemy spawn; Swarm type spawns 5-at-once |
-| `spawnBossWave()` | Warning flash + delayed Boss spawn every 180s |
-| `killEnemy()` | Drops orbs or consolidated orb; triggers bomber explosion |
-| `getWeaponUpgrades()` | Returns next upgrade step for each active weapon |
-| `getUpgrades()` | Builds the 3-card menu pool (passives + weapon upgrades 3× + unlocks 2×) |
-| `showWeaponSelection()` | Initial weapon pick screen |
-| `showUpgradeMenu()` | Pauses physics, renders interactive upgrade cards with stats panel |
-| `applyPowerUp()` | Switch on power-up key string; handles all 6 effects |
-| `addStatsPanel()` | Renders the stats overlay (shown during pause and level-up) |
+### Key methods (implemented in modules)
+
+| Method | Module | What it does |
+|--------|--------|-------------|
+| `create()` | `_scene.ts` | Resets state, builds textures, registers colliders, spawns obstacles |
+| `update()` | `_scene.ts` | Main loop: timer, movement, shooting, enemy/orb updates, UI draw |
+| `buildTextures()` | `_textures.ts` | Generates all 20+ textures procedurally |
+| `spawnWave()` | `_spawning.ts` | Weighted-random enemy spawn logic |
+| `fireShotgun/Sniper/MG` | `_combat.ts` | Weapon-specific firing logic (pellets, pierce, burst) |
+| `getUpgrades()` | `_progression.ts` | Builds the 3-card menu pool (passives, upgrades, unlocks) |
+| `showUpgradeMenu()` | `_progression.ts` | Pauses physics, renders interactive upgrade cards |
+| `applyPowerUp()` | `_powerups.ts` | Handles all 6 power-up effects |
+| `addStatsPanel()` | `_ui.ts` | Renders the detailed stats overlay (pause/level-up) |
 
 ### Key constants
 
