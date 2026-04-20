@@ -130,7 +130,9 @@ export interface IGameScene {
   drawUI(): void
   drawWeaponHUD(): void
   drawWeaponIcon(cx: number, cy: number, wt: WeaponType): void
+  playerSkin: string
   showTitleScreen(): void
+  showIconSelection(): void
   showWeaponSelection(): void
   showGameOver(): void
   unlockWeapon(wt: WeaponType): void

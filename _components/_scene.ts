@@ -4,7 +4,7 @@ import { ENEMY_TYPES } from './_enemyTypes'
 import { ICON_DEFS } from './iconDefs'
 import { IGameScene } from './_sceneInterface'
 import { buildTextures } from './_textures'
-import { showTitleScreen, showWeaponSelection, showGameOver } from './_screens'
+import { showTitleScreen, showIconSelection, showWeaponSelection, showGameOver } from './_screens'
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
 import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies } from './_spawning'
@@ -110,6 +110,9 @@ export function createGameScene(Phaser: any) {
     public bonusWeaponBulletSpd: Partial<Record<WeaponType, number>> = {}
     public flatWeaponShootRateReductions: Partial<Record<WeaponType, number>> = {}
 
+    // --- persisted across restarts ---
+    public playerSkin = 'player_a'
+
     // --- ui ---
     public hpBar!: any
     public xpBar!: any
@@ -145,7 +148,7 @@ export function createGameScene(Phaser: any) {
       for (let x = 0; x <= WORLD; x += 64) bg.lineBetween(x, 0, x, WORLD)
       for (let y = 0; y <= WORLD; y += 64) bg.lineBetween(0, y, WORLD, y)
 
-      this.player = this.physics.add.image(WORLD / 2, WORLD / 2, 'player')
+      this.player = this.physics.add.image(WORLD / 2, WORLD / 2, this.playerSkin)
       this.player.setCollideWorldBounds(true).setDepth(5)
 
       this.enemies = this.physics.add.group()
@@ -630,6 +633,10 @@ export function createGameScene(Phaser: any) {
 
     public showTitleScreen() {
       showTitleScreen(this)
+    }
+
+    public showIconSelection() {
+      showIconSelection(this)
     }
 
     public showWeaponSelection() {

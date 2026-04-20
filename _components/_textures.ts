@@ -15,6 +15,46 @@ export function buildTextures(scene: IGameScene) {
     g.lineStyle(2, 0x86efac); g.strokeRoundedRect(1, 1, 24, 24, 5)
   }, 26, 26)
 
+  // Ranger — teal circle with crosshair
+  make('player_a', g => {
+    g.fillStyle(0x0891b2); g.fillCircle(13, 13, 12)
+    g.lineStyle(2, 0x22d3ee); g.strokeCircle(13, 13, 12)
+    g.fillStyle(0x67e8f9); g.fillCircle(13, 13, 3)
+    g.lineStyle(1.5, 0x67e8f9)
+    g.lineBetween(13, 2, 13, 7)
+    g.lineBetween(13, 19, 13, 24)
+    g.lineBetween(2, 13, 7, 13)
+    g.lineBetween(19, 13, 24, 13)
+  }, 26, 26)
+
+  // Mage — purple diamond with inner glow
+  make('player_b', g => {
+    g.fillStyle(0x7c3aed)
+    g.fillTriangle(13, 1, 25, 13, 13, 25)
+    g.fillTriangle(13, 1, 1, 13, 13, 25)
+    g.lineStyle(2, 0xa78bfa)
+    g.strokeTriangle(13, 1, 25, 13, 13, 25)
+    g.strokeTriangle(13, 1, 1, 13, 13, 25)
+    g.fillStyle(0xddd6fe, 0.6)
+    g.fillTriangle(13, 7, 19, 13, 13, 19)
+    g.fillTriangle(13, 7, 7, 13, 13, 19)
+  }, 26, 26)
+
+  // Scout — orange arrowhead pointing right
+  make('player_c', g => {
+    g.fillStyle(0xd97706)
+    g.fillRect(2, 8, 13, 10)
+    g.fillTriangle(15, 5, 24, 13, 15, 21)
+    g.lineStyle(2, 0xfbbf24)
+    g.lineBetween(2, 8, 15, 8)
+    g.lineBetween(15, 8, 15, 5)
+    g.lineBetween(15, 5, 24, 13)
+    g.lineBetween(24, 13, 15, 21)
+    g.lineBetween(15, 21, 15, 18)
+    g.lineBetween(15, 18, 2, 18)
+    g.lineBetween(2, 18, 2, 8)
+  }, 26, 26)
+
   for (const t of ENEMY_TYPES) {
     const iconKey = 'eico_' + t.key.replace('enemy_', '')
     const def = ICON_DEFS.find(d => d.key === iconKey)
