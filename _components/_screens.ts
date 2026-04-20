@@ -114,10 +114,80 @@ export function showIconSelection(scene: IGameScene) {
       scene.playerSkin = opt.key
       scene.player.setTexture(opt.key)
       ui.forEach(o => o.destroy())
-      scene.showWeaponSelection()
+      scene.showModeSelection()
     })
 
     ui.push(bg, icon, nameText, descText, zone)
+  })
+}
+
+export function showModeSelection(scene: IGameScene) {
+  const { width: w, height: h } = scene.cameras.main
+  const ui: any[] = []
+
+  const overlay = scene.add.graphics().setScrollFactor(0).setDepth(50)
+  overlay.fillStyle(0x000000, 0.92).fillRect(0, 0, w, h)
+  ui.push(overlay)
+
+  ui.push(scene.add.text(w / 2, h / 2 - 145, 'Choose your mode', {
+    fontSize: '28px', color: '#ffffff', stroke: '#000', strokeThickness: 4,
+  }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
+
+  const OPTIONS = [
+    {
+      mode: false,
+      name: 'Normal',
+      desc: 'Collect up to 3 weapons\nas you level up.',
+      accent: 0x4ade80,
+    },
+    {
+      mode: true,
+      name: 'One Weapon',
+      desc: 'Pick any weapon to master.\nNo new weapons — only upgrades.',
+      accent: 0xf97316,
+    },
+  ]
+
+  const cardW = 200, cardH = 180
+  const gap = 230
+  const startX = w / 2 - gap / 2
+
+  OPTIONS.forEach((opt, i) => {
+    const cx = startX + i * gap
+    const cy = h / 2 + 20
+
+    const bg = scene.add.graphics().setScrollFactor(0).setDepth(51)
+    const draw = (hover: boolean) => {
+      bg.clear()
+      bg.fillStyle(hover ? 0x1e1e30 : 0x111118)
+      bg.fillRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 12)
+      bg.lineStyle(hover ? 3 : 2, hover ? opt.accent : 0x2a2a3a)
+      bg.strokeRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 12)
+    }
+    draw(false)
+
+    const nameText = scene.add.text(cx, cy - 40, opt.name, {
+      fontSize: '24px', color: `#${opt.accent.toString(16).padStart(6, '0')}`,
+      stroke: '#000', strokeThickness: 3, fontStyle: 'bold',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
+
+    const descText = scene.add.text(cx, cy + 22, opt.desc, {
+      fontSize: '13px', color: '#ccccdd',
+      align: 'center', wordWrap: { width: cardW - 24 },
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
+
+    const zone = scene.add.zone(cx, cy, cardW, cardH)
+      .setScrollFactor(0).setDepth(53).setInteractive({ useHandCursor: true })
+
+    zone.on('pointerover', () => draw(true))
+    zone.on('pointerout', () => draw(false))
+    zone.on('pointerdown', () => {
+      scene.oneWeaponMode = opt.mode
+      ui.forEach(o => o.destroy())
+      scene.showWeaponSelection()
+    })
+
+    ui.push(bg, nameText, descText, zone)
   })
 }
 
@@ -180,67 +250,115 @@ export function showWeaponSelection(scene: IGameScene) {
     },
   ]
 
-  const selected = ALL_WEAPONS.sort(() => 0.5 - Math.random()).slice(0, 3)
-
   const overlay = scene.add.graphics().setScrollFactor(0).setDepth(50)
   overlay.fillStyle(0x000000, 0.9).fillRect(0, 0, w, h)
 
-  const cardW = 180
-  const cardH = 240
-  const gap = 200
-  const startX = w / 2 - gap
+  const allUI: any[] = [overlay]
 
-  const titleText = scene.add.text(w / 2, h / 2 - 175, 'Choose your starting weapon', {
-    fontSize: '28px', color: '#ffffff', stroke: '#000', strokeThickness: 4,
-  }).setOrigin(0.5).setScrollFactor(0).setDepth(51)
+  const pick = (weapon: typeof ALL_WEAPONS[0]) => {
+    scene.unlockWeapon(weapon.type)
+    allUI.forEach(o => o.destroy())
+    scene.spawnWave()
+  }
 
-  const allUI: any[] = [overlay, titleText]
+  if (scene.oneWeaponMode) {
+    allUI.push(scene.add.text(w / 2, 32, 'One Weapon Mode — Choose your weapon', {
+      fontSize: '22px', color: '#f97316', stroke: '#000', strokeThickness: 3,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
 
-  selected.forEach((weapon, i) => {
-    const cx = startX + i * gap
-    const cy = h / 2 + 25
+    const cardW = 178, cardH = 126
+    const colGap = 200, rowGap = 140
+    const startX = w / 2 - colGap
+    const startY = 112
 
-    const bg = scene.add.graphics().setScrollFactor(0).setDepth(51)
-    const draw = (hover: boolean) => {
-      bg.clear()
-      bg.fillStyle(hover ? 0x1e1e30 : 0x111118)
-      bg.fillRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 12)
-      bg.lineStyle(hover ? 3 : 2, hover ? weapon.accent : 0x2a2a3a)
-      bg.strokeRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 12)
-    }
-    draw(false)
+    ALL_WEAPONS.forEach((weapon, i) => {
+      const cx = startX + (i % 3) * colGap
+      const cy = startY + Math.floor(i / 3) * rowGap
 
-    const icon = scene.add.image(cx, cy - 70, `wico_${weapon.type}`)
-      .setScrollFactor(0).setDepth(52).setDisplaySize(48, 48)
+      const bg = scene.add.graphics().setScrollFactor(0).setDepth(51)
+      const draw = (hover: boolean) => {
+        bg.clear()
+        bg.fillStyle(hover ? 0x1e1e30 : 0x111118)
+        bg.fillRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 10)
+        bg.lineStyle(hover ? 3 : 2, hover ? weapon.accent : 0x2a2a3a)
+        bg.strokeRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 10)
+      }
+      draw(false)
 
-    const nameText = scene.add.text(cx, cy - 25, weapon.name, {
-      fontSize: '18px', color: '#ffffff', stroke: '#000', strokeThickness: 2,
-      align: 'center', fontStyle: 'bold',
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
+      const icon = scene.add.image(cx - 60, cy, `wico_${weapon.type}`)
+        .setScrollFactor(0).setDepth(52).setDisplaySize(36, 36)
 
-    const descText = scene.add.text(cx, cy + 30, weapon.desc, {
-      fontSize: '13px', color: '#ccccdd',
-      align: 'center', wordWrap: { width: cardW - 20 },
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
+      const nameText = scene.add.text(cx + 5, cy - 24, weapon.name, {
+        fontSize: '14px', color: '#ffffff', stroke: '#000', strokeThickness: 2,
+        fontStyle: 'bold',
+      }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(52)
 
-    const statsText = scene.add.text(cx, cy + 95, weapon.stats, {
-      fontSize: '11px', color: `#${weapon.accent.toString(16).padStart(6, '0')}`,
-      align: 'center', wordWrap: { width: cardW - 20 },
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
+      const descText = scene.add.text(cx + 5, cy + 6, weapon.desc, {
+        fontSize: '11px', color: '#aaaacc',
+        wordWrap: { width: cardW - 55 },
+      }).setOrigin(0, 0).setScrollFactor(0).setDepth(52)
 
-    const zone = scene.add.zone(cx, cy, cardW, cardH)
-      .setScrollFactor(0).setDepth(53).setInteractive({ useHandCursor: true })
+      const zone = scene.add.zone(cx, cy, cardW, cardH)
+        .setScrollFactor(0).setDepth(53).setInteractive({ useHandCursor: true })
 
-    zone.on('pointerover', () => draw(true))
-    zone.on('pointerout', () => draw(false))
-    zone.on('pointerdown', () => {
-      scene.unlockWeapon(weapon.type)
-      allUI.forEach(o => o.destroy())
-      scene.spawnWave()
+      zone.on('pointerover', () => draw(true))
+      zone.on('pointerout', () => draw(false))
+      zone.on('pointerdown', () => pick(weapon))
+
+      allUI.push(bg, icon, nameText, descText, zone)
     })
+  } else {
+    const selected = ALL_WEAPONS.sort(() => 0.5 - Math.random()).slice(0, 3)
 
-    allUI.push(bg, icon, nameText, descText, statsText, zone)
-  })
+    allUI.push(scene.add.text(w / 2, h / 2 - 175, 'Choose your starting weapon', {
+      fontSize: '28px', color: '#ffffff', stroke: '#000', strokeThickness: 4,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
+
+    const cardW = 180, cardH = 240, gap = 200
+    const startX = w / 2 - gap
+
+    selected.forEach((weapon, i) => {
+      const cx = startX + i * gap
+      const cy = h / 2 + 25
+
+      const bg = scene.add.graphics().setScrollFactor(0).setDepth(51)
+      const draw = (hover: boolean) => {
+        bg.clear()
+        bg.fillStyle(hover ? 0x1e1e30 : 0x111118)
+        bg.fillRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 12)
+        bg.lineStyle(hover ? 3 : 2, hover ? weapon.accent : 0x2a2a3a)
+        bg.strokeRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 12)
+      }
+      draw(false)
+
+      const icon = scene.add.image(cx, cy - 70, `wico_${weapon.type}`)
+        .setScrollFactor(0).setDepth(52).setDisplaySize(48, 48)
+
+      const nameText = scene.add.text(cx, cy - 25, weapon.name, {
+        fontSize: '18px', color: '#ffffff', stroke: '#000', strokeThickness: 2,
+        align: 'center', fontStyle: 'bold',
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
+
+      const descText = scene.add.text(cx, cy + 30, weapon.desc, {
+        fontSize: '13px', color: '#ccccdd',
+        align: 'center', wordWrap: { width: cardW - 20 },
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
+
+      const statsText = scene.add.text(cx, cy + 95, weapon.stats, {
+        fontSize: '11px', color: `#${weapon.accent.toString(16).padStart(6, '0')}`,
+        align: 'center', wordWrap: { width: cardW - 20 },
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
+
+      const zone = scene.add.zone(cx, cy, cardW, cardH)
+        .setScrollFactor(0).setDepth(53).setInteractive({ useHandCursor: true })
+
+      zone.on('pointerover', () => draw(true))
+      zone.on('pointerout', () => draw(false))
+      zone.on('pointerdown', () => pick(weapon))
+
+      allUI.push(bg, icon, nameText, descText, statsText, zone)
+    })
+  }
 }
 
 export function showGameOver(scene: IGameScene) {

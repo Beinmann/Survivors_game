@@ -141,7 +141,7 @@ export function getUpgrades(scene: IGameScene) {
     }
   }).filter(Boolean) as any[]
 
-  const weaponUnlockOptions = scene.weapons.length < 3
+  const weaponUnlockOptions = (!scene.oneWeaponMode && scene.weapons.length < 3)
     ? ALL_WEAPON_TYPES
         .filter(wt => !scene.weapons.includes(wt))
         .map(wt => ({
