@@ -132,11 +132,16 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
     draw: (g: G) => {
       const cx = 14, cy = 14
       g.fillStyle(0xf97316)
-      g.beginPath()
-      g.moveTo(cx, cy - 10)
-      g.bezierCurveTo(cx + 8, cy - 4, cx + 8, cy + 4, cx, cy + 10)
-      g.bezierCurveTo(cx - 8, cy + 4, cx - 8, cy - 4, cx, cy - 10)
-      g.fillPath()
+      g.fillPoints([
+        { x: cx,       y: cy - 10 },
+        { x: cx + 4.5, y: cy - 5.2 },
+        { x: cx + 6,   y: cy },
+        { x: cx + 4.5, y: cy + 5.2 },
+        { x: cx,       y: cy + 10 },
+        { x: cx - 4.5, y: cy + 5.2 },
+        { x: cx - 6,   y: cy },
+        { x: cx - 4.5, y: cy - 5.2 },
+      ], true)
       g.fillStyle(0xfacc15).fillCircle(cx, cy + 2, 4)
     },
   },
@@ -219,11 +224,16 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
     key: 'ico_burn', w: 24, h: 24,
     draw: (g: G) => {
       g.fillStyle(0xf97316)
-      g.beginPath()
-      g.moveTo(12, 2)
-      g.quadraticCurveTo(20, 12, 12, 22)
-      g.quadraticCurveTo(4, 12, 12, 2)
-      g.fillPath()
+      g.fillPoints([
+        { x: 12, y: 2 },
+        { x: 15, y: 7 },
+        { x: 16, y: 12 },
+        { x: 15, y: 17 },
+        { x: 12, y: 22 },
+        { x: 9,  y: 17 },
+        { x: 8,  y: 12 },
+        { x: 9,  y: 7 },
+      ], true)
       g.fillStyle(0xef4444).fillCircle(12, 15, 3)
     },
   },
