@@ -306,10 +306,10 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
           scene.damageEnemy(enemyObj, dmg)
         }
       }
-      if (scene.rocketSplit) {
+      if (scene.rocketSplit && !b.getData('split')) {
         for (let i = 0; i < 3; i++) {
           const m = scene.bullets.create(b.x, b.y, 'rocket') as any
-          m.setScale(0.5).setData('dmg', Math.floor(dmg / 2)).setData('wt', 'rocket').setData('homing', true).setDepth(4)
+          m.setScale(0.5).setData('dmg', Math.floor(dmg / 2)).setData('wt', 'rocket').setData('homing', true).setData('split', true).setDepth(4)
           const ma = Math.random() * Math.PI * 2
           m.setVelocity(Math.cos(ma) * 400, Math.sin(ma) * 400)
         }
