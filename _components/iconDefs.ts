@@ -110,6 +110,148 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
     },
   },
 
+  // ── power-up icons ──────────────────────────────────────────────────────
+  {
+    key: 'pu_vacuum', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(3, 0xa78bfa)
+      g.beginPath()
+      g.arc(cx, cy - 3, 7, Math.PI, 0, false)
+      g.strokePath()
+      g.lineBetween(cx - 7, cy - 3, cx - 7, cy + 4)
+      g.lineBetween(cx + 7, cy - 3, cx + 7, cy + 4)
+      g.lineStyle(3, 0xef4444)
+      g.lineBetween(cx - 7, cy + 4, cx - 3, cy + 4)
+      g.lineStyle(3, 0x60a5fa)
+      g.lineBetween(cx + 3, cy + 4, cx + 7, cy + 4)
+    },
+  },
+  {
+    key: 'pu_frenzy', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.fillStyle(0xf97316)
+      g.beginPath()
+      g.moveTo(cx, cy - 10)
+      g.bezierCurveTo(cx + 8, cy - 4, cx + 8, cy + 4, cx, cy + 10)
+      g.bezierCurveTo(cx - 8, cy + 4, cx - 8, cy - 4, cx, cy - 10)
+      g.fillPath()
+      g.fillStyle(0xfacc15).fillCircle(cx, cy + 2, 4)
+    },
+  },
+  {
+    key: 'pu_nuke', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.fillStyle(0xef4444).fillCircle(cx, cy - 2, 8)
+      g.fillStyle(0xef4444).fillRect(cx - 6, cy + 2, 12, 6)
+      g.fillStyle(0x000000)
+      g.fillCircle(cx - 3, cy - 3, 2)
+      g.fillCircle(cx + 3, cy - 3, 2)
+      g.fillRect(cx - 2, cy + 3, 4, 2)
+    },
+  },
+  {
+    key: 'pu_freeze', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0x22d3ee)
+      g.strokeCircle(cx, cy, 9)
+      g.lineBetween(cx, cy, cx, cy - 6)
+      g.lineBetween(cx, cy, cx + 4, cy + 2)
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2
+        g.lineBetween(cx + Math.cos(a) * 9, cy + Math.sin(a) * 9, cx + Math.cos(a) * 12, cy + Math.sin(a) * 12)
+      }
+    },
+  },
+  {
+    key: 'pu_heal', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.fillStyle(0x4ade80)
+      g.fillCircle(cx - 5, cy - 4, 6)
+      g.fillCircle(cx + 5, cy - 4, 6)
+      g.fillTriangle(cx - 11, cy - 2, cx + 11, cy - 2, cx, cy + 10)
+      g.fillStyle(0xffffff).fillRect(cx - 1, cy - 4, 2, 6)
+      g.fillStyle(0xffffff).fillRect(cx - 3, cy - 2, 6, 2)
+    },
+  },
+  {
+    key: 'pu_orbs', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.fillStyle(0xfbbf24).fillCircle(cx, cy, 5)
+      g.fillStyle(0xa78bfa).fillCircle(cx - 7, cy + 6, 3)
+      g.fillStyle(0x22d3ee).fillCircle(cx + 7, cy + 6, 3)
+      g.fillStyle(0xef4444).fillCircle(cx - 6, cy - 7, 3)
+      g.fillStyle(0x4ade80).fillCircle(cx + 6, cy - 7, 3)
+    },
+  },
+
+  // ── unique upgrade mechanics ──────────────────────────────────────────
+  {
+    key: 'ico_lifesteal', w: 24, h: 24,
+    draw: (g: G) => {
+      g.fillStyle(0xef4444)
+      g.fillCircle(8, 8, 4)
+      g.fillCircle(16, 8, 4)
+      g.fillTriangle(4, 9, 20, 9, 12, 18)
+      g.lineStyle(2, 0x94a3b8)
+      g.lineBetween(4, 4, 20, 20)
+    },
+  },
+  {
+    key: 'ico_stun', w: 24, h: 24,
+    draw: (g: G) => {
+      g.lineStyle(2, 0xfacc15)
+      for (let i = 0; i < 3; i++) {
+        const r = 5 + i * 3
+        g.beginPath()
+        g.arc(12, 12, r, i, i + 1)
+        g.strokePath()
+      }
+      g.fillStyle(0xfacc15).fillCircle(12, 12, 2)
+    },
+  },
+  {
+    key: 'ico_burn', w: 24, h: 24,
+    draw: (g: G) => {
+      g.fillStyle(0xf97316)
+      g.beginPath()
+      g.moveTo(12, 2)
+      g.quadraticCurveTo(20, 12, 12, 22)
+      g.quadraticCurveTo(4, 12, 12, 2)
+      g.fillPath()
+      g.fillStyle(0xef4444).fillCircle(12, 15, 3)
+    },
+  },
+  {
+    key: 'ico_split', w: 24, h: 24,
+    draw: (g: G) => {
+      const cx = 12, cy = 12
+      g.fillStyle(0x64748b).fillCircle(cx, cy, 4)
+      g.lineStyle(1.5, 0x94a3b8)
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2
+        g.lineBetween(cx + Math.cos(a) * 5, cy + Math.sin(a) * 5, cx + Math.cos(a) * 11, cy + Math.sin(a) * 11)
+        g.fillStyle(0xef4444).fillCircle(cx + Math.cos(a) * 11, cy + Math.sin(a) * 11, 2)
+      }
+    },
+  },
+  {
+    key: 'ico_spark', w: 24, h: 24,
+    draw: (g: G) => {
+      g.lineStyle(2, 0xfacc15)
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2
+        g.lineBetween(12, 12, 12 + Math.cos(a) * 9, 12 + Math.sin(a) * 9)
+      }
+      g.fillStyle(0xffffff).fillCircle(12, 12, 2)
+    },
+  },
+
   // ── effect icons (upgrade cards + stats panel) ─────────────────────────
   {
     key: 'ico_damage', w: 24, h: 24,

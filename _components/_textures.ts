@@ -31,14 +31,19 @@ export function buildTextures(scene: IGameScene) {
   }
 
   for (const t of PU_TYPES) {
+    const def = ICON_DEFS.find(d => d.key === t.key)
     make(t.key, (g: any) => {
-      const s = 14
-      g.fillStyle(t.color, 1)
-      g.fillTriangle(s, 0,  s*2, s,  s, s*2)
-      g.fillTriangle(s, 0,  0,   s,  s, s*2)
-      g.lineStyle(2, t.stroke, 1)
-      g.strokeTriangle(s, 0,  s*2, s,  s, s*2)
-      g.strokeTriangle(s, 0,  0,   s,  s, s*2)
+      if (def) {
+        def.draw(g)
+      } else {
+        const s = 14
+        g.fillStyle(t.color, 1)
+        g.fillTriangle(s, 0,  s*2, s,  s, s*2)
+        g.fillTriangle(s, 0,  0,   s,  s, s*2)
+        g.lineStyle(2, t.stroke, 1)
+        g.strokeTriangle(s, 0,  s*2, s,  s, s*2)
+        g.strokeTriangle(s, 0,  0,   s,  s, s*2)
+      }
     }, 28, 28)
   }
 
