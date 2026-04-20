@@ -27,7 +27,6 @@ export interface IGameScene {
   weaponCooldowns: Partial<Record<WeaponType, number>>
   weaponShootRates: Partial<Record<WeaponType, number>>
   weaponBulletSpd: Partial<Record<WeaponType, number>>
-  weaponRearShot: Partial<Record<WeaponType, boolean>>
   passives: PassiveType[]
   passiveLevels: Partial<Record<PassiveType, number>>
   hp: number

@@ -21,7 +21,6 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
     shotgun: [
       { desc: '+2 pellets  ·  −50ms cooldown',             icon: 'ico_pellets', apply: () => { scene.extraBullets += 2; scene.flatWeaponShootRateReductions['shotgun'] = (scene.flatWeaponShootRateReductions['shotgun'] ?? 0) + 50; scene.recalculateStats() } },
       { desc: '+30% damage  ·  +50px range',               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['shotgun'] = (scene.bonusWeaponDmg['shotgun'] ?? 0) + 0.3; scene.shotgunRange += 50; scene.recalculateStats() } },
-      { desc: 'Unlock rear shot',                          icon: 'ico_rearshot', apply: () => { scene.weaponRearShot['shotgun'] = true } },
       { desc: '+2 pellets  ·  +30% damage',                icon: 'ico_pellets', apply: () => { scene.extraBullets += 2; scene.bonusWeaponDmg['shotgun'] = (scene.bonusWeaponDmg['shotgun'] ?? 0) + 0.3; scene.recalculateStats() } },
       { desc: '−80ms cooldown  ·  +60px range',            icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['shotgun'] = (scene.flatWeaponShootRateReductions['shotgun'] ?? 0) + 80; scene.shotgunRange += 60; scene.recalculateStats() } },
       { desc: '+40% damage  ·  +2 pellets',                icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['shotgun'] = (scene.bonusWeaponDmg['shotgun'] ?? 0) + 0.4; scene.extraBullets += 2; scene.recalculateStats() } },
@@ -31,7 +30,6 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
     sniper: [
       { desc: '+1 pierce  ·  +50% damage',                 icon: 'ico_pierce', apply: () => { scene.pierceCount++; scene.bonusWeaponDmg['sniper'] = (scene.bonusWeaponDmg['sniper'] ?? 0) + 0.5; scene.recalculateStats() } },
       { desc: '−250ms cooldown  ·  +30% bullet speed',     icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['sniper'] = (scene.flatWeaponShootRateReductions['sniper'] ?? 0) + 250; scene.bonusWeaponBulletSpd['sniper'] = (scene.bonusWeaponBulletSpd['sniper'] ?? 0) + 0.3; scene.recalculateStats() } },
-      { desc: 'Rear shot  ·  +50% damage',                 icon: 'ico_rearshot', apply: () => { scene.weaponRearShot['sniper'] = true; scene.bonusWeaponDmg['sniper'] = (scene.bonusWeaponDmg['sniper'] ?? 0) + 0.5; scene.recalculateStats() } },
       { desc: '+2 pierce  ·  −200ms cooldown',             icon: 'ico_pierce', apply: () => { scene.pierceCount += 2; scene.flatWeaponShootRateReductions['sniper'] = (scene.flatWeaponShootRateReductions['sniper'] ?? 0) + 200; scene.recalculateStats() } },
       { desc: '+70% damage  ·  +30% bullet speed',         icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['sniper'] = (scene.bonusWeaponDmg['sniper'] ?? 0) + 0.7; scene.bonusWeaponBulletSpd['sniper'] = (scene.bonusWeaponBulletSpd['sniper'] ?? 0) + 0.3; scene.recalculateStats() } },
       { desc: '+2 pierce  ·  −200ms cooldown',             icon: 'ico_pierce', apply: () => { scene.pierceCount += 2; scene.flatWeaponShootRateReductions['sniper'] = (scene.flatWeaponShootRateReductions['sniper'] ?? 0) + 200; scene.recalculateStats() } },
@@ -54,7 +52,6 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: 'Piercing rounds — bullets pass through 1 enemy', icon: 'ico_pierce', apply: () => { scene.machineGunPierce = true } },
       { desc: '+50% damage  ·  −30ms cooldown',            icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.5; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 30; scene.recalculateStats() } },
       { desc: 'Burst fire — 2 bullets per shot',           icon: 'ico_burst', apply: () => { scene.machineGunBurst = 2 } },
-      { desc: 'Rear shot  ·  +40% damage',                 icon: 'ico_rearshot', apply: () => { scene.weaponRearShot['machinegun'] = true; scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.4; scene.recalculateStats() } },
       { desc: '3-round burst  ·  −30ms cooldown',          icon: 'ico_burst', apply: () => { scene.machineGunBurst = 3; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 30; scene.recalculateStats() } },
       { desc: '+80% damage  ·  −30ms cooldown',            icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.8; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 30; scene.recalculateStats() } },
     ],
@@ -319,6 +316,5 @@ export function unlockWeapon(scene: IGameScene, wt: WeaponType) {
     scene.weaponBulletSpd[wt] = WEAPON_BASE[wt].bulletSpd
   }
   scene.weaponCooldowns[wt]  = 0
-  scene.weaponRearShot[wt]   = false
   scene.rebuildWeaponHUDTexts()
 }

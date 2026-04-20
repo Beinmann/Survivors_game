@@ -58,7 +58,6 @@ export function buildStatLines(scene: IGameScene) {
   for (const wt of scene.weapons) {
     const rate = (1000 / (scene.weaponShootRates[wt] ?? WEAPON_BASE[wt].shootRate)).toFixed(1)
     const lvl  = scene.weaponLevels[wt] ?? 1
-    const rear = scene.weaponRearShot[wt] ?? false
     lines.push({ label: `── ${WEAPON_NAMES[wt]}`, value: `Lv${lvl}`, icon: 'ico_level' })
     lines.push({ label: 'Fire Rate', value: `${rate}/s`, icon: 'ico_cooldown' })
 
@@ -73,14 +72,12 @@ export function buildStatLines(scene: IGameScene) {
         { label: 'Pellets', value: String(6 + scene.extraBullets), icon: 'ico_pellets' },
         { label: 'Range',   value: String(scene.shotgunRange),      icon: 'ico_range' },
         { label: 'Damage',  value: String(dmgValue),                icon: 'ico_damage' },
-        { label: 'Rear',    value: rear ? 'Yes' : 'No',            icon: 'ico_rearshot' },
       )
     } else if (wt === 'sniper') {
       lines.push(
         { label: 'Pierce',    value: String(scene.pierceCount),                      icon: 'ico_pierce' },
         { label: 'Blt Speed', value: String(scene.weaponBulletSpd['sniper'] ?? 680), icon: 'ico_bulletspeed' },
         { label: 'Damage',    value: String(dmgValue),                        icon: 'ico_damage' },
-        { label: 'Rear',      value: rear ? 'Yes' : 'No',                           icon: 'ico_rearshot' },
       )
     } else if (wt === 'aura') {
       lines.push(
@@ -89,9 +86,9 @@ export function buildStatLines(scene: IGameScene) {
       )
     } else if (wt === 'machinegun') {
       lines.push(
-        { label: 'Burst',  value: String(scene.machineGunBurst) + (rear ? '+rear' : ''), icon: 'ico_burst' },
-        { label: 'Pierce', value: scene.machineGunPierce ? 'Yes' : 'No',                 icon: 'ico_pierce' },
-        { label: 'Damage', value: String(dmgValue),                           icon: 'ico_damage' },
+        { label: 'Burst',  value: String(scene.machineGunBurst), icon: 'ico_burst' },
+        { label: 'Pierce', value: scene.machineGunPierce ? 'Yes' : 'No', icon: 'ico_pierce' },
+        { label: 'Damage', value: String(dmgValue),              icon: 'ico_damage' },
       )
     }
   }

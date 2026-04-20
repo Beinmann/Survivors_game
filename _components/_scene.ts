@@ -41,7 +41,6 @@ export function createGameScene(Phaser: any) {
     public weaponCooldowns: Partial<Record<WeaponType, number>> = {}
     public weaponShootRates: Partial<Record<WeaponType, number>> = {}
     public weaponBulletSpd: Partial<Record<WeaponType, number>> = {}
-    public weaponRearShot: Partial<Record<WeaponType, boolean>> = {}
     public passives: PassiveType[] = []
     public passiveLevels: Partial<Record<PassiveType, number>> = {}
     public hp = 0
@@ -280,7 +279,7 @@ export function createGameScene(Phaser: any) {
 
     public resetState() {
       this.weapons = []; this.weaponLevels = {}; this.weaponCooldowns = {}
-      this.weaponShootRates = {}; this.weaponBulletSpd = {}; this.weaponRearShot = {}
+      this.weaponShootRates = {}; this.weaponBulletSpd = {}
       this.passives = []; this.passiveLevels = {}
       this.bonusMoveSpeed = 0; this.bonusDamage = 0; this.bonusCooldown = 0
       this.bonusWeaponDmg = {}; this.bonusWeaponBulletSpd = {}; this.flatWeaponShootRateReductions = {}

@@ -39,7 +39,6 @@ export function autoShoot(scene: IGameScene, time: number) {
 
 export function fireShotgun(scene: IGameScene, angle: number, wt: WeaponType) {
   const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
-  const rear = scene.weaponRearShot[wt] ?? false
   const pellets = 6 + scene.extraBullets
   const cone = Math.PI / 5
   const step = pellets > 1 ? cone / (pellets - 1) : 0
@@ -52,32 +51,21 @@ export function fireShotgun(scene: IGameScene, angle: number, wt: WeaponType) {
     b.setDepth(4)
   }
   for (let i = 0; i < pellets; i++) fire(angle + (pellets > 1 ? -cone / 2 + step * i : 0))
-  if (rear) {
-    const rp = Math.max(3, Math.floor(pellets / 2))
-    const rs = rp > 1 ? cone / (rp - 1) : 0
-    for (let i = 0; i < rp; i++) fire(angle + Math.PI + (rp > 1 ? -cone / 2 + rs * i : 0))
-  }
 }
 
 export function fireSniper(scene: IGameScene, angle: number, wt: WeaponType) {
   const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
-  const rear = scene.weaponRearShot[wt] ?? false
-  const fire = (a: number) => {
-    const b = scene.bullets.create(scene.player.x, scene.player.y, 'sniperBullet') as any
-    b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
-    b.setRotation(a)
-    b.setData('dmg', scene.sniperDmg)
-    b.setData('pierceLeft', scene.pierceCount)
-    b.setData('hitEnemies', new Set())
-    b.setDepth(4)
-  }
-  fire(angle)
-  if (rear) fire(angle + Math.PI)
+  const b = scene.bullets.create(scene.player.x, scene.player.y, 'sniperBullet') as any
+  b.setVelocity(Math.cos(angle) * spd, Math.sin(angle) * spd)
+  b.setRotation(angle)
+  b.setData('dmg', scene.sniperDmg)
+  b.setData('pierceLeft', scene.pierceCount)
+  b.setData('hitEnemies', new Set())
+  b.setDepth(4)
 }
 
 export function fireMachineGun(scene: IGameScene, angle: number, wt: WeaponType) {
   const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
-  const rear = scene.weaponRearShot[wt] ?? false
   const fire = (a: number) => {
     const b = scene.bullets.create(scene.player.x, scene.player.y, 'mgBullet') as any
     b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
@@ -93,7 +81,6 @@ export function fireMachineGun(scene: IGameScene, angle: number, wt: WeaponType)
   for (let i = 0; i < scene.machineGunBurst; i++) {
     fire(angle + (scene.machineGunBurst > 1 ? (i - (scene.machineGunBurst - 1) / 2) * offset : 0))
   }
-  if (rear) fire(angle + Math.PI)
 }
 
 export function fireAura(scene: IGameScene) {
