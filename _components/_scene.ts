@@ -108,6 +108,7 @@ export function createGameScene(Phaser: any) {
     public bonusMoveSpeed = 0
     public bonusDamage = 0
     public bonusCooldown = 0
+    public bonusArea = 0
     public bonusWeaponDmg: Partial<Record<WeaponType, number>> = {}
     public bonusWeaponBulletSpd: Partial<Record<WeaponType, number>> = {}
     public flatWeaponShootRateReductions: Partial<Record<WeaponType, number>> = {}
@@ -252,7 +253,7 @@ export function createGameScene(Phaser: any) {
       this.weapons = []; this.weaponLevels = {}; this.weaponCooldowns = {}
       this.weaponShootRates = {}; this.weaponBulletSpd = {}
       this.passives = []; this.passiveLevels = {}
-      this.bonusMoveSpeed = 0; this.bonusDamage = 0; this.bonusCooldown = 0
+      this.bonusMoveSpeed = 0; this.bonusDamage = 0; this.bonusCooldown = 0; this.bonusArea = 0
       this.bonusWeaponDmg = {}; this.bonusWeaponBulletSpd = {}; this.flatWeaponShootRateReductions = {}
       this.recalculateStats()
 
@@ -417,10 +418,11 @@ export function createGameScene(Phaser: any) {
 
       const rotSpeed = 0.004
       const angleBase = this.gameTime * rotSpeed
+      const effectiveScythesRadius = this.scythesRadius * (1 + this.bonusArea)
       children.forEach((s: any, i: number) => {
         const angle = angleBase + (i / count) * Math.PI * 2
-        const x = this.player.x + Math.cos(angle) * this.scythesRadius
-        const y = this.player.y + Math.sin(angle) * this.scythesRadius
+        const x = this.player.x + Math.cos(angle) * effectiveScythesRadius
+        const y = this.player.y + Math.sin(angle) * effectiveScythesRadius
         s.setPosition(x, y)
         s.setRotation(angle + Math.PI / 2)
       })
@@ -437,12 +439,13 @@ export function createGameScene(Phaser: any) {
       this.auraGfx.y = this.player.y
       this.auraGfx.setRotation(this.gameTime * 0.0006)
 
-      if (this.auraRadius === this._lastAuraRadius) return
-      this._lastAuraRadius = this.auraRadius
+      const effectiveAuraRadius = this.auraRadius * (1 + this.bonusArea)
+      if (effectiveAuraRadius === this._lastAuraRadius) return
+      this._lastAuraRadius = effectiveAuraRadius
 
       this.auraGfx.clear()
       const ptsCount = 32
-      const baseR = this.auraRadius
+      const baseR = effectiveAuraRadius
 
       this.auraGfx.lineStyle(2, 0xc4b5fd, 0.35)
       this.auraGfx.fillStyle(0xa78bfa, 0.15)
@@ -660,6 +663,7 @@ export function createGameScene(Phaser: any) {
       if (pt === 'hp')        { this.maxHp += 20; this.hp = Math.min(this.maxHp, this.hp + 40) }
       if (pt === 'damage')    this.bonusDamage += 0.15
       if (pt === 'cooldown')  this.bonusCooldown += 0.12
+      if (pt === 'area')      { this.bonusArea += 0.15; this._lastAuraRadius = -1 }
       
       this.recalculateStats()
     }

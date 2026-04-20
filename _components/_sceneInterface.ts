@@ -99,6 +99,7 @@ export interface IGameScene {
   bonusMoveSpeed: number
   bonusDamage: number
   bonusCooldown: number
+  bonusArea: number
   bonusWeaponDmg: Partial<Record<WeaponType, number>>
   bonusWeaponBulletSpd: Partial<Record<WeaponType, number>>
   flatWeaponShootRateReductions: Partial<Record<WeaponType, number>>

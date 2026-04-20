@@ -100,7 +100,7 @@ export function buildStatLines(scene: IGameScene) {
       )
     } else if (wt === 'aura') {
       lines.push(
-        { label: 'Radius', value: String(scene.auraRadius), icon: 'ico_radius' },
+        { label: 'Radius', value: String(Math.round(scene.auraRadius * (1 + scene.bonusArea))), icon: 'ico_radius' },
         { label: 'Damage', value: String(dmgValue),    icon: 'ico_damage' },
       )
     } else if (wt === 'machinegun') {
@@ -121,6 +121,7 @@ export function buildStatLines(scene: IGameScene) {
     { label: 'Move Speed', value: String(scene.moveSpeed),        icon: 'ico_movespeed' },
     { label: 'Dmg Boost',  value: `+${Math.round(scene.bonusDamage * 100)}%`,    icon: 'ico_damage' },
     { label: 'Fire Rate',  value: `+${Math.round(scene.bonusCooldown * 100)}%`, icon: 'ico_cooldown' },
+    { label: 'Area Boost', value: `+${Math.round(scene.bonusArea * 100)}%`,     icon: 'ico_area' },
     { label: 'XP Boost',   value: `+${Math.round((scene.orbMultiplier - 1) * 100)}%`, icon: 'ico_orbmult' },
     { label: 'Magnet',     value: String(scene.magnetRadius),     icon: 'ico_magnet' },
     { label: 'Orb ×',      value: scene.orbMultiplier.toFixed(2), icon: 'ico_orbmult' },

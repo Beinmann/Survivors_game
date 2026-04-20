@@ -419,6 +419,19 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
       g.lineBetween(20, 17, 12, 7)
     },
   },
+  {
+    key: 'ico_area', w: 24, h: 24,
+    draw: (g: G) => {
+      const cx = 12, cy = 12
+      g.lineStyle(2, 0x34d399)
+      g.strokeCircle(cx, cy, 10)
+      g.lineStyle(1.5, 0x34d399, 0.55)
+      g.strokeCircle(cx, cy, 6)
+      g.lineStyle(1, 0x34d399, 0.25)
+      g.strokeCircle(cx, cy, 2.5)
+      g.fillStyle(0x34d399).fillCircle(cx, cy, 1.5)
+    },
+  },
 
   // ── enemy icons ──────────────────────────────────────────────────────────
   {

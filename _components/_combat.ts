@@ -44,12 +44,14 @@ export function fireShotgun(scene: IGameScene, angle: number, wt: WeaponType) {
   const cone = Math.PI / 5
   const step = pellets > 1 ? cone / (pellets - 1) : 0
 
+  const bulletScale = 1 + scene.bonusArea * 0.5
   const fire = (a: number) => {
     const b = scene.bullets.create(scene.player.x, scene.player.y, 'bullet') as any
     b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
     b.setRotation(a)
     b.setData('sx', scene.player.x).setData('sy', scene.player.y).setData('dmg', scene.shotgunDmg)
     b.setDepth(4)
+    if (bulletScale !== 1) { b.setScale(bulletScale); b.refreshBody() }
   }
   for (let i = 0; i < pellets; i++) fire(angle + (pellets > 1 ? -cone / 2 + step * i : 0))
 }
@@ -63,10 +65,13 @@ export function fireSniper(scene: IGameScene, angle: number, wt: WeaponType) {
   b.setData('pierceLeft', scene.pierceCount)
   b.setData('hitEnemies', new Set())
   b.setDepth(4)
+  const bulletScale = 1 + scene.bonusArea * 0.5
+  if (bulletScale !== 1) { b.setScale(bulletScale); b.refreshBody() }
 }
 
 export function fireMachineGun(scene: IGameScene, angle: number, wt: WeaponType) {
   const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
+  const bulletScale = 1 + scene.bonusArea * 0.5
   const fire = (a: number) => {
     const b = scene.bullets.create(scene.player.x, scene.player.y, 'mgBullet') as any
     b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
@@ -77,6 +82,7 @@ export function fireMachineGun(scene: IGameScene, angle: number, wt: WeaponType)
       b.setData('hitEnemies', new Set())
     }
     b.setDepth(4)
+    if (bulletScale !== 1) { b.setScale(bulletScale); b.refreshBody() }
   }
   const offset = 0.022
   for (let i = 0; i < scene.machineGunBurst; i++) {
@@ -91,7 +97,7 @@ function spawnShockIcon(scene: IGameScene, x: number, y: number) {
 }
 
 export function fireAura(scene: IGameScene) {
-  const r = scene.auraRadius
+  const r = scene.auraRadius * (1 + scene.bonusArea)
   const dmg = scene.auraDmg
   for (const e of scene.enemies.getChildren() as any[]) {
     if (e.active && Math.sqrt((scene.player.x - e.x) ** 2 + (scene.player.y - e.y) ** 2) < r) {
@@ -153,12 +159,14 @@ export function fireTesla(scene: IGameScene, angle: number, wt: WeaponType) {
 export function fireBoomerang(scene: IGameScene, angle: number, wt: WeaponType) {
   const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
   const count = scene.boomerangCount
+  const bulletScale = 1 + scene.bonusArea * 0.5
+  const effectiveDist = scene.boomerangDist * (1 + scene.bonusArea)
   for (let i = 0; i < count; i++) {
     const a = angle + (i * Math.PI * 2) / count
     const b = scene.bullets.create(scene.player.x, scene.player.y, 'boomerang') as any
     b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
     b.setData('dmg', scene.boomerangDmg)
-    b.setData('dist', scene.boomerangDist)
+    b.setData('dist', effectiveDist)
     b.setData('sx', scene.player.x).setData('sy', scene.player.y)
     b.setData('returning', false)
     b.setData('wt', 'boomerang')
@@ -167,6 +175,7 @@ export function fireBoomerang(scene: IGameScene, angle: number, wt: WeaponType) 
       b.setData('hitEnemies', new Set())
     }
     b.setDepth(4)
+    if (bulletScale !== 1) { b.setScale(bulletScale); b.refreshBody() }
   }
 }
 
@@ -188,7 +197,8 @@ export function fireRocket(scene: IGameScene, angle: number, wt: WeaponType) {
 }
 
 function spawnTrailSprite(scene: IGameScene, x: number, y: number) {
-  const f = scene.add.sprite(x, y, 'fire').setDepth(3).setScale(scene.trailSize / 16)
+  const effectiveTrailSize = scene.trailSize * (1 + scene.bonusArea)
+  const f = scene.add.sprite(x, y, 'fire').setDepth(3).setScale(effectiveTrailSize / 16)
   f.setData('isTrail', true)
   f.setData('expiry', scene.time.now + scene.trailDuration)
   scene.trailSprites.push(f)
@@ -225,7 +235,8 @@ export function updateTrailSprites(scene: IGameScene, delta: number) {
   if (scene.trailSprites.length === 0) return
   const enemies = scene.enemies.getChildren() as any[]
   if (enemies.length === 0) return
-  const hitR2 = (scene.trailSize * 0.8) * (scene.trailSize * 0.8)
+  const effectiveTrailSize = scene.trailSize * (1 + scene.bonusArea)
+  const hitR2 = (effectiveTrailSize * 0.8) * (effectiveTrailSize * 0.8)
   for (const f of scene.trailSprites) {
     if (!f.active) continue
     for (const e of enemies) {
@@ -244,7 +255,7 @@ export function fireTrail(scene: IGameScene) {
   const cy = scene.player.y
   const lx = scene.trailLastX
   const ly = scene.trailLastY
-  const spacing = scene.trailSize * 0.6
+  const spacing = scene.trailSize * (1 + scene.bonusArea) * 0.6
 
   if (lx === 0 && ly === 0) {
     spawnTrailSprite(scene, cx, cy)
@@ -286,11 +297,12 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
     const wt = b.getData('wt')
     const dmg = b.getData('dmg') ?? (wt === 'rocket' ? scene.rocketDmg : scene.shotgunDmg)
     if (wt === 'rocket') {
+      const effectiveRocketRadius = scene.rocketRadius * (1 + scene.bonusArea)
       const exp = scene.acquireGfx(15)
-      exp.fillStyle(0xef4444, 0.4).fillCircle(b.x, b.y, scene.rocketRadius)
+      exp.fillStyle(0xef4444, 0.4).fillCircle(b.x, b.y, effectiveRocketRadius)
       scene.tweens.add({ targets: exp, alpha: 0, duration: 200, onComplete: () => scene.releaseGfx(exp) })
       for (const enemyObj of scene.enemies.getChildren() as any[]) {
-        if (enemyObj.active && Math.sqrt((b.x - enemyObj.x) ** 2 + (b.y - enemyObj.y) ** 2) < scene.rocketRadius) {
+        if (enemyObj.active && Math.sqrt((b.x - enemyObj.x) ** 2 + (b.y - enemyObj.y) ** 2) < effectiveRocketRadius) {
           scene.damageEnemy(enemyObj, dmg)
         }
       }

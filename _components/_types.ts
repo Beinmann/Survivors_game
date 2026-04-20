@@ -26,8 +26,8 @@ export const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: num
   trail:      { shootRate: 100,  bulletSpd: 0,   damage: 12 },
 }
 
-export type PassiveType = 'movespeed' | 'magnet' | 'orbmult' | 'hp' | 'damage' | 'cooldown'
-export const ALL_PASSIVE_TYPES: PassiveType[] = ['movespeed', 'magnet', 'orbmult', 'hp', 'damage', 'cooldown']
+export type PassiveType = 'movespeed' | 'magnet' | 'orbmult' | 'hp' | 'damage' | 'cooldown' | 'area'
+export const ALL_PASSIVE_TYPES: PassiveType[] = ['movespeed', 'magnet', 'orbmult', 'hp', 'damage', 'cooldown', 'area']
 export const PASSIVE_DATA: Record<PassiveType, { name: string, icon: string, desc: string }> = {
   movespeed: { name: 'Swift Feet',    icon: 'ico_movespeed', desc: 'Move 20% faster' },
   magnet:    { name: 'XP Magnet',     icon: 'ico_magnet',    desc: 'Pull orbs from 50px further away' },
@@ -35,4 +35,5 @@ export const PASSIVE_DATA: Record<PassiveType, { name: string, icon: string, des
   hp:        { name: 'Vital Surge',   icon: 'ico_hp',        desc: 'Restore 40 HP and raise max HP by 20' },
   damage:    { name: 'Power Core',    icon: 'ico_damage',    desc: '+15% damage for all active weapons' },
   cooldown:  { name: 'Overclock',     icon: 'ico_cooldown',  desc: 'All weapons fire 12% faster' },
+  area:      { name: 'Arcane Reach',  icon: 'ico_area',      desc: '+15% size to all weapons and shots' },
 }
