@@ -50,6 +50,65 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
       for (let i = 0; i < 3; i++) g.lineBetween(cx - 8, cy - 8 + i * 5, cx - 5, cy - 8 + i * 5)
     },
   },
+  {
+    key: 'wico_scythes', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0x94a3b8)
+      g.beginPath()
+      g.arc(cx, cy, 10, -Math.PI / 2, Math.PI / 2)
+      g.strokePath()
+      g.lineStyle(1, 0xe2e8f0)
+      g.beginPath()
+      g.arc(cx, cy, 8, -Math.PI / 2, Math.PI / 2)
+      g.strokePath()
+      g.fillStyle(0x475569).fillRect(cx - 10, cy - 1, 10, 2)
+    },
+  },
+  {
+    key: 'wico_tesla', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2.5, 0xbfdbfe)
+      g.beginPath()
+      g.moveTo(cx - 6, cy + 8)
+      g.lineTo(cx + 4, cy)
+      g.lineTo(cx - 4, cy)
+      g.lineTo(cx + 6, cy - 8)
+      g.strokePath()
+    },
+  },
+  {
+    key: 'wico_boomerang', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xf87171)
+      g.beginPath()
+      g.moveTo(cx - 8, cy - 8)
+      g.lineTo(cx + 6, cy)
+      g.lineTo(cx - 8, cy + 8)
+      g.strokePath()
+    },
+  },
+  {
+    key: 'wico_rocket', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.fillStyle(0x475569).fillRect(cx - 8, cy - 4, 16, 8)
+      g.fillStyle(0xef4444).fillRect(cx - 11, cy - 3, 4, 6)
+      g.fillStyle(0xef4444).fillTriangle(cx + 8, cy - 4, cx + 8, cy + 4, cx + 13, cy)
+    },
+  },
+  {
+    key: 'wico_trail', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.fillStyle(0xf97316, 0.8).fillCircle(cx, cy, 10)
+      g.fillStyle(0xfacc15, 0.6).fillCircle(cx, cy, 6)
+      g.lineStyle(1.5, 0xfb923c)
+      g.strokeCircle(cx, cy, 12)
+    },
+  },
 
   // ── effect icons (upgrade cards + stats panel) ─────────────────────────
   {

@@ -116,6 +116,7 @@ export function createGameScene(Phaser: any) {
     public weaponHUDGfx!: any
     public auraGfx!: any
     public weaponHUDLvlTexts: any[] = []
+    public weaponHUDIcons: any[] = []
     public passiveHUDLvlTexts: any[] = []
     public passiveHUDIcons: any[] = []
     public levelText!: any

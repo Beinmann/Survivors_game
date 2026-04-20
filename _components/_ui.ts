@@ -26,9 +26,6 @@ export function drawWeaponHUD(scene: IGameScene) {
     scene.weaponHUDGfx.fillRoundedRect(x, sy, slotW, slotH, 5)
     scene.weaponHUDGfx.lineStyle(1, wt ? 0x4a4a8a : 0x222236)
     scene.weaponHUDGfx.strokeRoundedRect(x, sy, slotW, slotH, 5)
-    if (wt) {
-      scene.drawWeaponIcon(x + slotW / 2, sy + slotH / 2 - 5, wt)
-    }
   }
   scene.weapons.forEach((wt, i) => {
     if (scene.weaponHUDLvlTexts[i]) {
@@ -53,35 +50,7 @@ export function drawWeaponHUD(scene: IGameScene) {
 }
 
 export function drawWeaponIcon(scene: IGameScene, cx: number, cy: number, wt: WeaponType) {
-  const g = scene.weaponHUDGfx
-  if (wt === 'shotgun') {
-    g.lineStyle(1.5, 0xf97316)
-    const spread = Math.PI / 3
-    for (let i = 0; i < 5; i++) {
-      const a = -Math.PI / 2 - spread / 2 + (i / 4) * spread
-      g.lineBetween(cx, cy + 6, cx + Math.cos(a) * 14, cy + Math.sin(a) * 14 + 6)
-    }
-    g.fillStyle(0xf97316).fillRect(cx - 2, cy + 1, 4, 6)
-  } else if (wt === 'sniper') {
-    g.lineStyle(1.5, 0x60a5fa)
-    g.strokeCircle(cx, cy, 10)
-    g.lineBetween(cx - 15, cy, cx - 12, cy)
-    g.lineBetween(cx + 12, cy, cx + 15, cy)
-    g.lineBetween(cx, cy - 15, cx, cy - 12)
-    g.lineBetween(cx, cy + 12, cx, cy + 15)
-    g.fillStyle(0x60a5fa).fillCircle(cx, cy, 2)
-  } else if (wt === 'aura') {
-    g.lineStyle(1.5, 0xa78bfa)
-    g.strokeCircle(cx, cy, 9)
-    g.lineStyle(1, 0xa78bfa, 0.45)
-    g.strokeCircle(cx, cy, 15)
-    g.fillStyle(0xa78bfa).fillCircle(cx, cy, 2)
-  } else if (wt === 'machinegun') {
-    g.fillStyle(0x4ade80).fillRect(cx - 3, cy - 10, 6, 18)
-    g.fillStyle(0x1e5c30).fillRect(cx - 5, cy - 1, 10, 4)
-    g.lineStyle(1, 0x4ade80)
-    for (let i = 0; i < 3; i++) g.lineBetween(cx - 8, cy - 8 + i * 5, cx - 5, cy - 8 + i * 5)
-  }
+  // Manual drawing replaced by persistent images in rebuildWeaponHUDTexts
 }
 
 export function buildStatLines(scene: IGameScene) {
@@ -218,21 +187,31 @@ export function addStatsPanel(scene: IGameScene, collect: (o: any) => void) {
 
 export function rebuildWeaponHUDTexts(scene: IGameScene) {
   scene.weaponHUDLvlTexts.forEach(t => t.destroy())
+  if (scene.weaponHUDIcons) scene.weaponHUDIcons.forEach(i => i.destroy())
   scene.passiveHUDLvlTexts.forEach(t => t.destroy())
   scene.passiveHUDIcons.forEach(i => i.destroy())
-  const slotW = 44, gap = 4
+  
+  const slotW = 44, slotH = 44, gap = 4, sx = 10, sy = 74
+  
+  scene.weaponHUDIcons = scene.weapons.map((wt, i) =>
+    scene.add.image(sx + i * (slotW + gap) + slotW / 2, sy + slotH / 2 - 5, `wico_${wt}`)
+      .setDisplaySize(28, 28).setScrollFactor(0).setDepth(21)
+  )
+
   scene.weaponHUDLvlTexts = scene.weapons.map((_, i) =>
-    scene.add.text(10 + i * (slotW + gap) + slotW / 2, 118 + 2, '', {
+    scene.add.text(sx + i * (slotW + gap) + slotW / 2, sy + slotH, '', {
       fontSize: '9px', color: '#a0a0c0',
     }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(21)
   )
+
+  const psy = sy + slotH + 18
   scene.passiveHUDLvlTexts = scene.passives.map((_, i) =>
-    scene.add.text(10 + i * (slotW + gap) + slotW / 2, 118 + 18 + 44 + 2, '', {
+    scene.add.text(sx + i * (slotW + gap) + slotW / 2, psy + slotH, '', {
       fontSize: '9px', color: '#a0c0a0',
     }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(21)
   )
   scene.passiveHUDIcons = scene.passives.map((pt, i) =>
-    scene.add.image(10 + i * (slotW + gap) + slotW / 2, 118 + 18 + 44 / 2, PASSIVE_DATA[pt].icon)
+    scene.add.image(sx + i * (slotW + gap) + slotW / 2, psy + slotH / 2, PASSIVE_DATA[pt].icon)
       .setDisplaySize(20, 20).setScrollFactor(0).setDepth(21)
   )
 }

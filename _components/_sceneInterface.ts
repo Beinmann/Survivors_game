@@ -99,6 +99,7 @@ export interface IGameScene {
   weaponHUDGfx: any
   auraGfx: any
   weaponHUDLvlTexts: any[]
+  weaponHUDIcons: any[]
   passiveHUDLvlTexts: any[]
   passiveHUDIcons: any[]
   levelText: any

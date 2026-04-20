@@ -57,7 +57,7 @@ export function showTitleScreen(scene: IGameScene) {
 
 export function showWeaponSelection(scene: IGameScene) {
   const { width: w, height: h } = scene.cameras.main
-  const WEAPONS: { type: WeaponType; name: string; desc: string; stats: string; accent: number }[] = [
+  const ALL_WEAPONS: { type: WeaponType; name: string; desc: string; stats: string; accent: number }[] = [
     {
       type: 'shotgun', name: 'Shotgun',
       desc: 'Fires a cone of pellets.\nDeadly up close, useless at range.',
@@ -79,28 +79,60 @@ export function showWeaponSelection(scene: IGameScene) {
     {
       type: 'machinegun', name: 'Machine Gun',
       desc: 'Rapid single shots.\nBuilds into a multi-barrel onslaught.',
-      stats: '100ms cooldown · scales to 7-way spread',
+      stats: '200ms cooldown · High fire rate',
       accent: 0x4ade80,
+    },
+    {
+      type: 'scythes', name: 'Spectral Scythes',
+      desc: 'Spectral blades orbit you.\nContinuous protection from nearby foes.',
+      stats: 'Melee range · Always active',
+      accent: 0x94a3b8,
+    },
+    {
+      type: 'tesla', name: 'Tesla Chain',
+      desc: 'Chain lightning strikes.\nJumps between multiple enemies.',
+      stats: 'Jumps 2 targets · 800ms cooldown',
+      accent: 0xbfdbfe,
+    },
+    {
+      type: 'boomerang', name: 'Ricochet Boomerang',
+      desc: 'Returning projectile.\nHits enemies on its way back.',
+      stats: 'Piercing · 1000ms cooldown',
+      accent: 0xf87171,
+    },
+    {
+      type: 'rocket', name: 'Homing Rockets',
+      desc: 'Homing missiles.\nExplodes on impact for area damage.',
+      stats: 'Homing · 1500ms cooldown',
+      accent: 0x64748b,
+    },
+    {
+      type: 'trail', name: 'Incendiary Trail',
+      desc: 'Leaves a burning path.\nDamages enemies who walk into it.',
+      stats: 'Lasts 2s · 400ms tick',
+      accent: 0xfb923c,
     },
   ]
 
+  const selected = ALL_WEAPONS.sort(() => 0.5 - Math.random()).slice(0, 3)
+
   const overlay = scene.add.graphics().setScrollFactor(0).setDepth(50)
-  overlay.fillStyle(0x000000, 0.88).fillRect(0, 0, w, h)
+  overlay.fillStyle(0x000000, 0.9).fillRect(0, 0, w, h)
 
-  const cardW = Math.min(170, (w - 60) / 4 - 10)
-  const cardH = 160
-  const gap = cardW + 14
-  const startX = w / 2 - gap * 1.5
+  const cardW = 180
+  const cardH = 240
+  const gap = 200
+  const startX = w / 2 - gap
 
-  const titleText = scene.add.text(w / 2, h / 2 - 160, 'Choose your weapon', {
-    fontSize: '26px', color: '#ffffff', stroke: '#000', strokeThickness: 4,
+  const titleText = scene.add.text(w / 2, h / 2 - 175, 'Choose your starting weapon', {
+    fontSize: '28px', color: '#ffffff', stroke: '#000', strokeThickness: 4,
   }).setOrigin(0.5).setScrollFactor(0).setDepth(51)
 
   const allUI: any[] = [overlay, titleText]
 
-  WEAPONS.forEach((weapon, i) => {
+  selected.forEach((weapon, i) => {
     const cx = startX + i * gap
-    const cy = h / 2
+    const cy = h / 2 + 25
 
     const bg = scene.add.graphics().setScrollFactor(0).setDepth(51)
     const draw = (hover: boolean) => {
@@ -112,19 +144,22 @@ export function showWeaponSelection(scene: IGameScene) {
     }
     draw(false)
 
-    const nameText = scene.add.text(cx, cy - 52, weapon.name, {
-      fontSize: '16px', color: '#ffffff', stroke: '#000', strokeThickness: 2,
-      align: 'center',
+    const icon = scene.add.image(cx, cy - 70, `wico_${weapon.type}`)
+      .setScrollFactor(0).setDepth(52).setDisplaySize(48, 48)
+
+    const nameText = scene.add.text(cx, cy - 25, weapon.name, {
+      fontSize: '18px', color: '#ffffff', stroke: '#000', strokeThickness: 2,
+      align: 'center', fontStyle: 'bold',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
 
-    const descText = scene.add.text(cx, cy - 4, weapon.desc, {
-      fontSize: '12px', color: '#ccccdd',
-      align: 'center', wordWrap: { width: cardW - 16 },
+    const descText = scene.add.text(cx, cy + 30, weapon.desc, {
+      fontSize: '13px', color: '#ccccdd',
+      align: 'center', wordWrap: { width: cardW - 20 },
     }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
 
-    const statsText = scene.add.text(cx, cy + 56, weapon.stats, {
+    const statsText = scene.add.text(cx, cy + 95, weapon.stats, {
       fontSize: '11px', color: `#${weapon.accent.toString(16).padStart(6, '0')}`,
-      align: 'center', wordWrap: { width: cardW - 16 },
+      align: 'center', wordWrap: { width: cardW - 20 },
     }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
 
     const zone = scene.add.zone(cx, cy, cardW, cardH)
@@ -135,11 +170,10 @@ export function showWeaponSelection(scene: IGameScene) {
     zone.on('pointerdown', () => {
       scene.unlockWeapon(weapon.type)
       allUI.forEach(o => o.destroy())
-      ;[bg, nameText, descText, statsText, zone].forEach(o => o.destroy())
       scene.spawnWave()
     })
 
-    allUI.push(bg, nameText, descText, statsText, zone)
+    allUI.push(bg, icon, nameText, descText, statsText, zone)
   })
 }
 
