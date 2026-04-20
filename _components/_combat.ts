@@ -95,6 +95,9 @@ export function fireAura(scene: IGameScene) {
     const dist = Math.sqrt((scene.player.x - e.x) ** 2 + (scene.player.y - e.y) ** 2)
     if (dist <= scene.auraRadius) {
       scene.damageEnemy(e, scene.auraDmg, false)
+      const shock = scene.add.sprite(e.x, e.y, 'shock').setDepth(15).setScale(0.5 + Math.random() * 0.5)
+      shock.setRotation(Math.random() * Math.PI * 2)
+      scene.tweens.add({ targets: shock, alpha: 0, duration: 200, onComplete: () => shock.destroy() })
     }
   }
   scene.showAuraPulse()

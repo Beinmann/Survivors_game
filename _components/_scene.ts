@@ -311,22 +311,26 @@ export function createGameScene(Phaser: any) {
       this.auraGfx.clear()
       this.auraGfx.x = this.player.x
       this.auraGfx.y = this.player.y
+      this.auraGfx.setRotation(this.gameTime * 0.0006)
 
-      const ptsCount = 24
+      const ptsCount = 32
       const baseR = this.auraRadius
-      // Single visual: subtle time-based pulse + expansion when firing
-      const pulseScale = 1 + (Math.sin(this.gameTime / 150) * 0.02) + (this.auraPulseAlpha * 0.2)
-      const alpha = 0.08 + (this.auraPulseAlpha * 0.2)
+      // Unified visual: constant alpha, scale and spikes only during pulse
+      const pulseScale = 1 + (this.auraPulseAlpha * 0.1)
+      const alpha = 0.15
       
-      this.auraGfx.lineStyle(2, 0xc4b5fd, alpha * 2)
+      this.auraGfx.lineStyle(2, 0xc4b5fd, 0.35)
       this.auraGfx.fillStyle(0xa78bfa, alpha)
       
       this.auraGfx.beginPath()
       for (let i = 0; i <= ptsCount; i++) {
         const angle = (i / ptsCount) * Math.PI * 2
-        // "Slightly jagged": deterministic jitter based on angle and time
-        const jagged = Math.sin(this.gameTime / 60 + i * 1.3) * (baseR * 0.05)
-        const r = (baseR + jagged) * pulseScale
+        // Static jagged shape that rotates with the graphics object
+        const jagged = Math.sin(i * (Math.PI * 2 / ptsCount) * 8) * (baseR * 0.05)
+        // Spikes appear only during the pulse
+        const spike = (i % 2 === 0) ? (this.auraPulseAlpha * baseR * 0.2) : 0
+        
+        const r = (baseR + jagged + spike) * pulseScale
         const x = Math.cos(angle) * r
         const y = Math.sin(angle) * r
         if (i === 0) this.auraGfx.moveTo(x, y)

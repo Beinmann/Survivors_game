@@ -72,5 +72,15 @@ export function buildTextures(scene: IGameScene) {
     g.lineStyle(1, 0xc4b5fd); g.strokeCircle(5, 5, 4)
   }, 10, 10)
 
+  make('shock', g => {
+    g.lineStyle(2, 0xa78bfa)
+    g.beginPath()
+    g.moveTo(2, 14)
+    g.lineTo(10, 8)
+    g.lineTo(4, 8)
+    g.lineTo(12, 2)
+    g.strokePath()
+  }, 14, 16)
+
   for (const def of ICON_DEFS) make(def.key, def.draw, def.w, def.h)
 }
