@@ -133,20 +133,20 @@ export function fireTesla(scene: IGameScene, angle: number, wt: WeaponType) {
     
     const targetToZap = next || (scene.teslaArcBack ? currentTarget : null)
     if (targetToZap) {
-      const line = scene.add.graphics().setDepth(15)
+      const line = scene.acquireGfx(15)
       line.lineStyle(2, 0xbfdbfe, 0.8)
       line.lineBetween(currentTarget.x, currentTarget.y, targetToZap.x, targetToZap.y)
-      scene.tweens.add({ targets: line, alpha: 0, duration: 150, onComplete: () => line.destroy() })
+      scene.tweens.add({ targets: line, alpha: 0, duration: 150, onComplete: () => scene.releaseGfx(line) })
       currentTarget = targetToZap
       if (!next) hitSet.delete(currentTarget) // allow arc back
       scene.time.delayedCall(50, chain)
     }
   }
 
-  const startLine = scene.add.graphics().setDepth(15)
+  const startLine = scene.acquireGfx(15)
   startLine.lineStyle(2, 0xffffff, 0.9)
   startLine.lineBetween(scene.player.x, scene.player.y, currentTarget.x, currentTarget.y)
-  scene.tweens.add({ targets: startLine, alpha: 0, duration: 150, onComplete: () => startLine.destroy() })
+  scene.tweens.add({ targets: startLine, alpha: 0, duration: 150, onComplete: () => scene.releaseGfx(startLine) })
   chain()
 }
 
@@ -207,9 +207,9 @@ function spawnTrailSprite(scene: IGameScene, x: number, y: number) {
       scene.time.delayedCall(250, checkHit)
     } else {
       if (scene.trailExplode) {
-        const exp = scene.add.graphics().setDepth(4)
+        const exp = scene.acquireGfx(4)
         exp.fillStyle(0xf97316, 0.6).fillCircle(f.x, f.y, 40)
-        scene.tweens.add({ targets: exp, alpha: 0, duration: 300, onComplete: () => exp.destroy() })
+        scene.tweens.add({ targets: exp, alpha: 0, duration: 300, onComplete: () => scene.releaseGfx(exp) })
         for (const e of scene.enemies.getChildren() as any[]) {
           if (e.active && Math.sqrt((f.x - e.x) ** 2 + (f.y - e.y) ** 2) < 40) {
             scene.damageEnemy(e, scene.trailDmg * 2)
@@ -269,9 +269,9 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
     const wt = b.getData('wt')
     const dmg = b.getData('dmg') ?? (wt === 'rocket' ? scene.rocketDmg : scene.shotgunDmg)
     if (wt === 'rocket') {
-      const exp = scene.add.graphics().setDepth(15)
+      const exp = scene.acquireGfx(15)
       exp.fillStyle(0xef4444, 0.4).fillCircle(b.x, b.y, scene.rocketRadius)
-      scene.tweens.add({ targets: exp, alpha: 0, duration: 200, onComplete: () => exp.destroy() })
+      scene.tweens.add({ targets: exp, alpha: 0, duration: 200, onComplete: () => scene.releaseGfx(exp) })
       for (const enemyObj of scene.enemies.getChildren() as any[]) {
         if (enemyObj.active && Math.sqrt((b.x - enemyObj.x) ** 2 + (b.y - enemyObj.y) ** 2) < scene.rocketRadius) {
           scene.damageEnemy(enemyObj, dmg)

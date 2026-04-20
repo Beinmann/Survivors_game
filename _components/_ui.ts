@@ -21,7 +21,11 @@ export function drawUI(scene: IGameScene) {
   const effects: string[] = []
   if (scene.frenzyTimer > 0) effects.push(`⚡ FRENZY ${(scene.frenzyTimer / 1000).toFixed(1)}s`)
   if (scene.freezeTimer > 0) effects.push(`❄ FREEZE ${(scene.freezeTimer / 1000).toFixed(1)}s`)
-  scene.effectText.setText(effects.join('   '))
+  const effectStr = effects.join('   ')
+  if (effectStr !== scene._lastEffectStr) {
+    scene.effectText.setText(effectStr)
+    scene._lastEffectStr = effectStr
+  }
 }
 
 export function drawWeaponHUD(scene: IGameScene) {

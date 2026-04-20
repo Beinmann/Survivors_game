@@ -117,6 +117,11 @@ export function createGameScene(Phaser: any) {
     public oneWeaponMode = false
     public selectedMap: MapKey = 'ruins'
 
+    // --- gfx pool ---
+    public gfxPoolFree: any[] = []
+    public _lastTimerSecs = -1
+    public _lastEffectStr = ''
+
     // --- ui ---
     public hpBar!: any
     public xpBar!: any
@@ -143,6 +148,10 @@ export function createGameScene(Phaser: any) {
     create() {
       this.resetState()
       this.buildTextures()
+
+      for (let i = 0; i < 16; i++) {
+        this.gfxPoolFree.push(this.add.graphics().setVisible(false))
+      }
 
       this.physics.world.setBounds(0, 0, WORLD, WORLD)
       this.cameras.main.setBounds(0, 0, WORLD, WORLD)
@@ -257,6 +266,7 @@ export function createGameScene(Phaser: any) {
       this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
       this.hudDirty = true
       this._lastHp = -1; this._lastMaxHp = -1; this._lastXp = -1; this._lastXpNeeded = -1
+      this.gfxPoolFree = []; this._lastTimerSecs = -1; this._lastEffectStr = ''
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
     }
 
@@ -288,7 +298,10 @@ export function createGameScene(Phaser: any) {
 
       this.gameTime += delta
       const totalSecs = Math.floor(this.gameTime / 1000)
-      this.timerText.setText(`${Math.floor(totalSecs / 60)}:${(totalSecs % 60).toString().padStart(2, '0')}`)
+      if (totalSecs !== this._lastTimerSecs) {
+        this.timerText.setText(`${Math.floor(totalSecs / 60)}:${(totalSecs % 60).toString().padStart(2, '0')}`)
+        this._lastTimerSecs = totalSecs
+      }
       this.globalSpeedMult = 1.0 + (this.gameTime / 1000) / 300
       if (totalSecs >= this.nextBossWave) {
         this.spawnBossWave()
@@ -609,6 +622,20 @@ export function createGameScene(Phaser: any) {
     }
 
     // ─── ui ─────────────────────────────────────────────────────────────
+
+    public acquireGfx(depth = 15): any {
+      if (this.gfxPoolFree.length > 0) {
+        const g = this.gfxPoolFree.pop()
+        g.setDepth(depth).setAlpha(1).setVisible(true)
+        return g
+      }
+      return this.add.graphics().setDepth(depth)
+    }
+
+    public releaseGfx(gfx: any): void {
+      gfx.clear().setVisible(false)
+      this.gfxPoolFree.push(gfx)
+    }
 
     public effectiveShootRate(wt: WeaponType) {
       const base = this.weaponShootRates[wt] ?? WEAPON_BASE[wt].shootRate

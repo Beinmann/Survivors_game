@@ -91,6 +91,9 @@ export interface IGameScene {
   _lastMaxHp: number
   _lastXp: number
   _lastXpNeeded: number
+  _lastTimerSecs: number
+  _lastEffectStr: string
+  gfxPoolFree: any[]
 
   // --- bonus tracking ---
   bonusMoveSpeed: number
@@ -151,6 +154,8 @@ export interface IGameScene {
   applyPassiveBoost(pt: PassiveType): void
   buildTextures(): void
   effectiveShootRate(wt: WeaponType): number
+  acquireGfx(depth?: number): any
+  releaseGfx(gfx: any): void
   fireShotgun(angle: number, wt: WeaponType): void
   fireSniper(angle: number, wt: WeaponType): void
   fireMachineGun(angle: number, wt: WeaponType): void
