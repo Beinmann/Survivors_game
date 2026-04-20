@@ -95,7 +95,6 @@ export function createGameScene(Phaser: any) {
     public weaponHUDGfx!: any
     public auraGfx!: any
     public auraPulseAlpha = 0
-    public auraPulsePts: { x: number; y: number }[] = []
     public weaponHUDLvlTexts: any[] = []
     public passiveHUDLvlTexts: any[] = []
     public passiveHUDIcons: any[] = []
@@ -217,7 +216,6 @@ export function createGameScene(Phaser: any) {
       this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
       this.auraPulseAlpha = 0
-      this.auraPulsePts = []
     }
 
     public togglePause() {
@@ -314,32 +312,29 @@ export function createGameScene(Phaser: any) {
       this.auraGfx.x = this.player.x
       this.auraGfx.y = this.player.y
 
-      // Base field: subtle pulsing circle
-      const baseAlpha = 0.06 + (Math.sin(this.gameTime / 200) * 0.02)
-      this.auraGfx.fillStyle(0xa78bfa, baseAlpha)
-      this.auraGfx.fillCircle(0, 0, this.auraRadius)
+      const ptsCount = 24
+      const baseR = this.auraRadius
+      // Single visual: subtle time-based pulse + expansion when firing
+      const pulseScale = 1 + (Math.sin(this.gameTime / 150) * 0.02) + (this.auraPulseAlpha * 0.2)
+      const alpha = 0.08 + (this.auraPulseAlpha * 0.2)
       
-      this.auraGfx.lineStyle(1, 0xc4b5fd, 0.15)
-      this.auraGfx.strokeCircle(0, 0, this.auraRadius)
-
-      // Damage pulse (spikes) combined with field
-      if (this.auraPulseAlpha > 0 && this.auraPulsePts.length > 0) {
-        this.auraGfx.lineStyle(2, 0xc4b5fd, this.auraPulseAlpha * 0.9)
-        this.auraGfx.fillStyle(0xa78bfa, this.auraPulseAlpha * 0.15)
-        
-        this.auraGfx.beginPath()
-        this.auraGfx.moveTo(this.auraPulsePts[0].x, this.auraPulsePts[0].y)
-        for (let i = 1; i < this.auraPulsePts.length; i++) {
-          this.auraGfx.lineTo(this.auraPulsePts[i].x, this.auraPulsePts[i].y)
-        }
-        this.auraGfx.closePath()
-        this.auraGfx.fillPath()
-        this.auraGfx.strokePath()
-
-        // Distort the base field slightly when pulsing
-        this.auraGfx.lineStyle(2, 0xc4b5fd, this.auraPulseAlpha * 0.5)
-        this.auraGfx.strokeCircle(0, 0, this.auraRadius * (1 + this.auraPulseAlpha * 0.05))
+      this.auraGfx.lineStyle(2, 0xc4b5fd, alpha * 2)
+      this.auraGfx.fillStyle(0xa78bfa, alpha)
+      
+      this.auraGfx.beginPath()
+      for (let i = 0; i <= ptsCount; i++) {
+        const angle = (i / ptsCount) * Math.PI * 2
+        // "Slightly jagged": deterministic jitter based on angle and time
+        const jagged = Math.sin(this.gameTime / 60 + i * 1.3) * (baseR * 0.05)
+        const r = (baseR + jagged) * pulseScale
+        const x = Math.cos(angle) * r
+        const y = Math.sin(angle) * r
+        if (i === 0) this.auraGfx.moveTo(x, y)
+        else this.auraGfx.lineTo(x, y)
       }
+      this.auraGfx.closePath()
+      this.auraGfx.fillPath()
+      this.auraGfx.strokePath()
     }
 
     // ─── weapons ────────────────────────────────────────────────────────
@@ -381,35 +376,11 @@ export function createGameScene(Phaser: any) {
     }
 
     public showAuraPulse() {
-      const spikes = 14
-      const outerR = this.auraRadius
-      const innerR = this.auraRadius * 0.68
-
-      const rotation = Math.random() * Math.PI * 2
-      const prominentCount = 2 + Math.floor(Math.random() * 2)
-      const prominent = new Set<number>()
-      while (prominent.size < prominentCount) prominent.add(Math.floor(Math.random() * spikes))
-
-      const pts: { x: number; y: number }[] = []
-      for (let i = 0; i < spikes * 2; i++) {
-        const angle = (i / (spikes * 2)) * Math.PI * 2 + rotation
-        let r: number
-        if (i % 2 === 0) {
-          r = prominent.has(i / 2)
-            ? outerR * (1.28 + Math.random() * 0.22) + (Math.random() - 0.5) * 8
-            : outerR * (0.88 + Math.random() * 0.18)
-        } else {
-          r = innerR + (Math.random() - 0.5) * 10
-        }
-        pts.push({ x: Math.cos(angle) * r, y: Math.sin(angle) * r })
-      }
-
-      this.auraPulsePts = pts
       this.auraPulseAlpha = 1.0
       this.tweens.add({
         targets: this,
         auraPulseAlpha: 0,
-        duration: 450,
+        duration: 400,
         ease: 'Cubic.out'
       })
     }
