@@ -145,9 +145,58 @@ export function createGameScene(Phaser: any) {
       this.cameras.main.setBounds(0, 0, WORLD, WORLD)
 
       const bg = this.add.graphics()
-      bg.lineStyle(1, 0x1e1e1e, 1)
-      for (let x = 0; x <= WORLD; x += 64) bg.lineBetween(x, 0, x, WORLD)
-      for (let y = 0; y <= WORLD; y += 64) bg.lineBetween(0, y, WORLD, y)
+      const hexR = 80
+      const hStep = Math.sqrt(3) * hexR
+      const vStep = 1.5 * hexR
+      const hexAngles = Array.from({ length: 6 }, (_, i) => (30 + 60 * i) * Math.PI / 180)
+      const hexCols = Math.ceil(WORLD / hStep) + 2
+      const hexRows = Math.ceil(WORLD / vStep) + 2
+
+      const traceHex = (cx: number, cy: number) => {
+        bg.beginPath()
+        hexAngles.forEach((a, i) => {
+          const px = cx + Math.cos(a) * hexR
+          const py = cy + Math.sin(a) * hexR
+          if (i === 0) bg.moveTo(px, py); else bg.lineTo(px, py)
+        })
+        bg.closePath()
+      }
+
+      // ~8% of hexes: dark navy fill
+      bg.fillStyle(0x101e32)
+      for (let row = 0; row <= hexRows; row++) {
+        for (let col = 0; col <= hexCols; col++) {
+          const cx = col * hStep + (row % 2 !== 0 ? hStep / 2 : 0)
+          const cy = row * vStep
+          if (Math.abs(Math.sin(col * 127.1 + row * 311.7)) < 0.08) {
+            traceHex(cx, cy); bg.fillPath()
+          }
+        }
+      }
+
+      // all hex outlines
+      bg.lineStyle(1, 0x192840)
+      for (let row = 0; row <= hexRows; row++) {
+        for (let col = 0; col <= hexCols; col++) {
+          const cx = col * hStep + (row % 2 !== 0 ? hStep / 2 : 0)
+          const cy = row * vStep
+          traceHex(cx, cy); bg.strokePath()
+        }
+      }
+
+      // ~3% accent hexes: brighter outline + center dot
+      bg.lineStyle(2, 0x2e4870)
+      bg.fillStyle(0x2e4870)
+      for (let row = 0; row <= hexRows; row++) {
+        for (let col = 0; col <= hexCols; col++) {
+          const cx = col * hStep + (row % 2 !== 0 ? hStep / 2 : 0)
+          const cy = row * vStep
+          if (Math.abs(Math.sin(col * 127.1 + row * 311.7)) < 0.03) {
+            traceHex(cx, cy); bg.strokePath()
+            bg.fillRect(cx - 1, cy - 1, 3, 3)
+          }
+        }
+      }
 
       this.player = this.physics.add.image(WORLD / 2, WORLD / 2, this.playerSkin)
       this.player.setCollideWorldBounds(true).setDepth(5)
