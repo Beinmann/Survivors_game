@@ -209,6 +209,31 @@ export function showUpgradeMenu(scene: IGameScene) {
   const { width: w, height: h } = scene.cameras.main
   const upgrades = scene.getUpgrades()
 
+  if (upgrades.length === 0) {
+    const bonus = 25
+    scene.hp = Math.min(scene.maxHp, scene.hp + bonus)
+    scene.hudDirty = true
+    const overlay = scene.add.graphics().setScrollFactor(0).setDepth(40)
+    overlay.fillStyle(0x000000, 0.7).fillRect(0, 0, w, h)
+    const msg = scene.add.text(w / 2, h / 2 - 20, 'MAX LEVEL', {
+      fontSize: '28px', color: '#fbbf24', stroke: '#000', strokeThickness: 5,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(41)
+    const sub = scene.add.text(w / 2, h / 2 + 20, `All upgrades complete — restored ${bonus} HP`, {
+      fontSize: '15px', color: '#a3e635', stroke: '#000', strokeThickness: 3,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(41)
+    const hint = scene.add.text(w / 2, h / 2 + 55, 'Click to continue', {
+      fontSize: '13px', color: '#888899', stroke: '#000', strokeThickness: 2,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(41)
+    const dismiss = () => {
+      overlay.destroy(); msg.destroy(); sub.destroy(); hint.destroy()
+      scene.levelUpPending = false
+      scene.physics.world.resume()
+    }
+    scene.input.once('pointerdown', dismiss)
+    scene.time.delayedCall(3000, dismiss)
+    return
+  }
+
   const overlay = scene.add.graphics().setScrollFactor(0).setDepth(40)
   overlay.fillStyle(0x000000, 0.75).fillRect(0, 0, w, h)
 
