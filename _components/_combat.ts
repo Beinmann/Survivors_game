@@ -95,12 +95,11 @@ export function fireAura(scene: IGameScene) {
     const dist = Math.sqrt((scene.player.x - e.x) ** 2 + (scene.player.y - e.y) ** 2)
     if (dist <= scene.auraRadius) {
       scene.damageEnemy(e, scene.auraDmg, false)
-      const shock = scene.add.sprite(e.x, e.y, 'shock').setDepth(15).setScale(0.5 + Math.random() * 0.5)
+      const shock = scene.add.sprite(e.x, e.y, 'shock').setDepth(15).setScale(0.7 + Math.random() * 0.6)
       shock.setRotation(Math.random() * Math.PI * 2)
-      scene.tweens.add({ targets: shock, alpha: 0, duration: 200, onComplete: () => shock.destroy() })
+      scene.tweens.add({ targets: shock, alpha: 0, duration: 250, onComplete: () => shock.destroy() })
     }
   }
-  scene.showAuraPulse()
 }
 
 export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {

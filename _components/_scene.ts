@@ -94,7 +94,6 @@ export function createGameScene(Phaser: any) {
     public xpBar!: any
     public weaponHUDGfx!: any
     public auraGfx!: any
-    public auraPulseAlpha = 0
     public weaponHUDLvlTexts: any[] = []
     public passiveHUDLvlTexts: any[] = []
     public passiveHUDIcons: any[] = []
@@ -215,7 +214,6 @@ export function createGameScene(Phaser: any) {
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
       this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
-      this.auraPulseAlpha = 0
     }
 
     public togglePause() {
@@ -315,8 +313,7 @@ export function createGameScene(Phaser: any) {
 
       const ptsCount = 32
       const baseR = this.auraRadius
-      // Unified visual: constant alpha, scale and spikes only during pulse
-      const pulseScale = 1 + (this.auraPulseAlpha * 0.1)
+      // Unified visual: constant alpha and shape
       const alpha = 0.15
       
       this.auraGfx.lineStyle(2, 0xc4b5fd, 0.35)
@@ -327,10 +324,8 @@ export function createGameScene(Phaser: any) {
         const angle = (i / ptsCount) * Math.PI * 2
         // Static jagged shape that rotates with the graphics object
         const jagged = Math.sin(i * (Math.PI * 2 / ptsCount) * 8) * (baseR * 0.05)
-        // Spikes appear only during the pulse
-        const spike = (i % 2 === 0) ? (this.auraPulseAlpha * baseR * 0.2) : 0
         
-        const r = (baseR + jagged + spike) * pulseScale
+        const r = baseR + jagged
         const x = Math.cos(angle) * r
         const y = Math.sin(angle) * r
         if (i === 0) this.auraGfx.moveTo(x, y)
@@ -377,16 +372,6 @@ export function createGameScene(Phaser: any) {
 
     public fireAura() {
       fireAura(this)
-    }
-
-    public showAuraPulse() {
-      this.auraPulseAlpha = 1.0
-      this.tweens.add({
-        targets: this,
-        auraPulseAlpha: 0,
-        duration: 400,
-        ease: 'Cubic.out'
-      })
     }
 
     // ─── movement / orbs ────────────────────────────────────────────────

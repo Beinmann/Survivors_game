@@ -73,7 +73,7 @@ export function buildTextures(scene: IGameScene) {
   }, 10, 10)
 
   make('shock', g => {
-    g.lineStyle(2, 0xa78bfa)
+    g.lineStyle(2.5, 0xc4b5fd)
     g.beginPath()
     g.moveTo(2, 14)
     g.lineTo(10, 8)

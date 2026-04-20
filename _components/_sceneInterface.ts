@@ -76,7 +76,6 @@ export interface IGameScene {
   xpBar: any
   weaponHUDGfx: any
   auraGfx: any
-  auraPulseAlpha: number
   weaponHUDLvlTexts: any[]
   passiveHUDLvlTexts: any[]
   passiveHUDIcons: any[]
@@ -121,7 +120,6 @@ export interface IGameScene {
   fireSniper(angle: number, wt: WeaponType): void
   fireMachineGun(angle: number, wt: WeaponType): void
   fireAura(): void
-  showAuraPulse(): void
   move(): void
   autoShoot(time: number): void
   moveEnemies(delta: number): void
