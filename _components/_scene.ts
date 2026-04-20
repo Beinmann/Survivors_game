@@ -60,7 +60,7 @@ export function createGameScene(Phaser: any) {
     public moveSpeed = 0
     public extraBullets = 0
     public pierceCount = 0
-    public magnetRadius = 0
+    public magnetRadius = 20
     public orbMultiplier = 0
     public auraRadius = 0
     public shotgunRange = 0
