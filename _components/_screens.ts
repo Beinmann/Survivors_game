@@ -44,7 +44,7 @@ export function showTitleScreen(scene: IGameScene) {
   }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
 
   const dismiss = () => {
-    scene.input.keyboard!.off('keydown-SPACE', dismiss)
+    scene.input.keyboard?.off('keydown-SPACE', dismiss)
     ui.forEach(o => o.destroy())
     scene.showWeaponSelection()
   }
@@ -52,7 +52,7 @@ export function showTitleScreen(scene: IGameScene) {
   btn.on('pointerover', () => btn.setColor('#86efac'))
   btn.on('pointerout', () => btn.setColor('#4ade80'))
   btn.on('pointerdown', dismiss)
-  scene.input.keyboard!.on('keydown-SPACE', dismiss)
+  scene.input.keyboard?.on('keydown-SPACE', dismiss)
 }
 
 export function showWeaponSelection(scene: IGameScene) {

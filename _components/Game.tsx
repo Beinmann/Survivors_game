@@ -22,7 +22,7 @@ export default function Game() {
 
       phaserGame = new Phaser.Game({
         type: Phaser.AUTO,
-        width: container.clientWidth,
+        width: container.clientWidth || 800,
         height: 520,
         backgroundColor: '#111111',
         parent: container,
@@ -42,7 +42,7 @@ export default function Game() {
   return (
     <div
       ref={containerRef}
-      className="w-full rounded-xl overflow-hidden border border-zinc-800"
+      className="w-full h-[520px] rounded-xl overflow-hidden border border-zinc-800 bg-[#111111]"
     />
   )
 }

@@ -121,16 +121,16 @@ export function createGameScene(Phaser: any) {
 
       this.cameras.main.startFollow(this.player, true, 0.08, 0.08)
 
-      this.cursors = this.input.keyboard!.createCursorKeys()
+      this.cursors = this.input.keyboard?.createCursorKeys() ?? {}
       this.wasd = {
-        up: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-        down: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-        left: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-        right: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+        up: this.input.keyboard?.addKey('W'),
+        down: this.input.keyboard?.addKey('S'),
+        left: this.input.keyboard?.addKey('A'),
+        right: this.input.keyboard?.addKey('D'),
       }
 
-      this.input.keyboard!.on('keydown-ESC', () => this.togglePause())
-      this.input.keyboard!.on('keydown-L', () => {
+      this.input.keyboard?.on('keydown-ESC', () => this.togglePause())
+      this.input.keyboard?.on('keydown-L', () => {
         if (!this.dead && !this.levelUpPending && this.weapons.length > 0) {
           this.level++
           this.levelText.setText(`Level ${this.level}`)
@@ -283,11 +283,17 @@ export function createGameScene(Phaser: any) {
     // ─── weapons ────────────────────────────────────────────────────────
 
     public move() {
+      if (!this.player || !this.cursors) return
       let vx = 0, vy = 0
-      if (this.cursors.left.isDown || this.wasd.left.isDown) vx -= this.moveSpeed
-      if (this.cursors.right.isDown || this.wasd.right.isDown) vx += this.moveSpeed
-      if (this.cursors.up.isDown || this.wasd.up.isDown) vy -= this.moveSpeed
-      if (this.cursors.down.isDown || this.wasd.down.isDown) vy += this.moveSpeed
+      const left  = this.cursors.left?.isDown || this.wasd.left?.isDown
+      const right = this.cursors.right?.isDown || this.wasd.right?.isDown
+      const up    = this.cursors.up?.isDown || this.wasd.up?.isDown
+      const down  = this.cursors.down?.isDown || this.wasd.down?.isDown
+
+      if (left) vx -= this.moveSpeed
+      if (right) vx += this.moveSpeed
+      if (up) vy -= this.moveSpeed
+      if (down) vy += this.moveSpeed
       if (vx !== 0 && vy !== 0) { vx *= 0.707; vy *= 0.707 }
       this.player.setVelocity(vx, vy)
     }

@@ -1,6 +1,7 @@
 import { IGameScene } from './_sceneInterface'
 import { ENEMY_TYPES } from './_enemyTypes'
 import { ICON_DEFS } from './iconDefs'
+import { PU_TYPES } from './_powerups'
 
 export function buildTextures(scene: IGameScene) {
   const make = (key: string, draw: (g: any) => void, w: number, h: number) => {
@@ -21,7 +22,7 @@ export function buildTextures(scene: IGameScene) {
     }, t.size, t.size)
   }
 
-  for (const t of (scene as any).PU_TYPES) {
+  for (const t of PU_TYPES) {
     make(t.key, (g: any) => {
       const s = 14
       g.fillStyle(t.color, 1)
