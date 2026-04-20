@@ -61,6 +61,7 @@ export interface IGameScene {
   globalSpeedMult: number
   nextBossWave: number
   paused: boolean
+  showBaseStats: boolean
   pauseUI: any[]
 
   // --- bonus tracking ---

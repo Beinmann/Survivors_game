@@ -102,6 +102,7 @@ export function createGameScene(Phaser: any) {
     public timerText!: any
     public effectText!: any
     public paused = false
+    public showBaseStats = false
     public pauseUI: { destroy(): void }[] = []
 
     constructor() {
@@ -206,7 +207,7 @@ export function createGameScene(Phaser: any) {
       this.level = 1; this.score = 0
       this.spawnTimer = 0; this.spawnRate = SPAWN_INTERVAL_MS
       this.iframes = 0; this.dead = false; this.levelUpPending = false
-      this.paused = false; this.pauseUI = []
+      this.paused = false; this.showBaseStats = false; this.pauseUI = []
       this.extraBullets = 0; this.pierceCount = 2
       this.magnetRadius = 70; this.orbMultiplier = 1.0
       this.auraRadius = 110; this.shotgunRange = 220
@@ -425,17 +426,11 @@ export function createGameScene(Phaser: any) {
     }
 
     public recalculateStats() {
-      const BASE_MOVE_SPEED = 200
-      const BASE_SHOTGUN_DMG = 30
-      const BASE_SNIPER_DMG = 150
-      const BASE_AURA_DMG = 10
-      const BASE_MACHINEGUN_DMG = 4
-
-      this.moveSpeed = Math.round(BASE_MOVE_SPEED * (1 + this.bonusMoveSpeed))
-      this.shotgunDmg = Math.round(BASE_SHOTGUN_DMG * (1 + this.bonusDamage + (this.bonusWeaponDmg['shotgun'] ?? 0)))
-      this.sniperDmg = Math.round(BASE_SNIPER_DMG * (1 + this.bonusDamage + (this.bonusWeaponDmg['sniper'] ?? 0)))
-      this.auraDmg = Math.round(BASE_AURA_DMG * (1 + this.bonusDamage + (this.bonusWeaponDmg['aura'] ?? 0)))
-      this.machineGunDmg = Math.round(BASE_MACHINEGUN_DMG * (1 + this.bonusDamage + (this.bonusWeaponDmg['machinegun'] ?? 0)))
+      this.moveSpeed = Math.round(200 * (1 + this.bonusMoveSpeed))
+      this.shotgunDmg = Math.round(WEAPON_BASE['shotgun'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['shotgun'] ?? 0)))
+      this.sniperDmg = Math.round(WEAPON_BASE['sniper'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['sniper'] ?? 0)))
+      this.auraDmg = Math.round(WEAPON_BASE['aura'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['aura'] ?? 0)))
+      this.machineGunDmg = Math.round(WEAPON_BASE['machinegun'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['machinegun'] ?? 0)))
 
       for (const wt of ALL_WEAPON_TYPES) {
         const baseSpd = WEAPON_BASE[wt].bulletSpd

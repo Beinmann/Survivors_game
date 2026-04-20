@@ -92,30 +92,37 @@ export function buildStatLines(scene: IGameScene) {
     const rear = scene.weaponRearShot[wt] ?? false
     lines.push({ label: `── ${WEAPON_NAMES[wt]}`, value: `Lv${lvl}`, icon: 'ico_level' })
     lines.push({ label: 'Fire Rate', value: `${rate}/s`, icon: 'ico_cooldown' })
+
+    const baseDmg = WEAPON_BASE[wt].damage
+    const wBonus = scene.bonusWeaponDmg[wt] ?? 0
+    const dmgValue = scene.showBaseStats
+      ? Math.round(baseDmg * (1 + wBonus))
+      : Math.round(baseDmg * (1 + scene.bonusDamage + wBonus))
+
     if (wt === 'shotgun') {
       lines.push(
         { label: 'Pellets', value: String(6 + scene.extraBullets), icon: 'ico_pellets' },
         { label: 'Range',   value: String(scene.shotgunRange),      icon: 'ico_range' },
-        { label: 'Damage',  value: String(scene.shotgunDmg),        icon: 'ico_damage' },
+        { label: 'Damage',  value: String(dmgValue),                icon: 'ico_damage' },
         { label: 'Rear',    value: rear ? 'Yes' : 'No',            icon: 'ico_rearshot' },
       )
     } else if (wt === 'sniper') {
       lines.push(
         { label: 'Pierce',    value: String(scene.pierceCount),                      icon: 'ico_pierce' },
         { label: 'Blt Speed', value: String(scene.weaponBulletSpd['sniper'] ?? 680), icon: 'ico_bulletspeed' },
-        { label: 'Damage',    value: String(scene.sniperDmg),                        icon: 'ico_damage' },
+        { label: 'Damage',    value: String(dmgValue),                        icon: 'ico_damage' },
         { label: 'Rear',      value: rear ? 'Yes' : 'No',                           icon: 'ico_rearshot' },
       )
     } else if (wt === 'aura') {
       lines.push(
         { label: 'Radius', value: String(scene.auraRadius), icon: 'ico_radius' },
-        { label: 'Damage', value: String(scene.auraDmg),    icon: 'ico_damage' },
+        { label: 'Damage', value: String(dmgValue),    icon: 'ico_damage' },
       )
     } else if (wt === 'machinegun') {
       lines.push(
         { label: 'Burst',  value: String(scene.machineGunBurst) + (rear ? '+rear' : ''), icon: 'ico_burst' },
         { label: 'Pierce', value: scene.machineGunPierce ? 'Yes' : 'No',                 icon: 'ico_pierce' },
-        { label: 'Damage', value: String(scene.machineGunDmg),                           icon: 'ico_damage' },
+        { label: 'Damage', value: String(dmgValue),                           icon: 'ico_damage' },
       )
     }
   }
@@ -127,6 +134,8 @@ export function buildStatLines(scene: IGameScene) {
   lines.push(
     { label: 'HP',         value: `${scene.hp} / ${scene.maxHp}`, icon: 'ico_hp' },
     { label: 'Move Speed', value: String(scene.moveSpeed),        icon: 'ico_movespeed' },
+    { label: 'Dmg Boost',  value: `+${Math.round(scene.bonusDamage * 100)}%`, icon: 'ico_damage' },
+    { label: 'XP Boost',   value: `+${Math.round((scene.orbMultiplier - 1) * 100)}%`, icon: 'ico_orbmult' },
     { label: 'Magnet',     value: String(scene.magnetRadius),     icon: 'ico_magnet' },
     { label: 'Orb ×',      value: scene.orbMultiplier.toFixed(2), icon: 'ico_orbmult' },
   )
@@ -134,39 +143,77 @@ export function buildStatLines(scene: IGameScene) {
 }
 
 export function addStatsPanel(scene: IGameScene, collect: (o: any) => void) {
-  const { width: w, height: h } = scene.cameras.main
-  const lines = scene.buildStatLines()
-  const panelW = 175
-  const rowH = 17
-  const panelH = 26 + lines.length * rowH + 8
-  const px = w - panelW - 14
-  const py = h - panelH - 14
+  const container: any[] = []
 
-  const bg = scene.add.graphics().setScrollFactor(0).setDepth(46)
-  bg.fillStyle(0x080810, 0.88)
-  bg.fillRoundedRect(px, py, panelW, panelH, 6)
-  bg.lineStyle(1, 0x3a3a5a, 1)
-  bg.strokeRoundedRect(px, py, panelW, panelH, 6)
-  collect(bg)
+  const draw = () => {
+    container.forEach(o => o.destroy())
+    container.length = 0
 
-  const title = scene.add.text(px + panelW / 2, py + 8, 'STATS', {
-    fontSize: '11px', color: '#fbbf24',
-  }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(47)
-  collect(title)
+    const { width: w, height: h } = scene.cameras.main
+    const lines = scene.buildStatLines()
+    const panelW = 175
+    const rowH = 17
+    const toggleH = 22
+    const panelH = 26 + toggleH + lines.length * rowH + 8
+    const px = w - panelW - 14
+    const py = h - panelH - 14
 
-  lines.forEach(({ label, value, icon }, i) => {
-    const y = py + 24 + i * rowH
-    if (icon) {
-      collect(scene.add.image(px + 16, y + 6, icon)
-        .setDisplaySize(12, 12).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(47))
+    const bg = scene.add.graphics().setScrollFactor(0).setDepth(46)
+    bg.fillStyle(0x080810, 0.88)
+    bg.fillRoundedRect(px, py, panelW, panelH, 6)
+    bg.lineStyle(1, 0x3a3a5a, 1)
+    bg.strokeRoundedRect(px, py, panelW, panelH, 6)
+    container.push(bg); collect(bg)
+
+    const title = scene.add.text(px + panelW / 2, py + 8, 'STATS', {
+      fontSize: '11px', color: '#fbbf24',
+    }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(47)
+    container.push(title); collect(title)
+
+    // Toggle row
+    const ty = py + 26
+    const toggleLabel = scene.add.text(px + 12, ty, 'Show Base Stats', {
+      fontSize: '10px', color: '#9ca3af',
+    }).setScrollFactor(0).setDepth(47)
+    container.push(toggleLabel); collect(toggleLabel)
+
+    const checkbox = scene.add.graphics().setScrollFactor(0).setDepth(47)
+    checkbox.lineStyle(1, 0x4b5563)
+    checkbox.strokeRect(px + panelW - 24, ty - 1, 14, 14)
+    if (scene.showBaseStats) {
+      checkbox.fillStyle(0xfbbf24)
+      checkbox.fillRect(px + panelW - 21, ty + 2, 8, 8)
     }
-    collect(scene.add.text(px + 26, y, label, {
-      fontSize: '11px', color: '#9ca3af',
-    }).setScrollFactor(0).setDepth(47))
-    collect(scene.add.text(px + panelW - 10, y, value, {
-      fontSize: '11px', color: '#e5e7eb',
-    }).setOrigin(1, 0).setScrollFactor(0).setDepth(47))
-  })
+    container.push(checkbox); collect(checkbox)
+
+    const toggleZone = scene.add.zone(px, ty - 4, panelW, 20)
+      .setOrigin(0, 0).setScrollFactor(0).setDepth(48).setInteractive({ useHandCursor: true })
+    toggleZone.on('pointerdown', () => {
+      scene.showBaseStats = !scene.showBaseStats
+      draw()
+    })
+    container.push(toggleZone); collect(toggleZone)
+
+    lines.forEach(({ label, value, icon }, i) => {
+      const y = py + 24 + toggleH + i * rowH
+      if (icon) {
+        const img = scene.add.image(px + 16, y + 6, icon)
+          .setDisplaySize(12, 12).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(47)
+        container.push(img); collect(img)
+      }
+      const labelTxt = scene.add.text(px + 26, y, label, {
+        fontSize: '11px', color: '#9ca3af',
+      }).setScrollFactor(0).setDepth(47)
+      container.push(labelTxt); collect(labelTxt)
+
+      const valTxt = scene.add.text(px + panelW - 10, y, value, {
+        fontSize: '11px', color: '#e5e7eb',
+      }).setOrigin(1, 0).setScrollFactor(0).setDepth(47)
+      container.push(valTxt); collect(valTxt)
+    })
+  }
+
+  draw()
 }
 
 export function rebuildWeaponHUDTexts(scene: IGameScene) {

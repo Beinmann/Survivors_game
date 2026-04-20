@@ -9,11 +9,11 @@ export const WEAPON_NAMES: Record<WeaponType, string> = {
   machinegun: 'Machine Gun',
 }
 
-export const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: number }> = {
-  shotgun:    { shootRate: 550,  bulletSpd: 320 },
-  sniper:     { shootRate: 1400, bulletSpd: 680 },
-  aura:       { shootRate: 500,  bulletSpd: 0   },
-  machinegun: { shootRate: 100,  bulletSpd: 520 },
+export const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: number; damage: number }> = {
+  shotgun:    { shootRate: 550,  bulletSpd: 320, damage: 30 },
+  sniper:     { shootRate: 1400, bulletSpd: 680, damage: 150 },
+  aura:       { shootRate: 500,  bulletSpd: 0,   damage: 10 },
+  machinegun: { shootRate: 100,  bulletSpd: 520, damage: 4 },
 }
 
 export type PassiveType = 'movespeed' | 'magnet' | 'orbmult' | 'hp' | 'damage' | 'cooldown'
