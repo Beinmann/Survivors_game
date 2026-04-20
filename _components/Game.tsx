@@ -183,7 +183,7 @@ export default function Game() {
           this.bulletSpd = 480; this.magnetRadius = 70; this.orbMultiplier = 1.0
           this.auraRadius = 110; this.shotgunRange = 220
           this.shotgunDmg = 30; this.sniperDmg = 150; this.auraDmg = 10
-          this.machineGunDmg = 2; this.machineGunBurst = 1; this.machineGunPierce = false; this.weaponLevel = 1
+          this.machineGunDmg = 4; this.machineGunBurst = 1; this.machineGunPierce = false; this.weaponLevel = 1
           this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
           this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180; this.consolidateTimer = 0
         }
