@@ -321,7 +321,7 @@ export function killEnemy(scene: IGameScene, e: any) {
     const cx = Math.max(0, Math.min(WORLD, scene.player.x + Math.cos(angle) * dist))
     const cy = Math.max(0, Math.min(WORLD, scene.player.y + Math.sin(angle) * dist))
     const orb = scene.xpOrbs.create(cx, cy, 'orb')
-    orb.setDepth(2).setVelocity(0, 0)
+    orb.setDepth(2).setVelocity(0, 0).setAlpha(0.65)
     orb.setData('xpValue', orbCount)
     scene.tintConsolidatedOrb(orb, orbCount)
   } else {
@@ -330,7 +330,7 @@ export function killEnemy(scene: IGameScene, e: any) {
         const ox = e.x + (Math.random() - 0.5) * 16
         const oy = e.y + (Math.random() - 0.5) * 16
         const orb = scene.xpOrbs.create(ox, oy, 'orb')
-        orb.setDepth(2).setVelocity(0, 0)
+        orb.setDepth(2).setVelocity(0, 0).setAlpha(0.55)
         orb.setData('xpValue', 1)
       }
     }
