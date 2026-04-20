@@ -1,10 +1,11 @@
 import { WORLD, SPAWN_INTERVAL_MS, MAX_ORBS, DESPAWN_DIST, CONSOLIDATE_NEARBY_RADIUS, CONSOLIDATE_THRESHOLD, CONSOLIDATE_EDGE_MIN, CONSOLIDATE_EDGE_MAX } from './_constants'
+import { MapKey, getMapDef, drawBackground } from './_maps'
 import { WeaponType, PassiveType, ALL_WEAPON_TYPES, WEAPON_NAMES, WEAPON_BASE, PASSIVE_DATA } from './_types'
 import { ENEMY_TYPES } from './_enemyTypes'
 import { ICON_DEFS } from './iconDefs'
 import { IGameScene } from './_sceneInterface'
 import { buildTextures } from './_textures'
-import { showTitleScreen, showModeSelection, showWeaponSelection, showGameOver } from './_screens'
+import { showTitleScreen, showModeSelection, showMapSelection, showWeaponSelection, showGameOver } from './_screens'
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
 import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies } from './_spawning'
@@ -114,6 +115,7 @@ export function createGameScene(Phaser: any) {
     // --- persisted across restarts ---
     public playerSkin = 'player_b'
     public oneWeaponMode = false
+    public selectedMap: MapKey = 'ruins'
 
     // --- ui ---
     public hpBar!: any
@@ -145,59 +147,8 @@ export function createGameScene(Phaser: any) {
       this.physics.world.setBounds(0, 0, WORLD, WORLD)
       this.cameras.main.setBounds(0, 0, WORLD, WORLD)
 
-      const bg = this.add.graphics()
-      const hexR = 80
-      const hStep = Math.sqrt(3) * hexR
-      const vStep = 1.5 * hexR
-      const hexAngles = Array.from({ length: 6 }, (_, i) => (30 + 60 * i) * Math.PI / 180)
-      const hexCols = Math.ceil(WORLD / hStep) + 2
-      const hexRows = Math.ceil(WORLD / vStep) + 2
-
-      const traceHex = (cx: number, cy: number) => {
-        bg.beginPath()
-        hexAngles.forEach((a, i) => {
-          const px = cx + Math.cos(a) * hexR
-          const py = cy + Math.sin(a) * hexR
-          if (i === 0) bg.moveTo(px, py); else bg.lineTo(px, py)
-        })
-        bg.closePath()
-      }
-
-      // ~8% of hexes: dark navy fill
-      bg.fillStyle(0x101e32)
-      for (let row = 0; row <= hexRows; row++) {
-        for (let col = 0; col <= hexCols; col++) {
-          const cx = col * hStep + (row % 2 !== 0 ? hStep / 2 : 0)
-          const cy = row * vStep
-          if (Math.abs(Math.sin(col * 127.1 + row * 311.7)) < 0.08) {
-            traceHex(cx, cy); bg.fillPath()
-          }
-        }
-      }
-
-      // all hex outlines
-      bg.lineStyle(1, 0x192840)
-      for (let row = 0; row <= hexRows; row++) {
-        for (let col = 0; col <= hexCols; col++) {
-          const cx = col * hStep + (row % 2 !== 0 ? hStep / 2 : 0)
-          const cy = row * vStep
-          traceHex(cx, cy); bg.strokePath()
-        }
-      }
-
-      // ~3% accent hexes: brighter outline + center dot
-      bg.lineStyle(2, 0x2e4870)
-      bg.fillStyle(0x2e4870)
-      for (let row = 0; row <= hexRows; row++) {
-        for (let col = 0; col <= hexCols; col++) {
-          const cx = col * hStep + (row % 2 !== 0 ? hStep / 2 : 0)
-          const cy = row * vStep
-          if (Math.abs(Math.sin(col * 127.1 + row * 311.7)) < 0.03) {
-            traceHex(cx, cy); bg.strokePath()
-            bg.fillRect(cx - 1, cy - 1, 3, 3)
-          }
-        }
-      }
+      const bg = this.add.graphics().setDepth(0)
+      drawBackground(bg, getMapDef(this.selectedMap))
 
       this.player = this.physics.add.image(WORLD / 2, WORLD / 2, this.playerSkin)
       this.player.setCollideWorldBounds(true).setDepth(5)
@@ -689,6 +640,10 @@ export function createGameScene(Phaser: any) {
 
     public showModeSelection() {
       showModeSelection(this)
+    }
+
+    public showMapSelection() {
+      showMapSelection(this)
     }
 
     public showWeaponSelection() {

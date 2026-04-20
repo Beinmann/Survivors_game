@@ -1,6 +1,7 @@
 import { IGameScene } from './_sceneInterface'
 import { WORLD, DESPAWN_DIST } from './_constants'
 import { ENEMY_TYPES } from './_enemyTypes'
+import { getMapDef } from './_maps'
 
 function clamp(val: number, min: number, max: number) {
   return Math.max(min, Math.min(max, val))
@@ -18,7 +19,14 @@ export function spawnPressure(scene: IGameScene): number {
 export function spawnWave(scene: IGameScene) {
   const gameTimeSecs = scene.gameTime / 1000
   const count = 2 + Math.floor(gameTimeSecs / 25) + Math.floor(gameTimeSecs / 120)
-  const available = ENEMY_TYPES.filter(t => gameTimeSecs >= t.unlockSecs)
+  const mapWeights = getMapDef(scene.selectedMap).enemyWeights
+  const available = ENEMY_TYPES
+    .filter(t => gameTimeSecs >= t.unlockSecs)
+    .map(t => {
+      const ow = mapWeights[t.key]
+      return ow !== undefined ? { ...t, weight: ow } : t
+    })
+    .filter(t => t.weight > 0)
   const totalWeight = available.reduce((s, t) => s + t.weight, 0)
   for (let i = 0; i < count; i++) {
     const angle = Math.random() * Math.PI * 2

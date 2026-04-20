@@ -1,4 +1,5 @@
 import { WeaponType, PassiveType } from './_types'
+import { MapKey } from './_maps'
 
 export interface IGameScene {
   // --- objects ---
@@ -133,8 +134,10 @@ export interface IGameScene {
   drawWeaponIcon(cx: number, cy: number, wt: WeaponType): void
   playerSkin: string
   oneWeaponMode: boolean
+  selectedMap: MapKey
   showTitleScreen(): void
   showModeSelection(): void
+  showMapSelection(): void
   showWeaponSelection(): void
   showGameOver(): void
   unlockWeapon(wt: WeaponType): void

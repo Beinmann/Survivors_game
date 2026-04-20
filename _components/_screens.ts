@@ -1,5 +1,6 @@
 import { IGameScene } from './_sceneInterface'
 import { WeaponType } from './_types'
+import { MAPS } from './_maps'
 
 export function showTitleScreen(scene: IGameScene) {
   const { width: w, height: h } = scene.cameras.main
@@ -118,10 +119,71 @@ export function showModeSelection(scene: IGameScene) {
     zone.on('pointerdown', () => {
       scene.oneWeaponMode = opt.mode
       ui.forEach(o => o.destroy())
-      scene.showWeaponSelection()
+      scene.showMapSelection()
     })
 
     ui.push(bg, nameText, descText, zone)
+  })
+}
+
+export function showMapSelection(scene: IGameScene) {
+  const { width: w, height: h } = scene.cameras.main
+  const ui: any[] = []
+
+  const overlay = scene.add.graphics().setScrollFactor(0).setDepth(50)
+  overlay.fillStyle(0x000000, 0.92).fillRect(0, 0, w, h)
+  ui.push(overlay)
+
+  ui.push(scene.add.text(w / 2, 38, 'Choose your map', {
+    fontSize: '28px', color: '#ffffff', stroke: '#000', strokeThickness: 4,
+  }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
+
+  const cardW = 200, cardH = 156
+  const hGap = 220, vGap = 176
+  const startX = w / 2 - hGap / 2
+  const startY = h / 2 - vGap / 2 + 20
+
+  MAPS.forEach((map, i) => {
+    const cx = startX + (i % 2) * hGap
+    const cy = startY + Math.floor(i / 2) * vGap
+
+    const bg = scene.add.graphics().setScrollFactor(0).setDepth(51)
+    const draw = (hover: boolean) => {
+      bg.clear()
+      bg.fillStyle(hover ? 0x1e1e30 : 0x111118)
+      bg.fillRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 12)
+      bg.lineStyle(hover ? 3 : 2, hover ? map.accent : 0x2a2a3a)
+      bg.strokeRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 12)
+    }
+    draw(false)
+
+    const nameText = scene.add.text(cx, cy - 44, map.name, {
+      fontSize: '18px', color: `#${map.accent.toString(16).padStart(6, '0')}`,
+      stroke: '#000', strokeThickness: 3, fontStyle: 'bold',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
+
+    const descText = scene.add.text(cx, cy + 4, map.desc, {
+      fontSize: '12px', color: '#ccccdd',
+      align: 'center', wordWrap: { width: cardW - 24 },
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
+
+    const flavorText = scene.add.text(cx, cy + 54, map.flavor, {
+      fontSize: '11px', color: '#6b7280',
+      align: 'center',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(52)
+
+    const zone = scene.add.zone(cx, cy, cardW, cardH)
+      .setScrollFactor(0).setDepth(53).setInteractive({ useHandCursor: true })
+
+    zone.on('pointerover', () => draw(true))
+    zone.on('pointerout', () => draw(false))
+    zone.on('pointerdown', () => {
+      scene.selectedMap = map.key
+      ui.forEach(o => o.destroy())
+      scene.showWeaponSelection()
+    })
+
+    ui.push(bg, nameText, descText, flavorText, zone)
   })
 }
 
