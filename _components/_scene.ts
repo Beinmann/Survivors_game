@@ -81,6 +81,14 @@ export function createGameScene(Phaser: any) {
     public globalSpeedMult = 0
     public nextBossWave = 0
 
+    // --- bonus tracking ---
+    public bonusMoveSpeed = 0
+    public bonusDamage = 0
+    public bonusCooldown = 0
+    public bonusWeaponDmg: Partial<Record<WeaponType, number>> = {}
+    public bonusWeaponBulletSpd: Partial<Record<WeaponType, number>> = {}
+    public flatWeaponShootRateReductions: Partial<Record<WeaponType, number>> = {}
+
     // --- ui ---
     public hpBar!: any
     public xpBar!: any
@@ -190,17 +198,19 @@ export function createGameScene(Phaser: any) {
       this.weapons = []; this.weaponLevels = {}; this.weaponCooldowns = {}
       this.weaponShootRates = {}; this.weaponBulletSpd = {}; this.weaponRearShot = {}
       this.passives = []; this.passiveLevels = {}
+      this.bonusMoveSpeed = 0; this.bonusDamage = 0; this.bonusCooldown = 0
+      this.bonusWeaponDmg = {}; this.bonusWeaponBulletSpd = {}; this.flatWeaponShootRateReductions = {}
+      this.recalculateStats()
+
       this.hp = 100; this.maxHp = 100; this.xp = 0; this.xpNeeded = 10
       this.level = 1; this.score = 0
       this.spawnTimer = 0; this.spawnRate = SPAWN_INTERVAL_MS
       this.iframes = 0; this.dead = false; this.levelUpPending = false
       this.paused = false; this.pauseUI = []
-      this.moveSpeed = 200
       this.extraBullets = 0; this.pierceCount = 2
       this.magnetRadius = 70; this.orbMultiplier = 1.0
       this.auraRadius = 110; this.shotgunRange = 220
-      this.shotgunDmg = 30; this.sniperDmg = 150; this.auraDmg = 10
-      this.machineGunDmg = 4; this.machineGunBurst = 1; this.machineGunPierce = false
+      this.machineGunBurst = 1; this.machineGunPierce = false
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
       this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
@@ -396,6 +406,30 @@ export function createGameScene(Phaser: any) {
       showUpgradeMenu(this)
     }
 
+    public recalculateStats() {
+      const BASE_MOVE_SPEED = 200
+      const BASE_SHOTGUN_DMG = 30
+      const BASE_SNIPER_DMG = 150
+      const BASE_AURA_DMG = 10
+      const BASE_MACHINEGUN_DMG = 4
+
+      this.moveSpeed = Math.round(BASE_MOVE_SPEED * (1 + this.bonusMoveSpeed))
+      this.shotgunDmg = Math.round(BASE_SHOTGUN_DMG * (1 + this.bonusDamage + (this.bonusWeaponDmg['shotgun'] ?? 0)))
+      this.sniperDmg = Math.round(BASE_SNIPER_DMG * (1 + this.bonusDamage + (this.bonusWeaponDmg['sniper'] ?? 0)))
+      this.auraDmg = Math.round(BASE_AURA_DMG * (1 + this.bonusDamage + (this.bonusWeaponDmg['aura'] ?? 0)))
+      this.machineGunDmg = Math.round(BASE_MACHINEGUN_DMG * (1 + this.bonusDamage + (this.bonusWeaponDmg['machinegun'] ?? 0)))
+
+      for (const wt of ALL_WEAPON_TYPES) {
+        const baseSpd = WEAPON_BASE[wt].bulletSpd
+        this.weaponBulletSpd[wt] = Math.round(baseSpd * (1 + (this.bonusWeaponBulletSpd[wt] ?? 0)))
+
+        const baseRate = WEAPON_BASE[wt].shootRate
+        const flatRed = this.flatWeaponShootRateReductions[wt] ?? 0
+        const minRate = wt === 'machinegun' ? 50 : (wt === 'sniper' ? 300 : 100)
+        this.weaponShootRates[wt] = Math.max(minRate, Math.round(baseRate * (1 - this.bonusCooldown)) - flatRed)
+      }
+    }
+
 
     // ─── spawning ───────────────────────────────────────────────────────
 
@@ -423,21 +457,14 @@ export function createGameScene(Phaser: any) {
     }
 
     public applyPassiveBoost(pt: PassiveType) {
-      if (pt === 'movespeed') this.moveSpeed = Math.round(this.moveSpeed * 1.2)
+      if (pt === 'movespeed') this.bonusMoveSpeed += 0.20
       if (pt === 'magnet')    this.magnetRadius += 50
       if (pt === 'orbmult')   this.orbMultiplier += 0.25
       if (pt === 'hp')        { this.maxHp += 20; this.hp = Math.min(this.maxHp, this.hp + 40) }
-      if (pt === 'damage')    {
-        this.shotgunDmg = Math.round(this.shotgunDmg * 1.15)
-        this.sniperDmg = Math.round(this.sniperDmg * 1.15)
-        this.auraDmg = Math.round(this.auraDmg * 1.15)
-        this.machineGunDmg = Math.round(this.machineGunDmg * 1.15)
-      }
-      if (pt === 'cooldown')  {
-        for (const wt of ALL_WEAPON_TYPES) {
-          this.weaponShootRates[wt] = Math.max(50, Math.round((this.weaponShootRates[wt] ?? WEAPON_BASE[wt].shootRate) * 0.88))
-        }
-      }
+      if (pt === 'damage')    this.bonusDamage += 0.15
+      if (pt === 'cooldown')  this.bonusCooldown += 0.12
+      
+      this.recalculateStats()
     }
 
     // ─── ui ─────────────────────────────────────────────────────────────

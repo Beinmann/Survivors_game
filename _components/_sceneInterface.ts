@@ -63,6 +63,14 @@ export interface IGameScene {
   paused: boolean
   pauseUI: any[]
 
+  // --- bonus tracking ---
+  bonusMoveSpeed: number
+  bonusDamage: number
+  bonusCooldown: number
+  bonusWeaponDmg: Partial<Record<WeaponType, number>>
+  bonusWeaponBulletSpd: Partial<Record<WeaponType, number>>
+  flatWeaponShootRateReductions: Partial<Record<WeaponType, number>>
+
   // --- ui objects ---
   hpBar: any
   xpBar: any
@@ -93,6 +101,7 @@ export interface IGameScene {
   getWeaponUpgrades(): any[]
   getUpgrades(): any[]
   showUpgradeMenu(): void
+  recalculateStats(): void
   addStatsPanel(collect: (o: any) => void): void
   buildStatLines(): any[]
   drawUI(): void
