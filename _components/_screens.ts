@@ -219,18 +219,13 @@ export function showWeaponSelection(scene: IGameScene) {
       }
       draw(false)
 
-      const icon = scene.add.image(cx - 60, cy, `wico_${weapon.type}`)
-        .setScrollFactor(0).setDepth(52).setDisplaySize(36, 36)
-
-      const nameText = scene.add.text(cx + 5, cy - 24, weapon.name, {
+      const nameText = scene.add.text(cx, cy - 28, weapon.name, {
         fontSize: '14px', color: '#ffffff', stroke: '#000', strokeThickness: 2,
         fontStyle: 'bold',
-      }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(52)
+      }).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(52)
 
-      const descText = scene.add.text(cx + 5, cy + 6, weapon.desc, {
-        fontSize: '11px', color: '#aaaacc',
-        wordWrap: { width: cardW - 55 },
-      }).setOrigin(0, 0).setScrollFactor(0).setDepth(52)
+      const icon = scene.add.image(cx, cy + 18, `wico_${weapon.type}`)
+        .setScrollFactor(0).setDepth(52).setDisplaySize(40, 40)
 
       const zone = scene.add.zone(cx, cy, cardW, cardH)
         .setScrollFactor(0).setDepth(53).setInteractive({ useHandCursor: true })
@@ -239,7 +234,7 @@ export function showWeaponSelection(scene: IGameScene) {
       zone.on('pointerout', () => draw(false))
       zone.on('pointerdown', () => pick(weapon))
 
-      allUI.push(bg, icon, nameText, descText, zone)
+      allUI.push(bg, nameText, icon, zone)
     })
   } else {
     const selected = ALL_WEAPONS.sort(() => 0.5 - Math.random()).slice(0, 3)

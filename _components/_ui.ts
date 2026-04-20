@@ -22,10 +22,16 @@ export function drawWeaponHUD(scene: IGameScene) {
   for (let i = 0; i < 3; i++) {
     const x = sx + i * (slotW + gap)
     const wt = scene.weapons[i] as WeaponType | undefined
-    scene.weaponHUDGfx.fillStyle(wt ? 0x161624 : 0x0d0d14)
+    const locked = scene.oneWeaponMode && i > 0
+    scene.weaponHUDGfx.fillStyle(locked ? 0x0d0808 : wt ? 0x161624 : 0x0d0d14)
     scene.weaponHUDGfx.fillRoundedRect(x, sy, slotW, slotH, 5)
-    scene.weaponHUDGfx.lineStyle(1, wt ? 0x4a4a8a : 0x222236)
+    scene.weaponHUDGfx.lineStyle(1, locked ? 0x3a1a1a : wt ? 0x4a4a8a : 0x222236)
     scene.weaponHUDGfx.strokeRoundedRect(x, sy, slotW, slotH, 5)
+    if (locked) {
+      scene.weaponHUDGfx.lineStyle(1.5, 0x7f1d1d)
+      scene.weaponHUDGfx.lineBetween(x + 7, sy + 7, x + slotW - 7, sy + slotH - 7)
+      scene.weaponHUDGfx.lineBetween(x + slotW - 7, sy + 7, x + 7, sy + slotH - 7)
+    }
   }
   scene.weapons.forEach((wt, i) => {
     if (scene.weaponHUDLvlTexts[i]) {
