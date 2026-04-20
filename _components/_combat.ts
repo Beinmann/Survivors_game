@@ -177,12 +177,12 @@ export function fireRocket(scene: IGameScene, angle: number, wt: WeaponType) {
   }
 }
 
-export function fireTrail(scene: IGameScene) {
-  const f = scene.add.sprite(scene.player.x, scene.player.y, 'fire').setDepth(3).setScale(scene.trailSize / 16)
+function spawnTrailSprite(scene: IGameScene, x: number, y: number) {
+  const f = scene.add.sprite(x, y, 'fire').setDepth(3).setScale(scene.trailSize / 16)
   f.setData('dmg', scene.trailDmg)
   f.setData('isTrail', true)
   f.setData('expiry', scene.time.now + scene.trailDuration)
-  
+
   const checkHit = () => {
     if (!f.active) return
     for (const e of scene.enemies.getChildren() as any[]) {
@@ -210,6 +210,33 @@ export function fireTrail(scene: IGameScene) {
     }
   }
   checkHit()
+}
+
+export function fireTrail(scene: IGameScene) {
+  const cx = scene.player.x
+  const cy = scene.player.y
+  const lx = scene.trailLastX
+  const ly = scene.trailLastY
+  const spacing = scene.trailSize * 0.6
+
+  if (lx === 0 && ly === 0) {
+    spawnTrailSprite(scene, cx, cy)
+  } else {
+    const dx = cx - lx
+    const dy = cy - ly
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    if (dist < spacing) {
+      spawnTrailSprite(scene, cx, cy)
+    } else {
+      const steps = Math.ceil(dist / spacing)
+      for (let i = 1; i <= steps; i++) {
+        spawnTrailSprite(scene, lx + dx * (i / steps), ly + dy * (i / steps))
+      }
+    }
+  }
+
+  scene.trailLastX = cx
+  scene.trailLastY = cy
 }
 
 export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {

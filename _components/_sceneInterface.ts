@@ -74,6 +74,8 @@ export interface IGameScene {
   trailSize: number
   trailBurn: boolean
   trailExplode: boolean
+  trailLastX: number
+  trailLastY: number
   powerUpSpawnTimer: number
   frenzyTimer: number
   freezeTimer: number

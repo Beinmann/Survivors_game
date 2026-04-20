@@ -23,7 +23,7 @@ export const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: num
   tesla:      { shootRate: 1400, bulletSpd: 0,   damage: 13 },
   boomerang:  { shootRate: 1000, bulletSpd: 350, damage: 22 },
   rocket:     { shootRate: 1500, bulletSpd: 250, damage: 45 },
-  trail:      { shootRate: 400,  bulletSpd: 0,   damage: 12 },
+  trail:      { shootRate: 100,  bulletSpd: 0,   damage: 12 },
 }
 
 export type PassiveType = 'movespeed' | 'magnet' | 'orbmult' | 'hp' | 'damage' | 'cooldown'

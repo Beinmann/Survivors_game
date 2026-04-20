@@ -90,6 +90,8 @@ export function createGameScene(Phaser: any) {
     public trailSize = 0
     public trailBurn = false
     public trailExplode = false
+    public trailLastX = 0
+    public trailLastY = 0
 
     // --- power-up state ---
     public powerUpSpawnTimer = 0
@@ -299,6 +301,7 @@ export function createGameScene(Phaser: any) {
       this.boomerangCount = 1; this.boomerangDist = 250; this.boomerangPierce = false
       this.rocketRadius = 40; this.rocketBurst = 1; this.rocketSplit = false
       this.trailDuration = 3000; this.trailSize = 20; this.trailBurn = false; this.trailExplode = false
+      this.trailLastX = 0; this.trailLastY = 0
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
       this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
