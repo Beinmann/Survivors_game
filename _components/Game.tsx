@@ -6,10 +6,11 @@ const WORLD = 12000
 const SPAWN_INTERVAL_MS = 2500
 const MAX_ORBS = 180
 const DESPAWN_DIST = 2000
-const STACK_NEARBY_RADIUS = 500   // orbs within this distance are "nearby"
-const STACK_THRESHOLD = 15        // how many nearby orbs trigger stacking
-const STACK_EDGE_MIN = 260        // preferred target orb distance range (≈ edge of screen)
-const STACK_EDGE_MAX = 480
+const CONSOLIDATE_NEARBY_RADIUS = 400  // only orbs within this distance of player are eligible
+const CONSOLIDATE_THRESHOLD = 12       // minimum nearby orbs required to trigger consolidation
+const CONSOLIDATE_EDGE_MIN = 260       // consolidated orb placed at this distance from player (≈ screen edge)
+const CONSOLIDATE_EDGE_MAX = 420
+const CONSOLIDATE_INTERVAL_MS = 2500   // how often to check for consolidation
 
 export default function Game() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -85,6 +86,7 @@ export default function Game() {
         private gameTime = 0
         private globalSpeedMult = 0
         private nextBossWave = 0
+        private consolidateTimer = 0
 
         // --- ui ---
         private hpBar!: Phaser.GameObjects.Graphics
@@ -183,7 +185,7 @@ export default function Game() {
           this.shotgunDmg = 30; this.sniperDmg = 150; this.auraDmg = 10
           this.machineGunDmg = 2; this.machineGunBurst = 1; this.machineGunPierce = false; this.weaponLevel = 1
           this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
-          this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
+          this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180; this.consolidateTimer = 0
         }
 
         private togglePause() {
@@ -225,6 +227,11 @@ export default function Game() {
           this.autoShoot(time)
           this.moveEnemies(delta)
           this.pullOrbs()
+          this.consolidateTimer -= delta
+          if (this.consolidateTimer <= 0) {
+            this.consolidateOrbs()
+            this.consolidateTimer = CONSOLIDATE_INTERVAL_MS
+          }
 
           this.powerUpSpawnTimer -= delta
           if (this.powerUpSpawnTimer <= 0) {
@@ -539,31 +546,8 @@ export default function Game() {
           const orbBonus = (e.getData('orbBonus') as number) ?? 0
           const orbCount = 1 + orbBonus
 
-          // snapshot nearby orbs once — used for stacking decisions in the loop
-          const nearbyOrbs = (this.xpOrbs.getChildren() as Phaser.Physics.Arcade.Image[]).filter(o => {
-            if (!o.active) return false
-            return Phaser.Math.Distance.Between(this.player.x, this.player.y, o.x, o.y) < STACK_NEARBY_RADIUS
-          })
-          const shouldStack = nearbyOrbs.length >= STACK_THRESHOLD
-
           for (let i = 0; i < orbCount; i++) {
-            if (shouldStack && nearbyOrbs.length > 0) {
-              // prefer an orb in the edge band; fall back to the nearby orb nearest to that band
-              const edgeOrbs = nearbyOrbs.filter(o => {
-                const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, o.x, o.y)
-                return d >= STACK_EDGE_MIN && d <= STACK_EDGE_MAX
-              })
-              const mid = (STACK_EDGE_MIN + STACK_EDGE_MAX) / 2
-              const target = edgeOrbs.length > 0
-                ? edgeOrbs[Math.floor(Math.random() * edgeOrbs.length)]
-                : nearbyOrbs.reduce((best, o) =>
-                    Math.abs(Phaser.Math.Distance.Between(this.player.x, this.player.y, o.x, o.y) - mid) <
-                    Math.abs(Phaser.Math.Distance.Between(this.player.x, this.player.y, best.x, best.y) - mid)
-                      ? o : best)
-              const newVal = ((target.getData('xpValue') as number) ?? 1) + 1
-              target.setData('xpValue', newVal)
-              this.tintStackedOrb(target, newVal)
-            } else if (this.xpOrbs.countActive() < MAX_ORBS) {
+            if (this.xpOrbs.countActive() < MAX_ORBS) {
               const ox = e.x + (Math.random() - 0.5) * 16
               const oy = e.y + (Math.random() - 0.5) * 16
               const orb = (this.xpOrbs.create(ox, oy, 'orb') as Phaser.Physics.Arcade.Image)
@@ -576,11 +560,34 @@ export default function Game() {
           this.scoreText.setText(`Score: ${this.score}`)
         }
 
-        private tintStackedOrb(orb: Phaser.Physics.Arcade.Image, value: number) {
-          const t = Math.min(1, (value - 1) / 9)
+        private tintConsolidatedOrb(orb: Phaser.Physics.Arcade.Image, value: number) {
+          const t = Math.min(1, (value - 1) / 15)
           const g = Math.round(0x50 * (1 - t))
           orb.setTint((0xff << 16) | (g << 8))
-          orb.setScale(1 + Math.min(1, (value - 1) * 0.1))
+          orb.setScale(1 + Math.min(1.5, (value - 1) * 0.08))
+        }
+
+        private consolidateOrbs() {
+          const nearbyOrbs = (this.xpOrbs.getChildren() as Phaser.Physics.Arcade.Image[]).filter(o => {
+            if (!o.active) return false
+            return Phaser.Math.Distance.Between(this.player.x, this.player.y, o.x, o.y) < CONSOLIDATE_NEARBY_RADIUS
+          })
+          if (nearbyOrbs.length < CONSOLIDATE_THRESHOLD) return
+
+          const totalXp = nearbyOrbs.reduce((sum, o) => sum + (((o.getData('xpValue') as number) ?? 1)), 0)
+          for (const o of nearbyOrbs) o.destroy()
+
+          const angle = Math.random() * Math.PI * 2
+          const dist = CONSOLIDATE_EDGE_MIN + Math.random() * (CONSOLIDATE_EDGE_MAX - CONSOLIDATE_EDGE_MIN)
+          const cx = this.player.x + Math.cos(angle) * dist
+          const cy = this.player.y + Math.sin(angle) * dist
+          const combined = (this.xpOrbs.create(
+            Phaser.Math.Clamp(cx, 0, WORLD),
+            Phaser.Math.Clamp(cy, 0, WORLD),
+            'orb'
+          ) as Phaser.Physics.Arcade.Image).setDepth(2).setVelocity(0, 0)
+          combined.setData('xpValue', totalXp)
+          this.tintConsolidatedOrb(combined, totalXp)
         }
 
         // ─── progression ────────────────────────────────────────────────────
