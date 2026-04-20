@@ -83,12 +83,19 @@ export function fireMachineGun(scene: IGameScene, angle: number, wt: WeaponType)
   }
 }
 
+function spawnShockIcon(scene: IGameScene, x: number, y: number) {
+  const shock = scene.add.sprite(x, y, 'shock').setDepth(15).setScale(0.5 + Math.random() * 0.5)
+  shock.setRotation(Math.random() * Math.PI * 2)
+  scene.tweens.add({ targets: shock, alpha: 0, duration: 200, onComplete: () => shock.destroy() })
+}
+
 export function fireAura(scene: IGameScene) {
   const r = scene.auraRadius
   const dmg = scene.auraDmg
   for (const e of scene.enemies.getChildren() as any[]) {
     if (e.active && Math.sqrt((scene.player.x - e.x) ** 2 + (scene.player.y - e.y) ** 2) < r) {
       scene.damageEnemy(e, dmg, false)
+      spawnShockIcon(scene, e.x, e.y)
     }
   }
 }
@@ -109,7 +116,9 @@ export function fireTesla(scene: IGameScene, angle: number, wt: WeaponType) {
     if (!currentTarget || !currentTarget.active) return
     hitSet.add(currentTarget)
     scene.damageEnemy(currentTarget, scene.teslaDmg, true)
-    
+
+    spawnShockIcon(scene, currentTarget.x, currentTarget.y)
+
     if (scene.teslaStun) {
       currentTarget.setData('stunned', 1000)
     }
