@@ -40,6 +40,16 @@ export default function Game() {
       ]
 
       type WeaponType = 'shotgun' | 'sniper' | 'aura' | 'machinegun'
+      const ALL_WEAPON_TYPES: WeaponType[] = ['shotgun', 'sniper', 'aura', 'machinegun']
+      const WEAPON_NAMES: Record<WeaponType, string> = {
+        shotgun: 'Shotgun', sniper: 'Sniper', aura: 'Shock Aura', machinegun: 'Machine Gun',
+      }
+      const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: number }> = {
+        shotgun:    { shootRate: 550,  bulletSpd: 320 },
+        sniper:     { shootRate: 1400, bulletSpd: 680 },
+        aura:       { shootRate: 500,  bulletSpd: 0   },
+        machinegun: { shootRate: 100,  bulletSpd: 520 },
+      }
 
       class GameScene extends Phaser.Scene {
         // --- objects ---
@@ -53,28 +63,28 @@ export default function Game() {
         private wasd!: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>
 
         // --- base state (canonical values in resetState()) ---
-        private weaponType: WeaponType | null = null
+        private weapons: WeaponType[] = []
+        private weaponLevels:    Partial<Record<WeaponType, number>>  = {}
+        private weaponCooldowns: Partial<Record<WeaponType, number>>  = {}
+        private weaponShootRates: Partial<Record<WeaponType, number>> = {}
+        private weaponBulletSpd:  Partial<Record<WeaponType, number>> = {}
+        private weaponRearShot:   Partial<Record<WeaponType, boolean>> = {}
         private hp = 0; private maxHp = 0
         private xp = 0; private xpNeeded = 0
         private level = 0; private score = 0
-        private shootCooldown = 0; private spawnTimer = 0
-        private spawnRate = 0
+        private spawnTimer = 0; private spawnRate = 0
         private iframes = 0; private dead = false; private levelUpPending = false
 
         // --- upgradeable stats ---
         private moveSpeed = 0
-        private shootRate = 0
         private extraBullets = 0
         private pierceCount = 0
-        private rearShot = false
-        private bulletSpd = 0
         private magnetRadius = 0
         private orbMultiplier = 0
         private auraRadius = 0
         private shotgunRange = 0
         private shotgunDmg = 0; private sniperDmg = 0; private auraDmg = 0
         private machineGunDmg = 0; private machineGunBurst = 0; private machineGunPierce = false
-        private weaponLevel = 0
 
         // --- power-up state ---
         private powerUpSpawnTimer = 0
@@ -89,6 +99,8 @@ export default function Game() {
         // --- ui ---
         private hpBar!: Phaser.GameObjects.Graphics
         private xpBar!: Phaser.GameObjects.Graphics
+        private weaponHUDGfx!: Phaser.GameObjects.Graphics
+        private weaponHUDLvlTexts: Phaser.GameObjects.Text[] = []
         private levelText!: Phaser.GameObjects.Text
         private scoreText!: Phaser.GameObjects.Text
         private timerText!: Phaser.GameObjects.Text
@@ -153,6 +165,7 @@ export default function Game() {
 
           this.hpBar = this.add.graphics().setScrollFactor(0).setDepth(20)
           this.xpBar = this.add.graphics().setScrollFactor(0).setDepth(20)
+          this.weaponHUDGfx = this.add.graphics().setScrollFactor(0).setDepth(20)
           this.levelText = this.add.text(12, 12, 'Level 1', {
             fontSize: '14px', color: '#ffffff', stroke: '#000000', strokeThickness: 3,
           }).setScrollFactor(0).setDepth(20)
@@ -170,24 +183,25 @@ export default function Game() {
         }
 
         private resetState() {
-          this.weaponType = null
+          this.weapons = []; this.weaponLevels = {}; this.weaponCooldowns = {}
+          this.weaponShootRates = {}; this.weaponBulletSpd = {}; this.weaponRearShot = {}
           this.hp = 100; this.maxHp = 100; this.xp = 0; this.xpNeeded = 10
-          this.level = 1; this.score = 0; this.shootCooldown = 0
+          this.level = 1; this.score = 0
           this.spawnTimer = 0; this.spawnRate = SPAWN_INTERVAL_MS
           this.iframes = 0; this.dead = false; this.levelUpPending = false
           this.paused = false; this.pauseUI = []
-          this.moveSpeed = 200; this.shootRate = 750
-          this.extraBullets = 0; this.pierceCount = 2; this.rearShot = false
-          this.bulletSpd = 480; this.magnetRadius = 70; this.orbMultiplier = 1.0
+          this.moveSpeed = 200
+          this.extraBullets = 0; this.pierceCount = 2
+          this.magnetRadius = 70; this.orbMultiplier = 1.0
           this.auraRadius = 110; this.shotgunRange = 220
           this.shotgunDmg = 30; this.sniperDmg = 150; this.auraDmg = 10
-          this.machineGunDmg = 4; this.machineGunBurst = 1; this.machineGunPierce = false; this.weaponLevel = 1
+          this.machineGunDmg = 4; this.machineGunBurst = 1; this.machineGunPierce = false
           this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
           this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
         }
 
         private togglePause() {
-          if (this.dead || this.levelUpPending || this.weaponType === null) return
+          if (this.dead || this.levelUpPending || this.weapons.length === 0) return
           this.paused = !this.paused
           if (this.paused) {
             this.physics.world.pause()
@@ -210,7 +224,7 @@ export default function Game() {
         }
 
         update(time: number, delta: number) {
-          if (this.dead || this.levelUpPending || this.weaponType === null || this.paused) return
+          if (this.dead || this.levelUpPending || this.weapons.length === 0 || this.paused) return
 
           this.gameTime += delta
           const totalSecs = Math.floor(this.gameTime / 1000)
@@ -281,54 +295,58 @@ export default function Game() {
         }
 
         private autoShoot(time: number) {
-          if (time < this.shootCooldown) return
-
-          if (this.weaponType === 'aura') {
-            this.fireAura()
-            this.shootCooldown = time + this.effectiveShootRate()
-            return
-          }
-
           const targets = this.enemies.getChildren() as Phaser.Physics.Arcade.Image[]
-          if (!targets.length) return
+          const nearest = targets.length > 0
+            ? targets.reduce((a, b) =>
+                Phaser.Math.Distance.Between(this.player.x, this.player.y, a.x, a.y) <=
+                Phaser.Math.Distance.Between(this.player.x, this.player.y, b.x, b.y) ? a : b)
+            : null
+          const angle = nearest
+            ? Phaser.Math.Angle.Between(this.player.x, this.player.y, nearest.x, nearest.y)
+            : 0
 
-          const nearest = targets.reduce((a, b) =>
-            Phaser.Math.Distance.Between(this.player.x, this.player.y, a.x, a.y) <=
-            Phaser.Math.Distance.Between(this.player.x, this.player.y, b.x, b.y) ? a : b)
-
-          const angle = Phaser.Math.Angle.Between(this.player.x, this.player.y, nearest.x, nearest.y)
-
-          if (this.weaponType === 'shotgun') this.fireShotgun(angle)
-          else if (this.weaponType === 'sniper') this.fireSniper(angle)
-          else if (this.weaponType === 'machinegun') this.fireMachineGun(angle)
-
-          this.shootCooldown = time + this.effectiveShootRate()
+          for (const wt of this.weapons) {
+            if (time < (this.weaponCooldowns[wt] ?? 0)) continue
+            if (wt === 'aura') {
+              this.fireAura()
+            } else {
+              if (!nearest) continue
+              if (wt === 'shotgun')    this.fireShotgun(angle, wt)
+              else if (wt === 'sniper')     this.fireSniper(angle, wt)
+              else if (wt === 'machinegun') this.fireMachineGun(angle, wt)
+            }
+            this.weaponCooldowns[wt] = time + this.effectiveShootRate(wt)
+          }
         }
 
-        private fireShotgun(angle: number) {
+        private fireShotgun(angle: number, wt: WeaponType) {
+          const spd = this.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
+          const rear = this.weaponRearShot[wt] ?? false
           const pellets = 6 + this.extraBullets
           const cone = Math.PI / 5
           const step = pellets > 1 ? cone / (pellets - 1) : 0
 
           const fire = (a: number) => {
             const b = this.bullets.create(this.player.x, this.player.y, 'bullet') as Phaser.Physics.Arcade.Image
-            b.setVelocity(Math.cos(a) * this.bulletSpd, Math.sin(a) * this.bulletSpd)
+            b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
             b.setRotation(a)
             b.setData('sx', this.player.x).setData('sy', this.player.y).setData('dmg', this.shotgunDmg)
             b.setDepth(4)
           }
           for (let i = 0; i < pellets; i++) fire(angle + (pellets > 1 ? -cone / 2 + step * i : 0))
-          if (this.rearShot) {
+          if (rear) {
             const rp = Math.max(3, Math.floor(pellets / 2))
             const rs = rp > 1 ? cone / (rp - 1) : 0
             for (let i = 0; i < rp; i++) fire(angle + Math.PI + (rp > 1 ? -cone / 2 + rs * i : 0))
           }
         }
 
-        private fireSniper(angle: number) {
+        private fireSniper(angle: number, wt: WeaponType) {
+          const spd = this.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
+          const rear = this.weaponRearShot[wt] ?? false
           const fire = (a: number) => {
             const b = this.bullets.create(this.player.x, this.player.y, 'sniperBullet') as Phaser.Physics.Arcade.Image
-            b.setVelocity(Math.cos(a) * this.bulletSpd, Math.sin(a) * this.bulletSpd)
+            b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
             b.setRotation(a)
             b.setData('dmg', this.sniperDmg)
             b.setData('pierceLeft', this.pierceCount)
@@ -336,13 +354,15 @@ export default function Game() {
             b.setDepth(4)
           }
           fire(angle)
-          if (this.rearShot) fire(angle + Math.PI)
+          if (rear) fire(angle + Math.PI)
         }
 
-        private fireMachineGun(angle: number) {
+        private fireMachineGun(angle: number, wt: WeaponType) {
+          const spd = this.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
+          const rear = this.weaponRearShot[wt] ?? false
           const fire = (a: number) => {
             const b = this.bullets.create(this.player.x, this.player.y, 'mgBullet') as Phaser.Physics.Arcade.Image
-            b.setVelocity(Math.cos(a) * this.bulletSpd, Math.sin(a) * this.bulletSpd)
+            b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
             b.setRotation(a)
             b.setData('dmg', this.machineGunDmg)
             if (this.machineGunPierce) {
@@ -355,7 +375,7 @@ export default function Game() {
           for (let i = 0; i < this.machineGunBurst; i++) {
             fire(angle + (this.machineGunBurst > 1 ? (i - (this.machineGunBurst - 1) / 2) * offset : 0))
           }
-          if (this.rearShot) fire(angle + Math.PI)
+          if (rear) fire(angle + Math.PI)
         }
 
         private fireAura() {
@@ -593,81 +613,111 @@ export default function Game() {
           }
         }
 
-        private getWeaponUpgrade(): { name: string; desc: string; apply: () => void; isWeaponUpgrade: true } | null {
-          if (this.weaponLevel >= 9 || this.weaponType === null) return null
-          const lvl = this.weaponLevel
+        private getWeaponUpgrades(): { name: string; desc: string; apply: () => void; isWeaponUpgrade: true }[] {
           type Step = { desc: string; apply: () => void }
-          const paths: Record<string, Step[]> = {
+          const paths: Record<WeaponType, Step[]> = {
             shotgun: [
-              { desc: '+2 pellets  ·  −50ms cooldown',             apply: () => { this.extraBullets += 2; this.shootRate = Math.max(100, this.shootRate - 50) } },
+              { desc: '+2 pellets  ·  −50ms cooldown',             apply: () => { this.extraBullets += 2; this.weaponShootRates['shotgun'] = Math.max(100, (this.weaponShootRates['shotgun'] ?? 550) - 50) } },
               { desc: '+30% damage  ·  +50px range',               apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.3); this.shotgunRange += 50 } },
-              { desc: 'Unlock rear shot',                          apply: () => { this.rearShot = true } },
+              { desc: 'Unlock rear shot',                          apply: () => { this.weaponRearShot['shotgun'] = true } },
               { desc: '+2 pellets  ·  +30% damage',                apply: () => { this.extraBullets += 2; this.shotgunDmg = Math.round(this.shotgunDmg * 1.3) } },
-              { desc: '−80ms cooldown  ·  +60px range',            apply: () => { this.shootRate = Math.max(100, this.shootRate - 80); this.shotgunRange += 60 } },
+              { desc: '−80ms cooldown  ·  +60px range',            apply: () => { this.weaponShootRates['shotgun'] = Math.max(100, (this.weaponShootRates['shotgun'] ?? 550) - 80); this.shotgunRange += 60 } },
               { desc: '+40% damage  ·  +2 pellets',                apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.4); this.extraBullets += 2 } },
-              { desc: '−80ms cooldown  ·  +60px range',            apply: () => { this.shootRate = Math.max(100, this.shootRate - 80); this.shotgunRange += 60 } },
-              { desc: '+60% damage  ·  +4 pellets  ·  −100ms',     apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.6); this.extraBullets += 4; this.shootRate = Math.max(100, this.shootRate - 100) } },
+              { desc: '−80ms cooldown  ·  +60px range',            apply: () => { this.weaponShootRates['shotgun'] = Math.max(100, (this.weaponShootRates['shotgun'] ?? 550) - 80); this.shotgunRange += 60 } },
+              { desc: '+60% damage  ·  +4 pellets  ·  −100ms',     apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.6); this.extraBullets += 4; this.weaponShootRates['shotgun'] = Math.max(100, (this.weaponShootRates['shotgun'] ?? 550) - 100) } },
             ],
             sniper: [
               { desc: '+1 pierce  ·  +50% damage',                 apply: () => { this.pierceCount++; this.sniperDmg = Math.round(this.sniperDmg * 1.5) } },
-              { desc: '−250ms cooldown  ·  +30% bullet speed',     apply: () => { this.shootRate = Math.max(300, this.shootRate - 250); this.bulletSpd = Math.round(this.bulletSpd * 1.3) } },
-              { desc: 'Rear shot  ·  +50% damage',                 apply: () => { this.rearShot = true; this.sniperDmg = Math.round(this.sniperDmg * 1.5) } },
-              { desc: '+2 pierce  ·  −200ms cooldown',             apply: () => { this.pierceCount += 2; this.shootRate = Math.max(300, this.shootRate - 200) } },
-              { desc: '+70% damage  ·  +30% bullet speed',         apply: () => { this.sniperDmg = Math.round(this.sniperDmg * 1.7); this.bulletSpd = Math.round(this.bulletSpd * 1.3) } },
-              { desc: '+2 pierce  ·  −200ms cooldown',             apply: () => { this.pierceCount += 2; this.shootRate = Math.max(300, this.shootRate - 200) } },
-              { desc: '+80% damage  ·  +30% bullet speed',         apply: () => { this.sniperDmg = Math.round(this.sniperDmg * 1.8); this.bulletSpd = Math.round(this.bulletSpd * 1.3) } },
-              { desc: '+3 pierce  ·  +100% damage  ·  −200ms',     apply: () => { this.pierceCount += 3; this.sniperDmg = Math.round(this.sniperDmg * 2.0); this.shootRate = Math.max(300, this.shootRate - 200) } },
+              { desc: '−250ms cooldown  ·  +30% bullet speed',     apply: () => { this.weaponShootRates['sniper'] = Math.max(300, (this.weaponShootRates['sniper'] ?? 1400) - 250); this.weaponBulletSpd['sniper'] = Math.round((this.weaponBulletSpd['sniper'] ?? 680) * 1.3) } },
+              { desc: 'Rear shot  ·  +50% damage',                 apply: () => { this.weaponRearShot['sniper'] = true; this.sniperDmg = Math.round(this.sniperDmg * 1.5) } },
+              { desc: '+2 pierce  ·  −200ms cooldown',             apply: () => { this.pierceCount += 2; this.weaponShootRates['sniper'] = Math.max(300, (this.weaponShootRates['sniper'] ?? 1400) - 200) } },
+              { desc: '+70% damage  ·  +30% bullet speed',         apply: () => { this.sniperDmg = Math.round(this.sniperDmg * 1.7); this.weaponBulletSpd['sniper'] = Math.round((this.weaponBulletSpd['sniper'] ?? 680) * 1.3) } },
+              { desc: '+2 pierce  ·  −200ms cooldown',             apply: () => { this.pierceCount += 2; this.weaponShootRates['sniper'] = Math.max(300, (this.weaponShootRates['sniper'] ?? 1400) - 200) } },
+              { desc: '+80% damage  ·  +30% bullet speed',         apply: () => { this.sniperDmg = Math.round(this.sniperDmg * 1.8); this.weaponBulletSpd['sniper'] = Math.round((this.weaponBulletSpd['sniper'] ?? 680) * 1.3) } },
+              { desc: '+3 pierce  ·  +100% damage  ·  −200ms',     apply: () => { this.pierceCount += 3; this.sniperDmg = Math.round(this.sniperDmg * 2.0); this.weaponShootRates['sniper'] = Math.max(300, (this.weaponShootRates['sniper'] ?? 1400) - 200) } },
             ],
             aura: [
               { desc: '+30% damage',                               apply: () => { this.auraDmg = Math.round(this.auraDmg * 1.3) } },
-              { desc: '+25px radius  ·  −80ms cooldown',           apply: () => { this.auraRadius += 25; this.shootRate = Math.max(100, this.shootRate - 80) } },
+              { desc: '+25px radius  ·  −80ms cooldown',           apply: () => { this.auraRadius += 25; this.weaponShootRates['aura'] = Math.max(100, (this.weaponShootRates['aura'] ?? 500) - 80) } },
               { desc: '+50% damage  ·  +25px radius',              apply: () => { this.auraDmg = Math.round(this.auraDmg * 1.5); this.auraRadius += 25 } },
-              { desc: '−100ms cooldown  ·  +30px radius',          apply: () => { this.shootRate = Math.max(100, this.shootRate - 100); this.auraRadius += 30 } },
+              { desc: '−100ms cooldown  ·  +30px radius',          apply: () => { this.weaponShootRates['aura'] = Math.max(100, (this.weaponShootRates['aura'] ?? 500) - 100); this.auraRadius += 30 } },
               { desc: '+60% damage  ·  +30px radius',              apply: () => { this.auraDmg = Math.round(this.auraDmg * 1.6); this.auraRadius += 30 } },
-              { desc: '−100ms cooldown  ·  +35px radius',          apply: () => { this.shootRate = Math.max(100, this.shootRate - 100); this.auraRadius += 35 } },
+              { desc: '−100ms cooldown  ·  +35px radius',          apply: () => { this.weaponShootRates['aura'] = Math.max(100, (this.weaponShootRates['aura'] ?? 500) - 100); this.auraRadius += 35 } },
               { desc: '+80% damage  ·  +35px radius',              apply: () => { this.auraDmg = Math.round(this.auraDmg * 1.8); this.auraRadius += 35 } },
-              { desc: '+100% damage  ·  +50px radius  ·  −100ms',  apply: () => { this.auraDmg = Math.round(this.auraDmg * 2.0); this.auraRadius += 50; this.shootRate = Math.max(100, this.shootRate - 100) } },
+              { desc: '+100% damage  ·  +50px radius  ·  −100ms',  apply: () => { this.auraDmg = Math.round(this.auraDmg * 2.0); this.auraRadius += 50; this.weaponShootRates['aura'] = Math.max(100, (this.weaponShootRates['aura'] ?? 500) - 100) } },
             ],
             machinegun: [
-              { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.shootRate = Math.max(50, this.shootRate - 15) } },
-              { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.shootRate = Math.max(50, this.shootRate - 15) } },
+              { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 15) } },
+              { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 15) } },
               { desc: 'Piercing rounds — bullets pass through 1 enemy', apply: () => { this.machineGunPierce = true } },
-              { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.shootRate = Math.max(50, this.shootRate - 15) } },
+              { desc: '+40% damage  ·  −15ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.4); this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 15) } },
               { desc: 'Burst fire — 2 bullets per shot',           apply: () => { this.machineGunBurst = 2 } },
-              { desc: 'Rear shot  ·  +30% damage',                 apply: () => { this.rearShot = true; this.machineGunDmg = Math.round(this.machineGunDmg * 1.3) } },
-              { desc: '3-round burst  ·  −20ms cooldown',          apply: () => { this.machineGunBurst = 3; this.shootRate = Math.max(50, this.shootRate - 20) } },
-              { desc: '+60% damage  ·  −20ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.6); this.shootRate = Math.max(50, this.shootRate - 20) } },
+              { desc: 'Rear shot  ·  +30% damage',                 apply: () => { this.weaponRearShot['machinegun'] = true; this.machineGunDmg = Math.round(this.machineGunDmg * 1.3) } },
+              { desc: '3-round burst  ·  −20ms cooldown',          apply: () => { this.machineGunBurst = 3; this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 20) } },
+              { desc: '+60% damage  ·  −20ms cooldown',            apply: () => { this.machineGunDmg = Math.round(this.machineGunDmg * 1.6); this.weaponShootRates['machinegun'] = Math.max(50, (this.weaponShootRates['machinegun'] ?? 100) - 20) } },
             ],
           }
-          const step = paths[this.weaponType]?.[lvl - 1]
-          if (!step) return null
-          return {
-            name: `Weapon Lvl ${lvl + 1}`,
-            desc: step.desc,
-            apply: () => { step.apply(); this.weaponLevel++ },
-            isWeaponUpgrade: true,
+          const result: { name: string; desc: string; apply: () => void; isWeaponUpgrade: true }[] = []
+          for (const wt of this.weapons) {
+            const lvl = this.weaponLevels[wt] ?? 1
+            if (lvl >= 9) continue
+            const step = paths[wt]?.[lvl - 1]
+            if (!step) continue
+            result.push({
+              name: `${WEAPON_NAMES[wt]} Lv ${lvl + 1}`,
+              desc: step.desc,
+              apply: () => { step.apply(); this.weaponLevels[wt] = lvl + 1 },
+              isWeaponUpgrade: true,
+            })
           }
+          return result
         }
 
         private getUpgrades() {
           const passives = [
-            { name: 'Swift Feet',     desc: 'Move 25% faster',                   apply: () => { this.moveSpeed = Math.round(this.moveSpeed * 1.25) } },
-            { name: 'XP Magnet',      desc: 'Pull orbs from 80px further away',  apply: () => { this.magnetRadius += 80 } },
-            { name: 'Bounty Hunter',  desc: 'Gain 35% more XP from every orb collected', apply: () => { this.orbMultiplier += 0.35 } },
-            { name: 'Vital Surge',    desc: 'Restore 40 HP and raise max HP by 20', apply: () => { this.maxHp += 20; this.hp = Math.min(this.maxHp, this.hp + 40) } },
-            { name: 'Power Core',     desc: '+20% weapon damage',                apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.2); this.sniperDmg = Math.round(this.sniperDmg * 1.2); this.auraDmg = Math.round(this.auraDmg * 1.2); this.machineGunDmg = Math.round(this.machineGunDmg * 1.2) } },
-            { name: 'Overclock',      desc: 'Fire 15% faster',                   apply: () => { this.shootRate = Math.max(50, Math.round(this.shootRate * 0.85)) } },
+            { name: 'Swift Feet',    desc: 'Move 25% faster',                         apply: () => { this.moveSpeed = Math.round(this.moveSpeed * 1.25) } },
+            { name: 'XP Magnet',     desc: 'Pull orbs from 80px further away',         apply: () => { this.magnetRadius += 80 } },
+            { name: 'Bounty Hunter', desc: 'Gain 35% more XP from every orb',          apply: () => { this.orbMultiplier += 0.35 } },
+            { name: 'Vital Surge',   desc: 'Restore 40 HP and raise max HP by 20',     apply: () => { this.maxHp += 20; this.hp = Math.min(this.maxHp, this.hp + 40) } },
+            { name: 'Power Core',    desc: '+20% damage for all active weapons',        apply: () => { this.shotgunDmg = Math.round(this.shotgunDmg * 1.2); this.sniperDmg = Math.round(this.sniperDmg * 1.2); this.auraDmg = Math.round(this.auraDmg * 1.2); this.machineGunDmg = Math.round(this.machineGunDmg * 1.2) } },
+            { name: 'Overclock',     desc: 'All weapons fire 15% faster',               apply: () => { for (const wt of this.weapons) { this.weaponShootRates[wt] = Math.max(50, Math.round((this.weaponShootRates[wt] ?? WEAPON_BASE[wt].shootRate) * 0.85)) } } },
           ]
-          const weaponUpgrade = this.getWeaponUpgrade()
-          // weapon upgrade appears 3× in the pool for higher weight
-          const pool = [...passives, ...(weaponUpgrade ? [weaponUpgrade, weaponUpgrade, weaponUpgrade] : [])]
+          const weaponUpgrades = this.getWeaponUpgrades()
+          const unlockOptions = this.weapons.length < 3
+            ? ALL_WEAPON_TYPES
+                .filter(wt => !this.weapons.includes(wt))
+                .map(wt => ({
+                  name: `Unlock ${WEAPON_NAMES[wt]}`,
+                  desc: this.weaponUnlockDesc(wt),
+                  apply: () => this.unlockWeapon(wt),
+                  isNewWeapon: true as const,
+                }))
+            : []
+
+          // weapon upgrades 3× weight, unlock options 2× weight
+          const pool = [
+            ...passives,
+            ...weaponUpgrades.flatMap(u => [u, u, u]),
+            ...unlockOptions.flatMap(u => [u, u]),
+          ]
           pool.sort(() => Math.random() - 0.5)
           const seen = new Set<string>()
-          const result: typeof passives = []
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const result: any[] = []
           for (const u of pool) {
             if (!seen.has(u.name) && result.length < 3) { seen.add(u.name); result.push(u) }
           }
           return result
+        }
+
+        private weaponUnlockDesc(wt: WeaponType): string {
+          const descs: Record<WeaponType, string> = {
+            shotgun:    'Cone of pellets · deadly up close',
+            sniper:     'Piercing shot · slow but powerful',
+            aura:       'Electric pulse · hits all nearby enemies',
+            machinegun: 'Rapid fire · scales to burst spread',
+          }
+          return descs[wt]
         }
 
         private showUpgradeMenu() {
@@ -698,29 +748,33 @@ export default function Game() {
             const cy = h / 2
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const isWeapon = !!(upgrade as any).isWeaponUpgrade
-            const idleColor  = isWeapon ? 0x1a1f2e : 0x16161e
-            const hoverColor = isWeapon ? 0x1e2a40 : 0x2a2a3e
-            const idleBorder = isWeapon ? 0x3b82f6 : 0x3a3a5a
-            const hoverBorder = isWeapon ? 0x60a5fa : 0xfbbf24
+            const u = upgrade as any
+            const isWeapon    = !!u.isWeaponUpgrade
+            const isNewWeapon = !!u.isNewWeapon
+            const idleColor   = isNewWeapon ? 0x1f1a0a : isWeapon ? 0x1a1f2e : 0x16161e
+            const hoverColor  = isNewWeapon ? 0x2e2210 : isWeapon ? 0x1e2a40 : 0x2a2a3e
+            const idleBorder  = isNewWeapon ? 0xd97706 : isWeapon ? 0x3b82f6 : 0x3a3a5a
+            const hoverBorder = isNewWeapon ? 0xfbbf24 : isWeapon ? 0x60a5fa : 0xfbbf24
 
             const bg = this.add.graphics().setScrollFactor(0).setDepth(41)
             const draw = (hover: boolean) => {
               bg.clear()
               bg.fillStyle(hover ? hoverColor : idleColor)
               bg.fillRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 10)
-              bg.lineStyle(hover || isWeapon ? 2 : 1, hover ? hoverBorder : idleBorder)
+              bg.lineStyle(hover || isWeapon || isNewWeapon ? 2 : 1, hover ? hoverBorder : idleBorder)
               bg.strokeRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 10)
             }
             draw(false)
 
+            const nameColor = isNewWeapon ? '#fcd34d' : isWeapon ? '#93c5fd' : '#ffffff'
             const nameText = this.add.text(cx, cy - 32, upgrade.name, {
-              fontSize: '15px', color: isWeapon ? '#93c5fd' : '#ffffff', stroke: '#000', strokeThickness: 2,
+              fontSize: '15px', color: nameColor, stroke: '#000', strokeThickness: 2,
               align: 'center', wordWrap: { width: cardW - 16 },
             }).setOrigin(0.5).setScrollFactor(0).setDepth(42)
 
+            const descColor = isNewWeapon ? '#fde68a' : isWeapon ? '#bfdbfe' : '#aaaacc'
             const descText = this.add.text(cx, cy + 18, upgrade.desc, {
-              fontSize: '12px', color: isWeapon ? '#bfdbfe' : '#aaaacc',
+              fontSize: '12px', color: descColor,
               align: 'center', wordWrap: { width: cardW - 16 },
             }).setOrigin(0.5).setScrollFactor(0).setDepth(42)
 
@@ -746,45 +800,47 @@ export default function Game() {
         // ─── stats panel ────────────────────────────────────────────────────
 
         private buildStatLines() {
-          const wt = this.weaponType
-          const rate = (1000 / this.shootRate).toFixed(1)
-          const lines: { label: string; value: string }[] = [
-            { label: 'HP',           value: `${this.hp} / ${this.maxHp}` },
-            { label: 'Move Speed',   value: String(this.moveSpeed) },
-            { label: 'Magnet',       value: String(this.magnetRadius) },
-            { label: 'Orb ×',        value: this.orbMultiplier.toFixed(2) },
-            { label: 'Weapon Lvl',   value: `${this.weaponLevel} / 9` },
-          ]
-          if (wt === 'shotgun') {
-            lines.push(
-              { label: 'Fire Rate',  value: `${rate}/s` },
-              { label: 'Pellets',    value: String(6 + this.extraBullets) },
-              { label: 'Range',      value: String(this.shotgunRange) },
-              { label: 'Damage',     value: String(this.shotgunDmg) },
-              { label: 'Rear Shot',  value: this.rearShot ? 'Yes' : 'No' },
-            )
-          } else if (wt === 'sniper') {
-            lines.push(
-              { label: 'Fire Rate',  value: `${rate}/s` },
-              { label: 'Pierce',     value: String(this.pierceCount) },
-              { label: 'Blt Speed',  value: String(this.bulletSpd) },
-              { label: 'Damage',     value: String(this.sniperDmg) },
-              { label: 'Rear Shot',  value: this.rearShot ? 'Yes' : 'No' },
-            )
-          } else if (wt === 'aura') {
-            lines.push(
-              { label: 'Pulse Rate', value: `${rate}/s` },
-              { label: 'Radius',     value: String(this.auraRadius) },
-              { label: 'Damage',     value: String(this.auraDmg) },
-            )
-          } else if (wt === 'machinegun') {
-            lines.push(
-              { label: 'Fire Rate',  value: `${rate}/s` },
-              { label: 'Burst',      value: String(this.machineGunBurst) + (this.rearShot ? '+rear' : '') },
-              { label: 'Pierce',     value: this.machineGunPierce ? 'Yes' : 'No' },
-              { label: 'Damage',     value: String(this.machineGunDmg) },
-            )
+          const lines: { label: string; value: string }[] = []
+          for (const wt of this.weapons) {
+            const rate = (1000 / (this.weaponShootRates[wt] ?? WEAPON_BASE[wt].shootRate)).toFixed(1)
+            const lvl  = this.weaponLevels[wt] ?? 1
+            const rear = this.weaponRearShot[wt] ?? false
+            lines.push({ label: `── ${WEAPON_NAMES[wt]}`, value: `Lv${lvl}` })
+            lines.push({ label: 'Fire Rate', value: `${rate}/s` })
+            if (wt === 'shotgun') {
+              lines.push(
+                { label: 'Pellets', value: String(6 + this.extraBullets) },
+                { label: 'Range',   value: String(this.shotgunRange) },
+                { label: 'Damage',  value: String(this.shotgunDmg) },
+                { label: 'Rear',    value: rear ? 'Yes' : 'No' },
+              )
+            } else if (wt === 'sniper') {
+              lines.push(
+                { label: 'Pierce',     value: String(this.pierceCount) },
+                { label: 'Blt Speed', value: String(this.weaponBulletSpd['sniper'] ?? 680) },
+                { label: 'Damage',    value: String(this.sniperDmg) },
+                { label: 'Rear',      value: rear ? 'Yes' : 'No' },
+              )
+            } else if (wt === 'aura') {
+              lines.push(
+                { label: 'Radius', value: String(this.auraRadius) },
+                { label: 'Damage', value: String(this.auraDmg) },
+              )
+            } else if (wt === 'machinegun') {
+              lines.push(
+                { label: 'Burst',  value: String(this.machineGunBurst) + (rear ? '+rear' : '') },
+                { label: 'Pierce', value: this.machineGunPierce ? 'Yes' : 'No' },
+                { label: 'Damage', value: String(this.machineGunDmg) },
+              )
+            }
           }
+          lines.push(
+            { label: '── Passive', value: '' },
+            { label: 'HP',          value: `${this.hp} / ${this.maxHp}` },
+            { label: 'Move Speed',  value: String(this.moveSpeed) },
+            { label: 'Magnet',      value: String(this.magnetRadius) },
+            { label: 'Orb ×',       value: this.orbMultiplier.toFixed(2) },
+          )
           return lines
         }
 
@@ -892,10 +948,31 @@ export default function Game() {
           })
         }
 
+        private unlockWeapon(wt: WeaponType) {
+          this.weapons.push(wt)
+          this.weaponLevels[wt]     = 1
+          this.weaponShootRates[wt] = WEAPON_BASE[wt].shootRate
+          this.weaponBulletSpd[wt]  = WEAPON_BASE[wt].bulletSpd
+          this.weaponCooldowns[wt]  = 0
+          this.weaponRearShot[wt]   = false
+          this.rebuildWeaponHUDTexts()
+        }
+
+        private rebuildWeaponHUDTexts() {
+          this.weaponHUDLvlTexts.forEach(t => t.destroy())
+          const slotW = 44, gap = 4
+          this.weaponHUDLvlTexts = this.weapons.map((_, i) =>
+            this.add.text(10 + i * (slotW + gap) + slotW / 2, 118 + 2, '', {
+              fontSize: '9px', color: '#a0a0c0',
+            }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(21)
+          )
+        }
+
         // ─── ui ─────────────────────────────────────────────────────────────
 
-        private effectiveShootRate() {
-          return this.frenzyTimer > 0 ? this.shootRate / 2 : this.shootRate
+        private effectiveShootRate(wt: WeaponType) {
+          const base = this.weaponShootRates[wt] ?? WEAPON_BASE[wt].shootRate
+          return this.frenzyTimer > 0 ? base / 2 : base
         }
 
         private drawUI() {
@@ -906,10 +983,62 @@ export default function Game() {
           this.xpBar.clear()
           this.xpBar.fillStyle(0x1a1a1a).fillRect(10, 64, barW, 6)
           this.xpBar.fillStyle(0xa78bfa).fillRect(10, 64, barW * (this.xp / this.xpNeeded), 6)
+          this.drawWeaponHUD()
           const effects: string[] = []
           if (this.frenzyTimer > 0) effects.push(`⚡ FRENZY ${(this.frenzyTimer / 1000).toFixed(1)}s`)
           if (this.freezeTimer > 0) effects.push(`❄ FREEZE ${(this.freezeTimer / 1000).toFixed(1)}s`)
           this.effectText.setText(effects.join('   '))
+        }
+
+        private drawWeaponHUD() {
+          const slotW = 44, slotH = 44, gap = 4, sx = 10, sy = 74
+          this.weaponHUDGfx.clear()
+          for (let i = 0; i < 3; i++) {
+            const x = sx + i * (slotW + gap)
+            const wt = this.weapons[i] as WeaponType | undefined
+            this.weaponHUDGfx.fillStyle(wt ? 0x161624 : 0x0d0d14)
+            this.weaponHUDGfx.fillRoundedRect(x, sy, slotW, slotH, 5)
+            this.weaponHUDGfx.lineStyle(1, wt ? 0x4a4a8a : 0x222236)
+            this.weaponHUDGfx.strokeRoundedRect(x, sy, slotW, slotH, 5)
+            if (wt) {
+              this.drawWeaponIcon(x + slotW / 2, sy + slotH / 2 - 5, wt)
+            }
+          }
+          this.weapons.forEach((wt, i) => {
+            if (this.weaponHUDLvlTexts[i]) {
+              this.weaponHUDLvlTexts[i].setText(`Lv${this.weaponLevels[wt] ?? 1}`)
+            }
+          })
+        }
+
+        private drawWeaponIcon(cx: number, cy: number, wt: WeaponType) {
+          const g = this.weaponHUDGfx
+          if (wt === 'shotgun') {
+            g.lineStyle(1.5, 0xf97316)
+            const spread = Math.PI / 3
+            for (let i = 0; i < 5; i++) {
+              const a = -Math.PI / 2 - spread / 2 + (i / 4) * spread
+              g.lineBetween(cx, cy + 6, cx + Math.cos(a) * 14, cy + Math.sin(a) * 14 + 6)
+            }
+            g.fillStyle(0xf97316).fillRect(cx - 2, cy + 1, 4, 6)
+          } else if (wt === 'sniper') {
+            g.lineStyle(1.5, 0x60a5fa)
+            g.lineBetween(cx, cy + 10, cx, cy - 12)
+            g.lineStyle(1, 0x60a5fa)
+            g.lineBetween(cx - 6, cy + 8, cx + 6, cy + 8)
+            g.fillStyle(0x60a5fa).fillCircle(cx, cy - 13, 2)
+          } else if (wt === 'aura') {
+            g.lineStyle(1.5, 0xa78bfa)
+            g.strokeCircle(cx, cy, 9)
+            g.lineStyle(1, 0xa78bfa, 0.45)
+            g.strokeCircle(cx, cy, 15)
+            g.fillStyle(0xa78bfa).fillCircle(cx, cy, 2)
+          } else if (wt === 'machinegun') {
+            g.fillStyle(0x4ade80).fillRect(cx - 3, cy - 10, 6, 18)
+            g.fillStyle(0x1e5c30).fillRect(cx - 5, cy - 1, 10, 4)
+            g.lineStyle(1, 0x4ade80)
+            for (let i = 0; i < 3; i++) g.lineBetween(cx - 8, cy - 8 + i * 5, cx - 5, cy - 8 + i * 5)
+          }
         }
 
         private showTitleScreen() {
@@ -970,34 +1099,30 @@ export default function Game() {
         private showWeaponSelection() {
           const { width: w, height: h } = this.cameras.main
 
-          const WEAPONS: { type: WeaponType; name: string; desc: string; stats: string; accent: number; setup: () => void }[] = [
+          const WEAPONS: { type: WeaponType; name: string; desc: string; stats: string; accent: number }[] = [
             {
               type: 'shotgun', name: 'Shotgun',
               desc: 'Fires a cone of pellets.\nDeadly up close, useless at range.',
               stats: '6 pellets · 550ms cooldown',
               accent: 0xf97316,
-              setup: () => { this.shootRate = 550; this.bulletSpd = 320 },
             },
             {
               type: 'sniper', name: 'Sniper Rifle',
               desc: 'Single piercing shot.\nSlower but punches through enemies.',
               stats: 'Pierces 2 enemies · 1400ms cooldown',
               accent: 0x60a5fa,
-              setup: () => { this.shootRate = 1400; this.bulletSpd = 680 },
             },
             {
               type: 'aura', name: 'Shock Aura',
               desc: 'Electric pulse in all directions.\nSlow to kill but fully omnidirectional.',
               stats: '110px radius · 500ms pulse',
               accent: 0xa78bfa,
-              setup: () => { this.shootRate = 500 },
             },
             {
               type: 'machinegun', name: 'Machine Gun',
               desc: 'Rapid single shots.\nBuilds into a multi-barrel onslaught.',
               stats: '100ms cooldown · scales to 7-way spread',
               accent: 0x4ade80,
-              setup: () => { this.shootRate = 100; this.bulletSpd = 520 },
             },
           ]
 
@@ -1051,8 +1176,7 @@ export default function Game() {
             zone.on('pointerover', () => draw(true))
             zone.on('pointerout', () => draw(false))
             zone.on('pointerdown', () => {
-              weapon.setup()
-              this.weaponType = weapon.type
+              this.unlockWeapon(weapon.type)
               allUI.forEach(o => o.destroy())
               ;[bg, nameText, descText, statsText, zone].forEach(o => o.destroy())
               this.spawnWave()
