@@ -273,6 +273,7 @@ export function showUpgradeMenu(scene: IGameScene) {
     zone.on('pointerout', () => draw(false))
     zone.on('pointerdown', () => {
       upgrade.apply()
+      scene.hudDirty = true
       scene.children.list.filter((o: any) => o.__menuCard).forEach((o: any) => o.destroy())
       scene.levelUpPending = false
       scene.physics.world.resume()

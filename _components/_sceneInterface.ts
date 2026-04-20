@@ -86,6 +86,11 @@ export interface IGameScene {
   paused: boolean
   showBaseStats: boolean
   pauseUI: any[]
+  hudDirty: boolean
+  _lastHp: number
+  _lastMaxHp: number
+  _lastXp: number
+  _lastXpNeeded: number
 
   // --- bonus tracking ---
   bonusMoveSpeed: number

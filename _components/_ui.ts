@@ -3,13 +3,21 @@ import { WeaponType, PassiveType, WEAPON_BASE, WEAPON_NAMES, PASSIVE_DATA } from
 
 export function drawUI(scene: IGameScene) {
   const barW = 160
-  scene.hpBar.clear()
-  scene.hpBar.fillStyle(0x1a1a1a).fillRect(10, 50, barW, 10)
-  scene.hpBar.fillStyle(0xef4444).fillRect(10, 50, barW * (scene.hp / scene.maxHp), 10)
-  scene.xpBar.clear()
-  scene.xpBar.fillStyle(0x1a1a1a).fillRect(10, 64, barW, 6)
-  scene.xpBar.fillStyle(0xa78bfa).fillRect(10, 64, barW * (scene.xp / scene.xpNeeded), 6)
-  scene.drawWeaponHUD()
+  if (scene.hp !== scene._lastHp || scene.maxHp !== scene._lastMaxHp) {
+    scene.hpBar.clear()
+    scene.hpBar.fillStyle(0x1a1a1a).fillRect(10, 50, barW, 10)
+    scene.hpBar.fillStyle(0xef4444).fillRect(10, 50, barW * (scene.hp / scene.maxHp), 10)
+    scene._lastHp = scene.hp
+    scene._lastMaxHp = scene.maxHp
+  }
+  if (scene.xp !== scene._lastXp || scene.xpNeeded !== scene._lastXpNeeded) {
+    scene.xpBar.clear()
+    scene.xpBar.fillStyle(0x1a1a1a).fillRect(10, 64, barW, 6)
+    scene.xpBar.fillStyle(0xa78bfa).fillRect(10, 64, barW * (scene.xp / scene.xpNeeded), 6)
+    scene._lastXp = scene.xp
+    scene._lastXpNeeded = scene.xpNeeded
+  }
+  if (scene.hudDirty) scene.drawWeaponHUD()
   const effects: string[] = []
   if (scene.frenzyTimer > 0) effects.push(`⚡ FRENZY ${(scene.frenzyTimer / 1000).toFixed(1)}s`)
   if (scene.freezeTimer > 0) effects.push(`❄ FREEZE ${(scene.freezeTimer / 1000).toFixed(1)}s`)
@@ -53,6 +61,7 @@ export function drawWeaponHUD(scene: IGameScene) {
       scene.passiveHUDLvlTexts[i].setText(`Lv${scene.passiveLevels[pt] ?? 1}`)
     }
   })
+  scene.hudDirty = false
 }
 
 export function drawWeaponIcon(scene: IGameScene, cx: number, cy: number, wt: WeaponType) {
@@ -218,4 +227,5 @@ export function rebuildWeaponHUDTexts(scene: IGameScene) {
     scene.add.image(sx + i * (slotW + gap) + slotW / 2, psy + slotH / 2, PASSIVE_DATA[pt].icon)
       .setDisplaySize(20, 20).setScrollFactor(0).setDepth(21)
   )
+  scene.hudDirty = true
 }

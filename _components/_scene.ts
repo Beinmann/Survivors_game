@@ -255,6 +255,8 @@ export function createGameScene(Phaser: any) {
       this.trailLastX = 0; this.trailLastY = 0
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
       this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
+      this.hudDirty = true
+      this._lastHp = -1; this._lastMaxHp = -1; this._lastXp = -1; this._lastXpNeeded = -1
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
     }
 
