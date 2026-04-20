@@ -16,9 +16,17 @@ export function buildTextures(scene: IGameScene) {
   }, 26, 26)
 
   for (const t of ENEMY_TYPES) {
+    const iconKey = 'eico_' + t.key.replace('enemy_', '')
+    const def = ICON_DEFS.find(d => d.key === iconKey)
     make(t.key, g => {
-      g.fillStyle(t.color); g.fillRoundedRect(0, 0, t.size, t.size, t.radius)
-      g.lineStyle(2, t.stroke); g.strokeRoundedRect(1, 1, t.size - 2, t.size - 2, t.radius)
+      if (def) {
+        const scale = t.size / 24
+        g.setScale(scale, scale)
+        def.draw(g)
+      } else {
+        g.fillStyle(t.color); g.fillRoundedRect(0, 0, t.size, t.size, t.radius)
+        g.lineStyle(2, t.stroke); g.strokeRoundedRect(1, 1, t.size - 2, t.size - 2, t.radius)
+      }
     }, t.size, t.size)
   }
 

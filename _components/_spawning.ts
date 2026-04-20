@@ -109,6 +109,7 @@ export function moveEnemies(scene: IGameScene, delta: number) {
 
       if (chargeState === 'idle') {
         e.setVelocity(Math.cos(angle) * speed * 0.45, Math.sin(angle) * speed * 0.45)
+        e.setRotation(angle)
         if (chargeTimer <= 0) {
           e.setData('chargeState', 'telegraph')
           e.setData('chargeTimer', 600)
@@ -125,6 +126,7 @@ export function moveEnemies(scene: IGameScene, delta: number) {
       } else {
         const chargeAngle = e.getData('chargeAngle')
         e.setVelocity(Math.cos(chargeAngle) * 380, Math.sin(chargeAngle) * 380)
+        e.setRotation(chargeAngle)
         if (chargeTimer <= 0) {
           e.setData('chargeState', 'idle')
           e.setData('chargeTimer', 2500 + Math.random() * 2000)
@@ -134,5 +136,6 @@ export function moveEnemies(scene: IGameScene, delta: number) {
     }
 
     e.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed)
+    e.setRotation(angle)
   }
 }

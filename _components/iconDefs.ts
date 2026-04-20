@@ -208,4 +208,124 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
       g.lineBetween(20, 17, 12, 7)
     },
   },
+
+  // ── enemy icons ──────────────────────────────────────────────────────────
+  {
+    key: 'eico_grunt', w: 24, h: 24,
+    draw: (g: G) => {
+      g.lineStyle(2, 0xef4444)
+      g.strokeRect(6, 6, 12, 12)
+      g.fillStyle(0xef4444).fillRect(9, 9, 6, 6)
+    },
+  },
+  {
+    key: 'eico_brute', w: 24, h: 24,
+    draw: (g: G) => {
+      g.lineStyle(2.5, 0xf97316)
+      g.strokeRoundedRect(4, 4, 16, 16, 4)
+      g.lineBetween(4, 12, 20, 12)
+      g.lineBetween(12, 4, 12, 20)
+    },
+  },
+  {
+    key: 'eico_speeder', w: 24, h: 24,
+    draw: (g: G) => {
+      g.fillStyle(0x22d3ee)
+      g.fillTriangle(4, 6, 4, 18, 20, 12)
+      g.lineStyle(1, 0xa5f3fc)
+      g.strokeTriangle(4, 6, 4, 18, 20, 12)
+    },
+  },
+  {
+    key: 'eico_tank', w: 24, h: 24,
+    draw: (g: G) => {
+      g.lineStyle(3, 0x7c3aed)
+      g.strokeRect(4, 4, 16, 16)
+      g.fillStyle(0x7c3aed).fillRect(8, 8, 8, 8)
+    },
+  },
+  {
+    key: 'eico_elite', w: 24, h: 24,
+    draw: (g: G) => {
+      g.lineStyle(2, 0xfbbf24)
+      g.strokeCircle(12, 12, 8)
+      g.fillStyle(0xfbbf24).fillCircle(12, 12, 3)
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2
+        g.fillCircle(12 + Math.cos(a) * 8, 12 + Math.sin(a) * 8, 2)
+      }
+    },
+  },
+  {
+    key: 'eico_charger', w: 24, h: 24,
+    draw: (g: G) => {
+      g.lineStyle(2, 0xff4500)
+      g.beginPath()
+      g.moveTo(8, 4)
+      g.lineTo(20, 12)
+      g.lineTo(8, 20)
+      g.strokePath()
+      g.lineBetween(16, 8, 20, 4)
+      g.lineBetween(16, 16, 20, 20)
+    },
+  },
+  {
+    key: 'eico_ghost', w: 24, h: 24,
+    draw: (g: G) => {
+      g.lineStyle(2, 0xe0e0ff)
+      g.beginPath()
+      g.arc(14, 12, 7, -Math.PI / 2, Math.PI / 2, false)
+      g.lineTo(4, 19)
+      g.lineTo(7, 15)
+      g.lineTo(4, 12)
+      g.lineTo(7, 9)
+      g.lineTo(4, 5)
+      g.closePath()
+      g.strokePath()
+    },
+  },
+  {
+    key: 'eico_bomber', w: 24, h: 24,
+    draw: (g: G) => {
+      g.fillStyle(0xcc2200)
+      g.fillCircle(11, 12, 8)
+      g.fillRect(17, 10, 4, 4)
+      g.lineStyle(1.5, 0xff6644)
+      g.lineBetween(21, 12, 23, 8)
+    },
+  },
+  {
+    key: 'eico_swarm', w: 24, h: 24,
+    draw: (g: G) => {
+      g.fillStyle(0xec4899)
+      g.fillCircle(8, 8, 3)
+      g.fillCircle(16, 8, 3)
+      g.fillCircle(12, 16, 3)
+      g.fillCircle(8, 14, 2)
+      g.fillCircle(16, 14, 2)
+    },
+  },
+  {
+    key: 'eico_boss', w: 24, h: 24,
+    draw: (g: G) => {
+      g.lineStyle(2, 0xff0000)
+      g.strokeRoundedRect(5, 5, 13, 14, 3)
+      g.beginPath()
+      g.moveTo(5, 5)
+      g.lineTo(1, 5)
+      g.lineTo(5, 8)
+      g.lineTo(1, 12)
+      g.lineTo(5, 16)
+      g.lineTo(1, 19)
+      g.lineTo(5, 19)
+      g.strokePath()
+      g.fillStyle(0xff0000)
+      g.fillCircle(14, 9, 2)
+      g.fillCircle(14, 15, 2)
+      g.lineBetween(18, 10, 18, 14)
+      g.lineBetween(18, 10, 16, 10)
+      g.lineBetween(18, 12, 16, 12)
+      g.lineBetween(18, 14, 16, 14)
+    },
+  },
 ]
