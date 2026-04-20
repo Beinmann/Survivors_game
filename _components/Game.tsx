@@ -26,15 +26,22 @@ export default function Game() {
         height: 520,
         backgroundColor: '#111111',
         parent: container,
-        physics: { default: 'arcade', arcade: { debug: false } },
+        physics: { default: 'arcade', arcade: { debug: false, fixedStep: false } },
         scene: [GameScene],
         audio: { noAudio: true },
       })
     }
 
     init()
+
+    const handleVisibility = () => {
+      if (!document.hidden) (phaserGame as any)?.loop?.resetDelta?.()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+
     return () => {
       cancelled = true
+      document.removeEventListener('visibilitychange', handleVisibility)
       phaserGame?.destroy(true)
     }
   }, [])

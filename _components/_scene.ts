@@ -9,7 +9,7 @@ import { showTitleScreen, showModeSelection, showMapSelection, showWeaponSelecti
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
 import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies } from './_spawning'
-import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireTrail } from './_combat'
+import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireTrail, updateTrailSprites } from './_combat'
 import { onCollectOrb, getWeaponUpgrades, getUpgrades, showUpgradeMenu, pullOrbs, unlockWeapon } from './_progression'
 
 export function createGameScene(Phaser: any) {
@@ -121,6 +121,14 @@ export function createGameScene(Phaser: any) {
     public gfxPoolFree: any[] = []
     public _lastTimerSecs = -1
     public _lastEffectStr = ''
+    public _lastAuraRadius = 0
+    public trailSprites: any[] = []
+    public _trailCheckTimer = 0
+    public hudDirty = false
+    public _lastHp = 0
+    public _lastMaxHp = 0
+    public _lastXp = 0
+    public _lastXpNeeded = 0
 
     // --- ui ---
     public hpBar!: any
@@ -236,6 +244,7 @@ export function createGameScene(Phaser: any) {
         fontSize: '13px', color: '#fb923c', stroke: '#000000', strokeThickness: 3,
       }).setScrollFactor(0).setDepth(20).setOrigin(0.5, 0)
 
+      this._runJITWarmup()
       this.showTitleScreen()
     }
 
@@ -267,6 +276,8 @@ export function createGameScene(Phaser: any) {
       this.hudDirty = true
       this._lastHp = -1; this._lastMaxHp = -1; this._lastXp = -1; this._lastXpNeeded = -1
       this.gfxPoolFree = []; this._lastTimerSecs = -1; this._lastEffectStr = ''
+      if (this.trailSprites) { this.trailSprites.forEach((f: any) => { if (f?.active) f.destroy() }) }
+      this.trailSprites = []; this._trailCheckTimer = 0; this._lastAuraRadius = -1
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
     }
 
@@ -290,6 +301,7 @@ export function createGameScene(Phaser: any) {
         this.pauseUI.forEach(o => o.destroy())
         this.pauseUI = []
         this.physics.world.resume()
+        ;(this as any).game.loop.resetDelta()
       }
     }
 
@@ -385,6 +397,7 @@ export function createGameScene(Phaser: any) {
       this.drawUI()
       this.updateAura()
       this.updateScythes(delta)
+      this.updateTrailSprites(delta)
     }
 
     public updateScythes(delta: number) {
@@ -420,25 +433,24 @@ export function createGameScene(Phaser: any) {
       }
 
       this.auraGfx.setVisible(true)
-      this.auraGfx.clear()
       this.auraGfx.x = this.player.x
       this.auraGfx.y = this.player.y
       this.auraGfx.setRotation(this.gameTime * 0.0006)
 
+      if (this.auraRadius === this._lastAuraRadius) return
+      this._lastAuraRadius = this.auraRadius
+
+      this.auraGfx.clear()
       const ptsCount = 32
       const baseR = this.auraRadius
-      // Unified visual: constant alpha and shape
-      const alpha = 0.15
-      
+
       this.auraGfx.lineStyle(2, 0xc4b5fd, 0.35)
-      this.auraGfx.fillStyle(0xa78bfa, alpha)
-      
+      this.auraGfx.fillStyle(0xa78bfa, 0.15)
+
       this.auraGfx.beginPath()
       for (let i = 0; i <= ptsCount; i++) {
         const angle = (i / ptsCount) * Math.PI * 2
-        // Static jagged shape that rotates with the graphics object
         const jagged = Math.sin(i * (Math.PI * 2 / ptsCount) * 8) * (baseR * 0.05)
-        
         const r = baseR + jagged
         const x = Math.cos(angle) * r
         const y = Math.sin(angle) * r
@@ -448,6 +460,37 @@ export function createGameScene(Phaser: any) {
       this.auraGfx.closePath()
       this.auraGfx.fillPath()
       this.auraGfx.strokePath()
+    }
+
+    public updateTrailSprites(delta: number) {
+      updateTrailSprites(this, delta)
+    }
+
+    private _runJITWarmup() {
+      const temps: any[] = []
+      for (let i = 0; i < 15; i++) {
+        const e = this.enemies.create(WORLD / 2 + i * 30, WORLD / 2 + 300, 'enemy_grunt')
+        e.setData('hp', 100).setData('speed', 70)
+        temps.push(e)
+      }
+      for (let i = 0; i < 25; i++) {
+        const o = this.xpOrbs.create(WORLD / 2 + i * 20, WORLD / 2 + 400, 'orb')
+        o.setData('xpValue', 1).setVelocity(0, 0)
+        temps.push(o)
+      }
+      for (let i = 0; i < 8; i++) {
+        const b = this.bullets.create(WORLD / 2 + i * 15, WORLD / 2 + 200, 'bullet')
+        b.setData('sx', WORLD / 2).setData('sy', WORLD / 2).setData('dmg', 10).setVelocity(100, 0)
+        temps.push(b)
+      }
+      for (let i = 0; i < 100; i++) {
+        this.moveEnemies(16)
+        this.pullOrbs()
+        this.updateTrailSprites(16)
+        this.autoShoot(i * 100)
+      }
+      this.drawUI()
+      temps.forEach(t => { if (t.active) t.destroy() })
     }
 
     // ─── weapons ────────────────────────────────────────────────────────

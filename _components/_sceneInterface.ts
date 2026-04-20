@@ -156,6 +156,10 @@ export interface IGameScene {
   effectiveShootRate(wt: WeaponType): number
   acquireGfx(depth?: number): any
   releaseGfx(gfx: any): void
+  trailSprites: any[]
+  _trailCheckTimer: number
+  _lastAuraRadius: number
+  updateTrailSprites(delta: number): void
   fireShotgun(angle: number, wt: WeaponType): void
   fireSniper(angle: number, wt: WeaponType): void
   fireMachineGun(angle: number, wt: WeaponType): void

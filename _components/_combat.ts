@@ -189,37 +189,54 @@ export function fireRocket(scene: IGameScene, angle: number, wt: WeaponType) {
 
 function spawnTrailSprite(scene: IGameScene, x: number, y: number) {
   const f = scene.add.sprite(x, y, 'fire').setDepth(3).setScale(scene.trailSize / 16)
-  f.setData('dmg', scene.trailDmg)
   f.setData('isTrail', true)
   f.setData('expiry', scene.time.now + scene.trailDuration)
+  scene.trailSprites.push(f)
+}
 
-  const checkHit = () => {
-    if (!f.active) return
-    for (const e of scene.enemies.getChildren() as any[]) {
-      if (!e.active) continue
-      const dist = Math.sqrt((f.x - e.x) ** 2 + (f.y - e.y) ** 2)
-      if (dist < (scene.trailSize * 0.8)) {
-        scene.damageEnemy(e, scene.trailDmg, false)
-        if (scene.trailBurn) e.setData('burnTicks', 5)
-      }
-    }
-    if (scene.time.now < f.getData('expiry')) {
-      scene.time.delayedCall(250, checkHit)
-    } else {
+export function updateTrailSprites(scene: IGameScene, delta: number) {
+  if (scene.trailSprites.length === 0) return
+
+  const now = scene.time.now
+  for (let i = scene.trailSprites.length - 1; i >= 0; i--) {
+    const f = scene.trailSprites[i]
+    if (!f.active) { scene.trailSprites.splice(i, 1); continue }
+    if (now >= f.getData('expiry')) {
       if (scene.trailExplode) {
         const exp = scene.acquireGfx(4)
         exp.fillStyle(0xf97316, 0.6).fillCircle(f.x, f.y, 40)
         scene.tweens.add({ targets: exp, alpha: 0, duration: 300, onComplete: () => scene.releaseGfx(exp) })
+        const r2 = 1600
         for (const e of scene.enemies.getChildren() as any[]) {
-          if (e.active && Math.sqrt((f.x - e.x) ** 2 + (f.y - e.y) ** 2) < 40) {
-            scene.damageEnemy(e, scene.trailDmg * 2)
-          }
+          if (!e.active) continue
+          const dx = f.x - e.x, dy = f.y - e.y
+          if (dx*dx + dy*dy < r2) scene.damageEnemy(e, scene.trailDmg * 2)
         }
       }
       f.destroy()
+      scene.trailSprites.splice(i, 1)
     }
   }
-  checkHit()
+
+  scene._trailCheckTimer += delta
+  if (scene._trailCheckTimer < 250) return
+  scene._trailCheckTimer = 0
+
+  if (scene.trailSprites.length === 0) return
+  const enemies = scene.enemies.getChildren() as any[]
+  if (enemies.length === 0) return
+  const hitR2 = (scene.trailSize * 0.8) * (scene.trailSize * 0.8)
+  for (const f of scene.trailSprites) {
+    if (!f.active) continue
+    for (const e of enemies) {
+      if (!e.active) continue
+      const dx = f.x - e.x, dy = f.y - e.y
+      if (dx*dx + dy*dy < hitR2) {
+        scene.damageEnemy(e, scene.trailDmg, false)
+        if (scene.trailBurn) e.setData('burnTicks', 5)
+      }
+    }
+  }
 }
 
 export function fireTrail(scene: IGameScene) {
@@ -332,11 +349,13 @@ export function killEnemy(scene: IGameScene, e: any) {
   const orbBonus = e.getData('orbBonus') ?? 0
   const orbCount = 1 + orbBonus
 
-  const nearbyCount = (scene.xpOrbs.getChildren() as any[]).filter(o => {
-    if (!o.active) return false
-    const dist = Math.sqrt((scene.player.x - o.x) ** 2 + (scene.player.y - o.y) ** 2)
-    return dist < CONSOLIDATE_NEARBY_RADIUS
-  }).length
+  const cr2 = CONSOLIDATE_NEARBY_RADIUS * CONSOLIDATE_NEARBY_RADIUS
+  let nearbyCount = 0
+  for (const o of scene.xpOrbs.getChildren() as any[]) {
+    if (!o.active) continue
+    const dx = scene.player.x - o.x, dy = scene.player.y - o.y
+    if (dx*dx + dy*dy < cr2) nearbyCount++
+  }
   const crowded = nearbyCount >= CONSOLIDATE_THRESHOLD
 
   if (crowded && scene.xpOrbs.countActive() < MAX_ORBS) {
