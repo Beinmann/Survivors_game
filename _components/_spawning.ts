@@ -92,7 +92,7 @@ export function spawnObstacles(scene: IGameScene) {
       do {
         x = 100 + Math.random() * (WORLD - 200)
         y = 100 + Math.random() * (WORLD - 200)
-      } while (Math.sqrt((x - cx) ** 2 + (y - cy) ** 2) < safeR)
+      } while ((x - cx) ** 2 + (y - cy) ** 2 < safeR * safeR)
       scene.obstacles.create(x, y, key).setDepth(3)
     }
   }
@@ -102,9 +102,11 @@ export function spawnObstacles(scene: IGameScene) {
 }
 
 export function moveEnemies(scene: IGameScene, delta: number) {
+  const px = scene.player.x, py = scene.player.y
+  const despawnDist2 = DESPAWN_DIST * DESPAWN_DIST
   for (const e of scene.enemies.getChildren() as any[]) {
-    const distToPlayer = Math.sqrt((scene.player.x - e.x) ** 2 + (scene.player.y - e.y) ** 2)
-    if (distToPlayer > DESPAWN_DIST) { e.destroy(); continue }
+    const edx = px - e.x, edy = py - e.y
+    if (edx*edx + edy*edy > despawnDist2) { e.destroy(); continue }
     if (scene.freezeTimer > 0) { e.setVelocity(0, 0); continue }
 
     const stunned = e.getData('stunned') ?? 0
@@ -114,7 +116,7 @@ export function moveEnemies(scene: IGameScene, delta: number) {
       continue
     }
 
-    const angle = Math.atan2(scene.player.y - e.y, scene.player.x - e.x)
+    const angle = Math.atan2(py - e.y, px - e.x)
     const speed = (e.getData('speed') ?? 70) * scene.globalSpeedMult
 
     if (e.getData('isCharger')) {

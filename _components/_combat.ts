@@ -4,11 +4,12 @@ import { WeaponType, WEAPON_BASE } from './_types'
 
 export function autoShoot(scene: IGameScene, time: number) {
   const targets = scene.enemies.getChildren() as any[]
+  const px = scene.player.x, py = scene.player.y
   const nearest = targets.length > 0
     ? targets.reduce((a, b) => {
-        const distA = Math.sqrt((scene.player.x - a.x) ** 2 + (scene.player.y - a.y) ** 2)
-        const distB = Math.sqrt((scene.player.x - b.x) ** 2 + (scene.player.y - b.y) ** 2)
-        return distA <= distB ? a : b
+        const dax = px - a.x, day = py - a.y
+        const dbx = px - b.x, dby = py - b.y
+        return dax*dax + day*day <= dbx*dbx + dby*dby ? a : b
       })
     : null
   

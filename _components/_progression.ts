@@ -285,14 +285,20 @@ export function showUpgradeMenu(scene: IGameScene) {
 }
 
 export function pullOrbs(scene: IGameScene) {
+  const px = scene.player.x, py = scene.player.y
+  const magR2 = scene.magnetRadius * scene.magnetRadius
   for (const o of scene.xpOrbs.getChildren() as any[]) {
-    const dist = Math.sqrt((scene.player.x - o.x) ** 2 + (scene.player.y - o.y) ** 2)
-    const angle = Math.atan2(scene.player.y - o.y, scene.player.x - o.x)
-    if (o.getData('vacuumed')) {
-      o.setVelocity(Math.cos(angle) * 520, Math.sin(angle) * 520)
-    } else if (dist < scene.magnetRadius) {
-      o.setVelocity(Math.cos(angle) * (120 + (scene.magnetRadius - dist) * 3),
-                    Math.sin(angle) * (120 + (scene.magnetRadius - dist) * 3))
+    const dx = px - o.x, dy = py - o.y
+    const vacuumed = o.getData('vacuumed')
+    if (vacuumed || dx*dx + dy*dy < magR2) {
+      const dist = Math.sqrt(dx*dx + dy*dy)
+      const vx = dx / dist, vy = dy / dist
+      if (vacuumed) {
+        o.setVelocity(vx * 520, vy * 520)
+      } else {
+        const spd = 120 + (scene.magnetRadius - dist) * 3
+        o.setVelocity(vx * spd, vy * spd)
+      }
     } else {
       o.setVelocity(0, 0)
     }

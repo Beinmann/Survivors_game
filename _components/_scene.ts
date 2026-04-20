@@ -323,13 +323,15 @@ export function createGameScene(Phaser: any) {
         this.spawnRate = Math.max(600, this.spawnRate - 30)
       }
 
-      for (const b of [...this.bullets.getChildren()]) {
-        const img = b as any
+      const bulletList = this.bullets.getChildren() as any[]
+      const enemyList = this.enemies.getChildren() as any[]
+      const plx = this.player.x, ply = this.player.y
+      for (let bi = bulletList.length - 1; bi >= 0; bi--) {
+        const img = bulletList[bi]
         if (!img.active) continue
         if (img.x < -100 || img.x > WORLD + 100 || img.y < -100 || img.y > WORLD + 100) {
           img.destroy(); continue
         }
-        // shotgun range check
         const sx = img.getData('sx'), sy = img.getData('sy')
         if (sx !== undefined) {
           const dist = Phaser.Math.Distance.Between(sx, sy, img.x, img.y)
@@ -337,33 +339,30 @@ export function createGameScene(Phaser: any) {
             if (!img.getData('returning')) {
               if (dist > img.getData('dist')) {
                 img.setData('returning', true)
-                img.setData('hitEnemies', new Set()) // Reset hits for return trip
+                img.setData('hitEnemies', new Set())
               }
             } else {
-              const angle = Phaser.Math.Angle.Between(img.x, img.y, this.player.x, this.player.y)
+              const bdx = plx - img.x, bdy = ply - img.y
+              const bdist = Math.sqrt(bdx*bdx + bdy*bdy)
+              const angle = Math.atan2(bdy, bdx)
               const spd = WEAPON_BASE['boomerang'].bulletSpd * 1.5
               img.setVelocity(Math.cos(angle) * spd, Math.sin(angle) * spd)
-              if (Phaser.Math.Distance.Between(img.x, img.y, this.player.x, this.player.y) < 20) {
-                img.destroy(); continue
-              }
+              if (bdist < 20) { img.destroy(); continue }
             }
           } else if (dist > this.shotgunRange) {
             img.destroy(); continue
           }
         }
 
-        if (img.getData('homing')) {
-          const targets = this.enemies.getChildren()
-          if (targets.length > 0) {
-            const nearest = this.physics.closest(img, targets) as any
-            if (nearest) {
-              const angle = Phaser.Math.Angle.Between(img.x, img.y, nearest.x, nearest.y)
-              const curAngle = img.rotation
-              const newAngle = Phaser.Math.Angle.RotateTo(curAngle, angle, 0.1)
-              img.setRotation(newAngle)
-              const spd = Phaser.Math.Distance.Between(0, 0, img.body.velocity.x, img.body.velocity.y)
-              img.setVelocity(Math.cos(newAngle) * spd, Math.sin(newAngle) * spd)
-            }
+        if (img.getData('homing') && enemyList.length > 0) {
+          const nearest = this.physics.closest(img, enemyList) as any
+          if (nearest) {
+            const angle = Phaser.Math.Angle.Between(img.x, img.y, nearest.x, nearest.y)
+            const curAngle = img.rotation
+            const newAngle = Phaser.Math.Angle.RotateTo(curAngle, angle, 0.1)
+            img.setRotation(newAngle)
+            const spd = Phaser.Math.Distance.Between(0, 0, img.body.velocity.x, img.body.velocity.y)
+            img.setVelocity(Math.cos(newAngle) * spd, Math.sin(newAngle) * spd)
           }
         }
       }
