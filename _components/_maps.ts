@@ -167,92 +167,113 @@ function drawHex(bg: any, map: MapDef): void {
 }
 
 function drawGrid(bg: any, map: MapDef): void {
-  const step = 120
+  const blockW = 240
+  const blockH = 120
+  const rows = Math.ceil(WORLD / blockH) + 1
+  const cols = Math.ceil(WORLD / blockW) + 2
+
   bg.fillStyle(map.bgDark)
-  for (let x = 0; x < WORLD; x += step) {
-    for (let y = 0; y < WORLD; y += step) {
-      if (Math.abs(Math.sin(x * 0.041 + y * 0.017)) < 0.12) {
-        bg.fillRect(x, y, step, step)
+  for (let row = 0; row < rows; row++) {
+    const xOff = (row % 2) * (blockW / 2)
+    for (let col = 0; col < cols; col++) {
+      if (Math.abs(Math.sin(col * 73.1 + row * 131.7)) < 0.28) {
+        bg.fillRect(col * blockW - xOff, row * blockH, blockW, blockH)
       }
     }
   }
-  bg.lineStyle(1, map.bgLine)
+
+  bg.lineStyle(2, map.bgLine)
   bg.beginPath()
-  for (let x = 0; x <= WORLD; x += step) {
-    bg.moveTo(x, 0); bg.lineTo(x, WORLD)
-  }
-  for (let y = 0; y <= WORLD; y += step) {
-    bg.moveTo(0, y); bg.lineTo(WORLD, y)
+  for (let row = 0; row <= rows; row++) {
+    bg.moveTo(0, row * blockH); bg.lineTo(WORLD, row * blockH)
   }
   bg.strokePath()
-  bg.fillStyle(map.bgAccent)
-  for (let x = 0; x <= WORLD; x += step) {
-    for (let y = 0; y <= WORLD; y += step) {
-      if (Math.abs(Math.sin(x * 0.041 + y * 0.017)) < 0.06) {
-        bg.fillRect(x - 2, y - 2, 5, 5)
+
+  bg.beginPath()
+  for (let row = 0; row < rows; row++) {
+    const xOff = (row % 2) * (blockW / 2)
+    for (let col = 0; col <= cols; col++) {
+      const x = col * blockW - xOff
+      bg.moveTo(x, row * blockH); bg.lineTo(x, (row + 1) * blockH)
+    }
+  }
+  bg.strokePath()
+
+  bg.fillStyle(map.accent, 0.5)
+  for (let row = 0; row < rows; row++) {
+    const xOff = (row % 2) * (blockW / 2)
+    for (let col = 0; col < cols; col++) {
+      if (Math.abs(Math.sin(col * 29.1 + row * 79.7)) < 0.22) {
+        const x = col * blockW - xOff
+        const y = row * blockH
+        bg.fillRect(x + 6, y + 6, 4, 4)
+        bg.fillRect(x + blockW - 10, y + 6, 4, 4)
+        bg.fillRect(x + 6, y + blockH - 10, 4, 4)
+        bg.fillRect(x + blockW - 10, y + blockH - 10, 4, 4)
       }
     }
   }
 }
 
 function drawCircuit(bg: any, map: MapDef): void {
-  const step = 100
-  const cols = Math.ceil(WORLD / step) + 1
-  const rows = Math.ceil(WORLD / step) + 1
   bg.lineStyle(1, map.bgLine)
   bg.beginPath()
-  for (let x = 0; x <= WORLD; x += step) {
-    bg.moveTo(x, 0); bg.lineTo(x, WORLD)
-  }
-  for (let y = 0; y <= WORLD; y += step) {
+  for (let y = 0; y <= WORLD; y += 24) {
     bg.moveTo(0, y); bg.lineTo(WORLD, y)
   }
   bg.strokePath()
-  bg.lineStyle(2, map.bgAccent)
+
+  bg.lineStyle(2, map.accent, 0.3)
   bg.beginPath()
-  for (let col = 0; col < cols; col++) {
-    for (let row = 0; row < rows; row++) {
-      const x = col * step
-      const y = row * step
-      if (Math.sin(col * 73.1 + row * 131.7) > 0.55) {
-        bg.moveTo(x, y); bg.lineTo(x + step, y)
-      }
-      if (Math.sin(col * 119.3 + row * 57.9) > 0.55) {
-        bg.moveTo(x, y); bg.lineTo(x, y + step)
-      }
-    }
+  for (let i = 0; i < 700; i++) {
+    const y = Math.abs(Math.sin(i * 31.7)) * WORLD
+    const x = Math.abs(Math.sin(i * 73.1 + 5)) * WORLD
+    const len = 80 + Math.abs(Math.sin(i * 11.3)) * 180
+    bg.moveTo(x, y); bg.lineTo(x + len, y)
   }
   bg.strokePath()
-  bg.fillStyle(map.bgAccent)
-  for (let col = 0; col < cols; col++) {
-    for (let row = 0; row < rows; row++) {
-      if (Math.abs(Math.sin(col * 73.1 + row * 131.7)) < 0.08) {
-        bg.fillRect(col * step - 3, row * step - 3, 7, 7)
-      }
-    }
+
+  bg.lineStyle(3, map.accent, 0.55)
+  bg.beginPath()
+  for (let i = 0; i < 320; i++) {
+    const x = Math.abs(Math.sin(i * 73.1 + 11)) * WORLD
+    const y = Math.abs(Math.sin(i * 131.7 + 3)) * WORLD
+    bg.moveTo(x, y - 11); bg.lineTo(x + 16, y); bg.lineTo(x, y + 11)
   }
+  bg.strokePath()
 }
 
 function drawWetland(bg: any, map: MapDef): void {
   bg.fillStyle(map.bgDark)
-  for (let i = 0; i < 350; i++) {
+  for (let i = 0; i < 280; i++) {
     const x = Math.abs(Math.sin(i * 73.1)) * WORLD
     const y = Math.abs(Math.sin(i * 131.7 + 1)) * WORLD
-    const w = 60 + Math.abs(Math.sin(i * 57.3)) * 160
-    const h = 30 + Math.abs(Math.sin(i * 97.1 + 3)) * 80
+    const w = 80 + Math.abs(Math.sin(i * 57.3)) * 200
+    const h = 40 + Math.abs(Math.sin(i * 97.1 + 3)) * 110
     bg.fillEllipse(x, y, w, h)
   }
-  bg.lineStyle(1, map.bgLine)
+
+  bg.fillStyle(map.bgLine)
   for (let i = 0; i < 180; i++) {
     const x = Math.abs(Math.sin(i * 41.3 + 7)) * WORLD
     const y = Math.abs(Math.sin(i * 89.7 + 2)) * WORLD
-    const r = 20 + Math.abs(Math.sin(i * 61.1)) * 60
-    bg.strokeCircle(x, y, r)
+    const r = 14 + Math.abs(Math.sin(i * 61.1)) * 42
+    bg.fillCircle(x, y, r)
   }
-  bg.fillStyle(map.bgAccent)
-  for (let i = 0; i < 120; i++) {
+
+  bg.fillStyle(map.accent, 0.5)
+  for (let i = 0; i < 160; i++) {
     const x = Math.abs(Math.sin(i * 23.7 + 4)) * WORLD
     const y = Math.abs(Math.sin(i * 53.1 + 9)) * WORLD
-    bg.fillRect(x - 1, y - 1, 3, 3)
+    const r = 3 + Math.abs(Math.sin(i * 17.3)) * 6
+    bg.fillCircle(x, y, r)
+  }
+
+  bg.lineStyle(1, map.accent, 0.35)
+  for (let i = 0; i < 180; i++) {
+    const x = Math.abs(Math.sin(i * 91.3 + 13)) * WORLD
+    const y = Math.abs(Math.sin(i * 43.7 + 7)) * WORLD
+    const r = 4 + Math.abs(Math.sin(i * 31.1)) * 6
+    bg.strokeCircle(x, y, r)
   }
 }
