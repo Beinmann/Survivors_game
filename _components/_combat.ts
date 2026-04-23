@@ -930,7 +930,11 @@ function updateDrones(scene: IGameScene, delta: number) {
           d.diving = false
         }
       } else {
-        d.orbitAngle += dtSec * 2.2
+        const goal = Math.atan2(scene.player.y - d.target.y, scene.player.x - d.target.x)
+        let diff = goal - d.orbitAngle
+        while (diff > Math.PI) diff -= Math.PI * 2
+        while (diff < -Math.PI) diff += Math.PI * 2
+        d.orbitAngle += diff * Math.min(1, dtSec * 1.2)
         const tx = d.target.x + Math.cos(d.orbitAngle) * standoff
         const ty = d.target.y + Math.sin(d.orbitAngle) * standoff
         const dx = tx - d.sprite.x, dy = ty - d.sprite.y
