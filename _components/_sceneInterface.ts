@@ -43,6 +43,7 @@ export interface IGameScene {
   iframes: number
   dead: boolean
   levelUpPending: boolean
+  maxLevelShown: boolean
   moveSpeed: number
   extraBullets: number
   pierceCount: number

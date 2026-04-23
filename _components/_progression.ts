@@ -292,24 +292,40 @@ function weaponUnlockDesc(wt: WeaponType): string {
 }
 
 export function showUpgradeMenu(scene: IGameScene) {
-  scene.levelUpPending = true
-  scene.physics.world.pause()
-  scene.tweens.pauseAll()
-  scene.time.paused = true
-
-  const { width: w, height: h } = scene.cameras.main
   const upgrades = scene.getUpgrades()
 
   if (upgrades.length === 0) {
     const bonus = 25
     scene.hp = Math.min(scene.maxHp, scene.hp + bonus)
     scene.hudDirty = true
+
+    if (scene.maxLevelShown) {
+      const heal = scene.add.text(scene.player.x, scene.player.y - 40, `+${bonus} HP`, {
+        fontSize: '16px', color: '#a3e635', stroke: '#000', strokeThickness: 3,
+      }).setOrigin(0.5).setDepth(41)
+      scene.tweens.add({
+        targets: heal,
+        y: heal.y - 40,
+        alpha: 0,
+        duration: 1100,
+        onComplete: () => heal.destroy(),
+      })
+      return
+    }
+    scene.maxLevelShown = true
+
+    scene.levelUpPending = true
+    scene.physics.world.pause()
+    scene.tweens.pauseAll()
+    scene.time.paused = true
+
+    const { width: w, height: h } = scene.cameras.main
     const overlay = scene.add.graphics().setScrollFactor(0).setDepth(40)
     overlay.fillStyle(0x000000, 0.7).fillRect(0, 0, w, h)
     const msg = scene.add.text(w / 2, h / 2 - 20, 'MAX LEVEL', {
       fontSize: '28px', color: '#fbbf24', stroke: '#000', strokeThickness: 5,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(41)
-    const sub = scene.add.text(w / 2, h / 2 + 20, `All upgrades complete — restored ${bonus} HP`, {
+    const sub = scene.add.text(w / 2, h / 2 + 20, `All upgrades complete — further levels restore ${bonus} HP`, {
       fontSize: '15px', color: '#a3e635', stroke: '#000', strokeThickness: 3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(41)
     const hint = scene.add.text(w / 2, h / 2 + 55, 'Click to continue', {
@@ -329,6 +345,13 @@ export function showUpgradeMenu(scene: IGameScene) {
     window.setTimeout(dismiss, 3000)
     return
   }
+
+  scene.levelUpPending = true
+  scene.physics.world.pause()
+  scene.tweens.pauseAll()
+  scene.time.paused = true
+
+  const { width: w, height: h } = scene.cameras.main
 
   const overlay = scene.add.graphics().setScrollFactor(0).setDepth(40)
   overlay.fillStyle(0x000000, 0.75).fillRect(0, 0, w, h)

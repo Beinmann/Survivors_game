@@ -57,6 +57,7 @@ export function createGameScene(Phaser: any) {
     public iframes = 0
     public dead = false
     public levelUpPending = false
+    public maxLevelShown = false
 
     // --- upgradeable stats ---
     public moveSpeed = 0
@@ -308,7 +309,7 @@ export function createGameScene(Phaser: any) {
       this.xp = 0; this.xpNeeded = 10
       this.level = 1; this.score = 0
       this.spawnTimer = 0; this.spawnRate = SPAWN_INTERVAL_MS
-      this.iframes = 0; this.dead = false; this.levelUpPending = false
+      this.iframes = 0; this.dead = false; this.levelUpPending = false; this.maxLevelShown = false
       this.paused = false; this.showBaseStats = false; this.pauseUI = []
       this.extraBullets = 0; this.pierceCount = 2; this.bonusProjectiles = 0
       this.magnetRadius = 145; this.orbMultiplier = 1.0
