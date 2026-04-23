@@ -286,7 +286,7 @@ function weaponUnlockDesc(wt: WeaponType): string {
     grenade:    'Timed explosive · bounces off walls',
     cryo:       'Icy shards · slow enemies on hit',
     railgun:    'Charges up · pierces across the screen',
-    drones:     'Swarm drones · ram and return',
+    drones:     'Autonomous drones · hunt and orbit enemies',
   }
   return descs[wt]
 }

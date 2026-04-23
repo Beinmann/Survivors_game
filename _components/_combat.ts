@@ -634,15 +634,21 @@ export function fireRailgun(scene: IGameScene, angle: number) {
 // ── Swarm Drones ──────────────────────────────────────────────────────────
 
 export function fireDrones(scene: IGameScene) {
-  const count = scene.droneCount + scene.bonusProjectiles
-  for (let i = 0; i < count; i++) {
-    const s = scene.add.sprite(scene.player.x, scene.player.y, 'drone').setDepth(4)
+  const target = scene.droneCount + scene.bonusProjectiles
+  let active = 0
+  for (const d of scene.drones) if (d.sprite?.active) active++
+  for (let i = active; i < target; i++) {
+    const ang = Math.random() * Math.PI * 2
+    const s = scene.add.sprite(
+      scene.player.x + Math.cos(ang) * 80,
+      scene.player.y + Math.sin(ang) * 80,
+      'drone',
+    ).setDepth(4)
     scene.drones.push({
       sprite: s,
-      state: 'outbound',
       target: null,
-      hit: false,
-      lifetime: 3500,
+      atkCd: 0,
+      orbitAngle: ang,
       speed: 460,
     })
   }
@@ -842,43 +848,49 @@ function updateRailgunCharges(scene: IGameScene, delta: number) {
 
 function updateDrones(scene: IGameScene, delta: number) {
   const dtSec = delta / 1000
+  const standoff = 30
+  const idleRadius = 110
   for (let i = scene.drones.length - 1; i >= 0; i--) {
     const d = scene.drones[i]
     if (!d.sprite?.active) { scene.drones.splice(i, 1); continue }
-    d.lifetime -= delta
-    if (d.lifetime <= 0) { d.sprite.destroy(); scene.drones.splice(i, 1); continue }
+    d.atkCd = Math.max(0, d.atkCd - delta)
 
-    if (d.state === 'outbound') {
-      if (!d.target?.active) {
-        const enemies = scene.enemies.getChildren() as any[]
-        let best: any = null, bestD2 = Infinity
-        for (const e of enemies) {
-          if (!e.active) continue
-          const d2 = (e.x - d.sprite.x) ** 2 + (e.y - d.sprite.y) ** 2
-          if (d2 < bestD2) { bestD2 = d2; best = e }
-        }
-        d.target = best
-        if (!best) { d.state = 'returning' }
+    if (!d.target?.active) {
+      const enemies = scene.enemies.getChildren() as any[]
+      let best: any = null, bestD2 = Infinity
+      for (const e of enemies) {
+        if (!e.active) continue
+        const d2 = (e.x - d.sprite.x) ** 2 + (e.y - d.sprite.y) ** 2
+        if (d2 < bestD2) { bestD2 = d2; best = e }
       }
-      if (d.state === 'outbound' && d.target?.active) {
-        const tx = d.target.x, ty = d.target.y
-        const dx = tx - d.sprite.x, dy = ty - d.sprite.y
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1
-        d.sprite.x += (dx / dist) * d.speed * dtSec
-        d.sprite.y += (dy / dist) * d.speed * dtSec
-        d.sprite.setRotation(Math.atan2(dy, dx))
-        if (dist < 22) {
-          scene.damageEnemy(d.target, scene.droneDmg, true)
-          d.state = 'returning'
-        }
+      d.target = best
+    }
+
+    if (d.target?.active) {
+      d.orbitAngle += dtSec * 2.2
+      const tx = d.target.x + Math.cos(d.orbitAngle) * standoff
+      const ty = d.target.y + Math.sin(d.orbitAngle) * standoff
+      const dx = tx - d.sprite.x, dy = ty - d.sprite.y
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1
+      const move = Math.min(d.speed * dtSec, dist)
+      d.sprite.x += (dx / dist) * move
+      d.sprite.y += (dy / dist) * move
+      const fdx = d.target.x - d.sprite.x, fdy = d.target.y - d.sprite.y
+      d.sprite.setRotation(Math.atan2(fdy, fdx))
+      if (fdx * fdx + fdy * fdy < (standoff + 12) ** 2 && d.atkCd <= 0) {
+        scene.damageEnemy(d.target, scene.droneDmg, true)
+        d.atkCd = scene.weaponShootRates['drones']
       }
     } else {
-      const dx = scene.player.x - d.sprite.x, dy = scene.player.y - d.sprite.y
+      d.orbitAngle += dtSec * 1.1
+      const tx = scene.player.x + Math.cos(d.orbitAngle) * idleRadius
+      const ty = scene.player.y + Math.sin(d.orbitAngle) * idleRadius
+      const dx = tx - d.sprite.x, dy = ty - d.sprite.y
       const dist = Math.sqrt(dx * dx + dy * dy) || 1
-      d.sprite.x += (dx / dist) * d.speed * dtSec
-      d.sprite.y += (dy / dist) * d.speed * dtSec
+      const move = Math.min(d.speed * dtSec, dist)
+      d.sprite.x += (dx / dist) * move
+      d.sprite.y += (dy / dist) * move
       d.sprite.setRotation(Math.atan2(dy, dx))
-      if (dist < 18) { d.sprite.destroy(); scene.drones.splice(i, 1) }
     }
   }
 }
