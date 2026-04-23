@@ -360,7 +360,8 @@ export function damageEnemy(scene: IGameScene, e: any, dmg: number, flash = true
 }
 
 export function killEnemy(scene: IGameScene, e: any) {
-  if (!e.active) return
+  if (!e.active || e.getData('_dying')) return
+  e.setData('_dying', true)
 
   if (e.getData('explodes')) {
     const expRadius = 80
@@ -368,13 +369,20 @@ export function killEnemy(scene: IGameScene, e: any) {
     expFlash.fillStyle(0xff4400, 0.55).fillCircle(e.x, e.y, expRadius)
     expFlash.lineStyle(2, 0xff8800, 0.9).strokeCircle(e.x, e.y, expRadius)
     scene.tweens.add({ targets: expFlash, alpha: 0, duration: 450, onComplete: () => expFlash.destroy() })
-    
+
     const distToPlayer = Math.sqrt((scene.player.x - e.x) ** 2 + (scene.player.y - e.y) ** 2)
     if (scene.iframes <= 0 && distToPlayer <= expRadius) {
       const contactDmg = 10 + Math.floor((scene.gameTime / 1000) / 60) * 4
       scene.hp = Math.max(0, scene.hp - contactDmg)
       scene.iframes = 650
       if (scene.hp <= 0) scene.showGameOver()
+    }
+
+    const expR2 = expRadius * expRadius
+    for (const other of scene.enemies.getChildren() as any[]) {
+      if (!other.active || other === e) continue
+      const dx = other.x - e.x, dy = other.y - e.y
+      if (dx * dx + dy * dy <= expR2) damageEnemy(scene, other, 150, false)
     }
   }
 

@@ -55,12 +55,12 @@ Enemies spawn in waves off-screen (550–800px from the player). New types unloc
 | Enemy | Color | HP | Speed | Unlock | Weight | Orb bonus | Special |
 |-------|-------|----|-------|--------|--------|-----------|---------|
 | Grunt | Red | 30 | 70 | 0s | 1.0 | 0 | — |
+| Bomber | Dark red | 90 | 38 | 25s | 0.15 | +2 | Rare; explodes on death (80px radius), deals 150 dmg to nearby enemies |
 | Brute | Orange | 110 | 52 | 30s | 0.3 | +4 | Rare, high orb yield |
 | Speeder | Cyan | 28 | 140 | 60s | 1.0 | 0 | Fast |
 | Charger | Orange-red | 80 | 55 | 75s | 0.7 | +1 | Telegraphs then dashes at 380px/s |
 | Ghost | White | 45 | 110 | 90s | 0.9 | 0 | Semi-transparent, passes through obstacles |
 | Tank | Purple | 300 | 36 | 100s | 0.5 | +2 | High HP |
-| Bomber | Dark red | 90 | 38 | 130s | 0.4 | +2 | Explodes on death (80px radius) |
 | Elite | Yellow | 170 | 108 | 150s | 0.8 | +1 | Fast and tanky |
 | Swarm | Pink | 15 | 160 | 180s | 0.8 | 0 | Spawns 5 at once per wave slot |
 | Boss | Red | 1500 | 47 | every 180s | — | +18 | Spawned separately; see Boss Waves |
