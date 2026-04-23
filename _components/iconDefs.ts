@@ -586,13 +586,13 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
   {
     key: 'eico_brute', w: 24, h: 24,
     draw: (g: G) => {
-      g.lineStyle(2, 0xf97316)
-      g.strokeRoundedRect(2, 15, 20, 5, 1)
+      g.lineStyle(3, 0xf97316)
+      g.beginPath()
+      g.moveTo(12, 2); g.lineTo(22, 12); g.lineTo(12, 22); g.lineTo(2, 12); g.closePath()
+      g.strokePath()
       g.fillStyle(0xf97316)
-      g.fillCircle(5, 19, 1.2); g.fillCircle(9, 19, 1.2); g.fillCircle(13, 19, 1.2); g.fillCircle(17, 19, 1.2)
-      g.strokeRect(4, 9, 16, 6)
-      g.strokeRect(9, 5, 7, 4)
-      g.lineBetween(15, 7, 22, 7)
+      g.fillTriangle(12, 7, 17, 12, 12, 17)
+      g.fillTriangle(12, 7, 7, 12, 12, 17)
     },
   },
   {
