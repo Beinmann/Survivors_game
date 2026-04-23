@@ -1,7 +1,7 @@
 export const ENEMY_TYPES = [
   { key: 'enemy_grunt',   color: 0xef4444, stroke: 0xfca5a5, size: 22, radius: 3,  hp: 30,   speed: 70,  unlockSecs: 0,       weight: 1.0, orbBonus: 0 },
   { key: 'enemy_brute',   color: 0xf97316, stroke: 0xfed7aa, size: 30, radius: 6,  hp: 110,  speed: 52,  unlockSecs: 30,      weight: 0.3, orbBonus: 4 },
-  { key: 'enemy_speeder', color: 0x22d3ee, stroke: 0xa5f3fc, size: 16, radius: 1,  hp: 28,   speed: 140, unlockSecs: 60,      weight: 1.0, orbBonus: 0 },
+  { key: 'enemy_speeder', color: 0xa3e635, stroke: 0xd9f99d, size: 16, radius: 1,  hp: 28,   speed: 140, unlockSecs: 60,      weight: 1.0, orbBonus: 0 },
   { key: 'enemy_tank',    color: 0x7c3aed, stroke: 0xc4b5fd, size: 36, radius: 2,  hp: 300,  speed: 36,  unlockSecs: 100,     weight: 0.5, orbBonus: 2 },
   { key: 'enemy_elite',   color: 0xfbbf24, stroke: 0xfde68a, size: 22, radius: 3,  hp: 170,  speed: 108, unlockSecs: 150,     weight: 0.8, orbBonus: 1 },
   { key: 'enemy_charger', color: 0xff4500, stroke: 0xff8c69, size: 24, radius: 4,  hp: 80,   speed: 55,  unlockSecs: 75,      weight: 0.7, orbBonus: 1 },
