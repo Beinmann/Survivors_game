@@ -45,7 +45,7 @@ export const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: num
   blackhole:  { shootRate: 7000, bulletSpd: 420, damage: 6 },
   grenade:    { shootRate: 1200, bulletSpd: 380, damage: 55 },
   cryo:       { shootRate: 900,  bulletSpd: 360, damage: 14 },
-  railgun:    { shootRate: 4500, bulletSpd: 0,   damage: 300 },
+  railgun:    { shootRate: 4500, bulletSpd: 0,   damage: 35 },
   drones:     { shootRate: 1800, bulletSpd: 400, damage: 30 },
 }
 

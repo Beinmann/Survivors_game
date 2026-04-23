@@ -43,7 +43,7 @@ Pick one starting weapon; up to two more can be unlocked through the level-up me
 | **Black Hole** | 150px pull · 2.5s duration · tick damage | Radius, duration, pull strength, damage |
 | **Grenade Launcher** | 1 bounce · 80px radius · 1.5s fuse | Radius, bounces, cooldown, damage |
 | **Cryo Shards** | 3 shards · 1.5s slow · 900ms cooldown | Shards, slow duration, damage |
-| **Railgun** | 1.5s charge · pierces all · screen-wide | Charge time, beam width, damage |
+| **Railgun** | 1.5s charge · 900ms sustained beam · pierces all · ticks every 150ms | Charge time, beam width, damage |
 | **Swarm Drones** | 1 drone · 1800ms cooldown · ram + return | Drone count, damage |
 
 ---

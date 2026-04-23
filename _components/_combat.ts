@@ -781,40 +781,61 @@ function updateOrbitalStrikes(scene: IGameScene, delta: number) {
   }
 }
 
+const RAILGUN_FIRE_DURATION = 900
+const RAILGUN_TICK_INTERVAL = 150
+
 function updateRailgunCharges(scene: IGameScene, delta: number) {
   for (let i = scene.railgunCharges.length - 1; i >= 0; i--) {
     const c = scene.railgunCharges[i]
-    c.timer -= delta
-    const t01 = 1 - c.timer / c.totalTimer
     const sx = scene.player.x, sy = scene.player.y
     const range = 1600
     const ex = sx + Math.cos(c.angle) * range
     const ey = sy + Math.sin(c.angle) * range
     c.gfx.clear()
+
+    if (c.firing) {
+      c.firingTimer -= delta
+      c.tickTimer -= delta
+      const fade = 1 - c.firingTimer / RAILGUN_FIRE_DURATION
+      const alpha = Math.max(0, 0.9 - fade * 0.3)
+      const bw = scene.railgunWidth * 2.4 * (1 + scene.bonusArea * 0.5)
+      const flicker = 0.92 + Math.random() * 0.16
+      c.gfx.lineStyle(bw * flicker, 0x93c5fd, alpha).lineBetween(sx, sy, ex, ey)
+      c.gfx.lineStyle(Math.max(2, bw * 0.35) * flicker, 0xffffff, Math.min(1, alpha + 0.15)).lineBetween(sx, sy, ex, ey)
+
+      if (c.tickTimer <= 0) {
+        c.tickTimer += RAILGUN_TICK_INTERVAL
+        const dx = ex - sx, dy = ey - sy
+        const len2 = dx * dx + dy * dy
+        const tol = bw * 0.55 + 18
+        const tol2 = tol * tol
+        for (const e of scene.enemies.getChildren() as any[]) {
+          if (!e.active) continue
+          const t = Math.max(0, Math.min(1, ((e.x - sx) * dx + (e.y - sy) * dy) / len2))
+          const px = sx + dx * t, py = sy + dy * t
+          if ((e.x - px) ** 2 + (e.y - py) ** 2 < tol2) {
+            scene.damageEnemy(e, scene.railgunDmg, true)
+          }
+        }
+      }
+
+      if (c.firingTimer <= 0) {
+        c.gfx.destroy()
+        scene.railgunCharges.splice(i, 1)
+      }
+      continue
+    }
+
+    c.timer -= delta
+    const t01 = 1 - c.timer / c.totalTimer
     const alpha = 0.15 + t01 * 0.55
     const w = Math.max(1, scene.railgunWidth * 0.4 + t01 * scene.railgunWidth * 0.6)
     c.gfx.lineStyle(w, 0x60a5fa, alpha).lineBetween(sx, sy, ex, ey)
     c.gfx.lineStyle(Math.max(1, w * 0.35), 0xffffff, alpha).lineBetween(sx, sy, ex, ey)
     if (c.timer <= 0) {
-      c.gfx.destroy()
-      const beam = scene.add.graphics().setDepth(6)
-      const bw = scene.railgunWidth * 2.4 * (1 + scene.bonusArea * 0.5)
-      beam.lineStyle(bw, 0x93c5fd, 0.85).lineBetween(sx, sy, ex, ey)
-      beam.lineStyle(Math.max(2, bw * 0.35), 0xffffff, 1).lineBetween(sx, sy, ex, ey)
-      scene.tweens.add({ targets: beam, alpha: 0, duration: 220, onComplete: () => beam.destroy() })
-      const dx = ex - sx, dy = ey - sy
-      const len2 = dx * dx + dy * dy
-      const tol = bw * 0.55 + 18
-      const tol2 = tol * tol
-      for (const e of scene.enemies.getChildren() as any[]) {
-        if (!e.active) continue
-        const t = Math.max(0, Math.min(1, ((e.x - sx) * dx + (e.y - sy) * dy) / len2))
-        const px = sx + dx * t, py = sy + dy * t
-        if ((e.x - px) ** 2 + (e.y - py) ** 2 < tol2) {
-          scene.damageEnemy(e, scene.railgunDmg, true)
-        }
-      }
-      scene.railgunCharges.splice(i, 1)
+      c.firing = true
+      c.firingTimer = RAILGUN_FIRE_DURATION
+      c.tickTimer = 0
     }
   }
 }
