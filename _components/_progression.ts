@@ -368,6 +368,34 @@ export function showUpgradeMenu(scene: IGameScene) {
   const tag = (o: any) => { o.__menuCard = true }
   tag(overlay); tag(title)
 
+  const cardDraws: Array<(hover: boolean) => void> = []
+  let selectedIndex = Math.min(Math.floor(upgrades.length / 2), upgrades.length - 1)
+
+  const setSelected = (i: number) => {
+    selectedIndex = i
+    cardDraws.forEach((d, idx) => d(idx === selectedIndex))
+  }
+
+  const confirm = (i: number) => {
+    scene.input.keyboard?.off('keydown-LEFT', moveLeft)
+    scene.input.keyboard?.off('keydown-A', moveLeft)
+    scene.input.keyboard?.off('keydown-RIGHT', moveRight)
+    scene.input.keyboard?.off('keydown-D', moveRight)
+    scene.input.keyboard?.off('keydown-SPACE', confirmKey)
+    scene.input.keyboard?.off('keydown-ENTER', confirmKey)
+    upgrades[i].apply()
+    scene.hudDirty = true
+    scene.children.list.filter((o: any) => o.__menuCard).forEach((o: any) => o.destroy())
+    scene.levelUpPending = false
+    scene.tweens.resumeAll()
+    scene.time.paused = false
+    scene.physics.world.resume()
+  }
+
+  const moveLeft   = () => setSelected((selectedIndex - 1 + cardDraws.length) % cardDraws.length)
+  const moveRight  = () => setSelected((selectedIndex + 1) % cardDraws.length)
+  const confirmKey = () => confirm(selectedIndex)
+
   upgrades.forEach((upgrade: any, i: number) => {
     const cx = startX + i * gap
     const cy = h / 2
@@ -391,7 +419,8 @@ export function showUpgradeMenu(scene: IGameScene) {
       bg.lineStyle(hover || isWeapon || isNewWeapon || isPassive || isNewPassive ? 2 : 1, hover ? hoverBorder : idleBorder)
       bg.strokeRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 10)
     }
-    draw(false)
+    draw(i === selectedIndex)
+    cardDraws.push(draw)
 
     const iconKey = (upgrade as any).icon as string | undefined
     const iconImg = scene.add.image(cx, cy - 43, iconKey ?? 'ico_damage')
@@ -413,20 +442,18 @@ export function showUpgradeMenu(scene: IGameScene) {
     const zone = scene.add.zone(cx, cy, cardW, cardH)
       .setScrollFactor(0).setDepth(43).setInteractive({ useHandCursor: true })
 
-    zone.on('pointerover', () => draw(true))
-    zone.on('pointerout', () => draw(false))
-    zone.on('pointerdown', () => {
-      upgrade.apply()
-      scene.hudDirty = true
-      scene.children.list.filter((o: any) => o.__menuCard).forEach((o: any) => o.destroy())
-      scene.levelUpPending = false
-      scene.tweens.resumeAll()
-      scene.time.paused = false
-      scene.physics.world.resume()
-    })
+    zone.on('pointerover', () => setSelected(i))
+    zone.on('pointerdown', () => confirm(i))
 
     tag(bg); tag(nameText); tag(descText); tag(zone)
   })
+
+  scene.input.keyboard?.on('keydown-LEFT',  moveLeft)
+  scene.input.keyboard?.on('keydown-A',     moveLeft)
+  scene.input.keyboard?.on('keydown-RIGHT', moveRight)
+  scene.input.keyboard?.on('keydown-D',     moveRight)
+  scene.input.keyboard?.on('keydown-SPACE', confirmKey)
+  scene.input.keyboard?.on('keydown-ENTER', confirmKey)
 
   scene.addStatsPanel((o: any) => tag(o))
 }
