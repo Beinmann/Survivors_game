@@ -116,8 +116,12 @@ export function moveEnemies(scene: IGameScene, delta: number) {
       continue
     }
 
+    const slowed = e.getData('slowed') ?? 0
+    if (slowed > 0) e.setData('slowed', slowed - delta)
+
     const angle = Math.atan2(py - e.y, px - e.x)
-    const speed = (e.getData('speed') ?? 70) * scene.globalSpeedMult
+    let speed = (e.getData('speed') ?? 70) * scene.globalSpeedMult
+    if (slowed > 0) speed *= 0.5
 
     if (e.getData('isCharger')) {
       const chargeState = e.getData('chargeState')

@@ -244,6 +244,54 @@ export function showWeaponSelection(scene: IGameScene) {
       stats: 'Lasts 2s · 400ms tick',
       accent: 0xfb923c,
     },
+    {
+      type: 'laser', name: 'Laser Beam',
+      desc: 'Rapid pulses of light.\nPierces several enemies.',
+      stats: 'Pierces 3 · 250ms pulse',
+      accent: 0xfde047,
+    },
+    {
+      type: 'turret', name: 'Sentry Turret',
+      desc: 'Drops a stationary sentry.\nFires for 8 seconds, then expires.',
+      stats: '8s duration · 6s cooldown',
+      accent: 0xfbbf24,
+    },
+    {
+      type: 'orbital', name: 'Orbital Strike',
+      desc: 'Marks a target, strikes from above.\nHuge area damage with brief telegraph.',
+      stats: '110px radius · 3.5s cooldown',
+      accent: 0xef4444,
+    },
+    {
+      type: 'blackhole', name: 'Black Hole',
+      desc: 'Pulls enemies together.\nCrushes grouped foes.',
+      stats: '150px radius · 2.5s duration',
+      accent: 0xa78bfa,
+    },
+    {
+      type: 'grenade', name: 'Grenade Launcher',
+      desc: 'Timed explosive projectile.\nBounces off walls.',
+      stats: '80px radius · 1200ms cooldown',
+      accent: 0xfbbf24,
+    },
+    {
+      type: 'cryo', name: 'Cryo Shards',
+      desc: 'Spray of icy shards.\nSlows enemies on impact.',
+      stats: '3 shards · 1.5s slow',
+      accent: 0x22d3ee,
+    },
+    {
+      type: 'railgun', name: 'Railgun',
+      desc: 'Charges then fires a piercing beam.\nReaches across the screen.',
+      stats: '300 dmg · 1.5s charge',
+      accent: 0x60a5fa,
+    },
+    {
+      type: 'drones', name: 'Swarm Drones',
+      desc: 'Deploys drones that ram enemies.\nReturn to you after impact.',
+      stats: '1 drone · 1800ms cooldown',
+      accent: 0xd1d5db,
+    },
   ]
 
   const overlay = scene.add.graphics().setScrollFactor(0).setDepth(50)
@@ -262,14 +310,15 @@ export function showWeaponSelection(scene: IGameScene) {
       fontSize: '22px', color: '#f97316', stroke: '#000', strokeThickness: 3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
 
-    const cardW = 178, cardH = 126
-    const colGap = 200, rowGap = 140
-    const startX = w / 2 - colGap
-    const startY = 112
+    const cols = 4
+    const cardW = 140, cardH = 100
+    const colGap = 160, rowGap = 110
+    const startX = w / 2 - colGap * (cols - 1) / 2
+    const startY = 88
 
     ALL_WEAPONS.forEach((weapon, i) => {
-      const cx = startX + (i % 3) * colGap
-      const cy = startY + Math.floor(i / 3) * rowGap
+      const cx = startX + (i % cols) * colGap
+      const cy = startY + Math.floor(i / cols) * rowGap
 
       const bg = scene.add.graphics().setScrollFactor(0).setDepth(51)
       const draw = (hover: boolean) => {

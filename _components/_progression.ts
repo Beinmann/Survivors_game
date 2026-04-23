@@ -105,6 +105,86 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: '−100ms cooldown  ·  +20px size',            icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['trail'] = (scene.flatWeaponShootRateReductions['trail'] ?? 0) + 100; scene.trailSize += 20; scene.recalculateStats() } },
       { desc: 'Volatile fire — patches explode on expiry', icon: 'ico_split', apply: () => { scene.trailExplode = true } },
     ],
+    laser: [
+      { desc: '+40% damage  ·  +40px range',               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['laser'] = (scene.bonusWeaponDmg['laser'] ?? 0) + 0.4; scene.laserRange += 40; scene.recalculateStats() } },
+      { desc: '+1 pierce  ·  −30ms cooldown',              icon: 'ico_pierce', apply: () => { scene.laserPierce++; scene.flatWeaponShootRateReductions['laser'] = (scene.flatWeaponShootRateReductions['laser'] ?? 0) + 30; scene.recalculateStats() } },
+      { desc: '+50% damage  ·  +3px beam width',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['laser'] = (scene.bonusWeaponDmg['laser'] ?? 0) + 0.5; scene.laserWidth += 3; scene.recalculateStats() } },
+      { desc: '+1 pierce  ·  +40px range',                 icon: 'ico_pierce', apply: () => { scene.laserPierce++; scene.laserRange += 40; scene.recalculateStats() } },
+      { desc: '+60% damage  ·  −40ms cooldown',            icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['laser'] = (scene.bonusWeaponDmg['laser'] ?? 0) + 0.6; scene.flatWeaponShootRateReductions['laser'] = (scene.flatWeaponShootRateReductions['laser'] ?? 0) + 40; scene.recalculateStats() } },
+      { desc: '+2 pierce  ·  +4px beam width',             icon: 'ico_pierce', apply: () => { scene.laserPierce += 2; scene.laserWidth += 4; scene.recalculateStats() } },
+      { desc: '+80% damage  ·  +60px range',               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['laser'] = (scene.bonusWeaponDmg['laser'] ?? 0) + 0.8; scene.laserRange += 60; scene.recalculateStats() } },
+      { desc: '+3 pierce  ·  −50ms cooldown  ·  +5px',     icon: 'ico_pierce', apply: () => { scene.laserPierce += 3; scene.flatWeaponShootRateReductions['laser'] = (scene.flatWeaponShootRateReductions['laser'] ?? 0) + 50; scene.laserWidth += 5; scene.recalculateStats() } },
+    ],
+    turret: [
+      { desc: '+40% damage  ·  +1s duration',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['turret'] = (scene.bonusWeaponDmg['turret'] ?? 0) + 0.4; scene.turretDuration += 1000; scene.recalculateStats() } },
+      { desc: '−80ms turret fire rate  ·  +30% damage',    icon: 'ico_cooldown', apply: () => { scene.turretFireRate = Math.max(80, scene.turretFireRate - 80); scene.bonusWeaponDmg['turret'] = (scene.bonusWeaponDmg['turret'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+1 max turret  ·  +1s duration',            icon: 'wico_turret', apply: () => { scene.turretMax++; scene.turretDuration += 1000 } },
+      { desc: '+50% damage  ·  −60ms fire rate',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['turret'] = (scene.bonusWeaponDmg['turret'] ?? 0) + 0.5; scene.turretFireRate = Math.max(80, scene.turretFireRate - 60); scene.recalculateStats() } },
+      { desc: '−500ms cooldown  ·  +2s duration',          icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['turret'] = (scene.flatWeaponShootRateReductions['turret'] ?? 0) + 500; scene.turretDuration += 2000; scene.recalculateStats() } },
+      { desc: '+70% damage  ·  −60ms fire rate',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['turret'] = (scene.bonusWeaponDmg['turret'] ?? 0) + 0.7; scene.turretFireRate = Math.max(80, scene.turretFireRate - 60); scene.recalculateStats() } },
+      { desc: '+1 max turret  ·  +500ms cooldown reduction', icon: 'wico_turret', apply: () => { scene.turretMax++; scene.flatWeaponShootRateReductions['turret'] = (scene.flatWeaponShootRateReductions['turret'] ?? 0) + 500; scene.recalculateStats() } },
+      { desc: '+100% damage  ·  +3s duration',             icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['turret'] = (scene.bonusWeaponDmg['turret'] ?? 0) + 1.0; scene.turretDuration += 3000; scene.recalculateStats() } },
+    ],
+    orbital: [
+      { desc: '+30% damage  ·  +15px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['orbital'] = (scene.bonusWeaponDmg['orbital'] ?? 0) + 0.3; scene.orbitalRadius += 15; scene.recalculateStats() } },
+      { desc: '−400ms cooldown',                           icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['orbital'] = (scene.flatWeaponShootRateReductions['orbital'] ?? 0) + 400; scene.recalculateStats() } },
+      { desc: '+1 strike per volley',                      icon: 'wico_orbital', apply: () => { scene.orbitalCount++ } },
+      { desc: '+40% damage  ·  +20px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['orbital'] = (scene.bonusWeaponDmg['orbital'] ?? 0) + 0.4; scene.orbitalRadius += 20; scene.recalculateStats() } },
+      { desc: '−400ms cooldown  ·  +20px radius',          icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['orbital'] = (scene.flatWeaponShootRateReductions['orbital'] ?? 0) + 400; scene.orbitalRadius += 20; scene.recalculateStats() } },
+      { desc: '+1 strike  ·  +30% damage',                 icon: 'wico_orbital', apply: () => { scene.orbitalCount++; scene.bonusWeaponDmg['orbital'] = (scene.bonusWeaponDmg['orbital'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+60% damage  ·  +30px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['orbital'] = (scene.bonusWeaponDmg['orbital'] ?? 0) + 0.6; scene.orbitalRadius += 30; scene.recalculateStats() } },
+      { desc: '+1 strike  ·  −500ms cooldown',             icon: 'wico_orbital', apply: () => { scene.orbitalCount++; scene.flatWeaponShootRateReductions['orbital'] = (scene.flatWeaponShootRateReductions['orbital'] ?? 0) + 500; scene.recalculateStats() } },
+    ],
+    blackhole: [
+      { desc: '+30px radius  ·  +30% damage',              icon: 'ico_radius', apply: () => { scene.blackholeRadius += 30; scene.bonusWeaponDmg['blackhole'] = (scene.bonusWeaponDmg['blackhole'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+40 pull strength  ·  +500ms duration',     icon: 'wico_blackhole', apply: () => { scene.blackholePull += 40; scene.blackholeDuration += 500 } },
+      { desc: '+50% damage  ·  −800ms cooldown',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['blackhole'] = (scene.bonusWeaponDmg['blackhole'] ?? 0) + 0.5; scene.flatWeaponShootRateReductions['blackhole'] = (scene.flatWeaponShootRateReductions['blackhole'] ?? 0) + 800; scene.recalculateStats() } },
+      { desc: '+30px radius  ·  +500ms duration',          icon: 'ico_radius', apply: () => { scene.blackholeRadius += 30; scene.blackholeDuration += 500 } },
+      { desc: '+70% damage  ·  +40 pull',                  icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['blackhole'] = (scene.bonusWeaponDmg['blackhole'] ?? 0) + 0.7; scene.blackholePull += 40; scene.recalculateStats() } },
+      { desc: '+40px radius  ·  +1s duration',             icon: 'ico_radius', apply: () => { scene.blackholeRadius += 40; scene.blackholeDuration += 1000 } },
+      { desc: '+100% damage  ·  −1000ms cooldown',         icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['blackhole'] = (scene.bonusWeaponDmg['blackhole'] ?? 0) + 1.0; scene.flatWeaponShootRateReductions['blackhole'] = (scene.flatWeaponShootRateReductions['blackhole'] ?? 0) + 1000; scene.recalculateStats() } },
+      { desc: '+50px radius  ·  +1s duration  ·  +60 pull', icon: 'ico_radius', apply: () => { scene.blackholeRadius += 50; scene.blackholeDuration += 1000; scene.blackholePull += 60 } },
+    ],
+    grenade: [
+      { desc: '+15px radius  ·  +30% damage',              icon: 'ico_radius', apply: () => { scene.grenadeRadius += 15; scene.bonusWeaponDmg['grenade'] = (scene.bonusWeaponDmg['grenade'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '−150ms cooldown  ·  +40% damage',           icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['grenade'] = (scene.flatWeaponShootRateReductions['grenade'] ?? 0) + 150; scene.bonusWeaponDmg['grenade'] = (scene.bonusWeaponDmg['grenade'] ?? 0) + 0.4; scene.recalculateStats() } },
+      { desc: '+1 bounce  ·  +15px radius',                icon: 'ico_split', apply: () => { scene.grenadeBounces++; scene.grenadeRadius += 15 } },
+      { desc: '+50% damage  ·  +20px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['grenade'] = (scene.bonusWeaponDmg['grenade'] ?? 0) + 0.5; scene.grenadeRadius += 20; scene.recalculateStats() } },
+      { desc: '−200ms cooldown  ·  +1 bounce',             icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['grenade'] = (scene.flatWeaponShootRateReductions['grenade'] ?? 0) + 200; scene.grenadeBounces++; scene.recalculateStats() } },
+      { desc: '+70% damage  ·  +20px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['grenade'] = (scene.bonusWeaponDmg['grenade'] ?? 0) + 0.7; scene.grenadeRadius += 20; scene.recalculateStats() } },
+      { desc: '+1 bounce  ·  +30% damage',                 icon: 'ico_split', apply: () => { scene.grenadeBounces++; scene.bonusWeaponDmg['grenade'] = (scene.bonusWeaponDmg['grenade'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+100% damage  ·  +30px radius',             icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['grenade'] = (scene.bonusWeaponDmg['grenade'] ?? 0) + 1.0; scene.grenadeRadius += 30; scene.recalculateStats() } },
+    ],
+    cryo: [
+      { desc: '+1 shard  ·  +20% damage',                  icon: 'wico_cryo', apply: () => { scene.cryoShardCount++; scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.2; scene.recalculateStats() } },
+      { desc: '+500ms slow duration  ·  +30% damage',      icon: 'ico_slow', apply: () => { scene.cryoSlowDuration += 500; scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+1 shard  ·  −100ms cooldown',              icon: 'wico_cryo', apply: () => { scene.cryoShardCount++; scene.flatWeaponShootRateReductions['cryo'] = (scene.flatWeaponShootRateReductions['cryo'] ?? 0) + 100; scene.recalculateStats() } },
+      { desc: '+40% damage  ·  +500ms slow',               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.4; scene.cryoSlowDuration += 500; scene.recalculateStats() } },
+      { desc: '+2 shards',                                 icon: 'wico_cryo', apply: () => { scene.cryoShardCount += 2 } },
+      { desc: '+60% damage  ·  −100ms cooldown',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.6; scene.flatWeaponShootRateReductions['cryo'] = (scene.flatWeaponShootRateReductions['cryo'] ?? 0) + 100; scene.recalculateStats() } },
+      { desc: '+1 shard  ·  +1s slow duration',            icon: 'ico_slow', apply: () => { scene.cryoShardCount++; scene.cryoSlowDuration += 1000 } },
+      { desc: '+80% damage  ·  +1 shard  ·  −150ms',       icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.8; scene.cryoShardCount++; scene.flatWeaponShootRateReductions['cryo'] = (scene.flatWeaponShootRateReductions['cryo'] ?? 0) + 150; scene.recalculateStats() } },
+    ],
+    railgun: [
+      { desc: '−300ms charge time  ·  +20% damage',        icon: 'ico_charge', apply: () => { scene.railgunChargeTime = Math.max(200, scene.railgunChargeTime - 300); scene.bonusWeaponDmg['railgun'] = (scene.bonusWeaponDmg['railgun'] ?? 0) + 0.2; scene.recalculateStats() } },
+      { desc: '+40% damage  ·  +2px beam width',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['railgun'] = (scene.bonusWeaponDmg['railgun'] ?? 0) + 0.4; scene.railgunWidth += 2; scene.recalculateStats() } },
+      { desc: '−500ms cooldown  ·  −300ms charge',         icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['railgun'] = (scene.flatWeaponShootRateReductions['railgun'] ?? 0) + 500; scene.railgunChargeTime = Math.max(200, scene.railgunChargeTime - 300); scene.recalculateStats() } },
+      { desc: '+60% damage',                               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['railgun'] = (scene.bonusWeaponDmg['railgun'] ?? 0) + 0.6; scene.recalculateStats() } },
+      { desc: '+3px beam width  ·  +20% damage',           icon: 'ico_damage', apply: () => { scene.railgunWidth += 3; scene.bonusWeaponDmg['railgun'] = (scene.bonusWeaponDmg['railgun'] ?? 0) + 0.2; scene.recalculateStats() } },
+      { desc: '−700ms cooldown  ·  +30% damage',           icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['railgun'] = (scene.flatWeaponShootRateReductions['railgun'] ?? 0) + 700; scene.bonusWeaponDmg['railgun'] = (scene.bonusWeaponDmg['railgun'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+100% damage  ·  −200ms charge',            icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['railgun'] = (scene.bonusWeaponDmg['railgun'] ?? 0) + 1.0; scene.railgunChargeTime = Math.max(200, scene.railgunChargeTime - 200); scene.recalculateStats() } },
+      { desc: '+50% damage  ·  +4px width  ·  −400ms cd',  icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['railgun'] = (scene.bonusWeaponDmg['railgun'] ?? 0) + 0.5; scene.railgunWidth += 4; scene.flatWeaponShootRateReductions['railgun'] = (scene.flatWeaponShootRateReductions['railgun'] ?? 0) + 400; scene.recalculateStats() } },
+    ],
+    drones: [
+      { desc: '+1 drone',                                  icon: 'wico_drones', apply: () => { scene.droneCount++ } },
+      { desc: '+40% damage  ·  −150ms cooldown',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['drones'] = (scene.bonusWeaponDmg['drones'] ?? 0) + 0.4; scene.flatWeaponShootRateReductions['drones'] = (scene.flatWeaponShootRateReductions['drones'] ?? 0) + 150; scene.recalculateStats() } },
+      { desc: '+1 drone  ·  +30% damage',                  icon: 'wico_drones', apply: () => { scene.droneCount++; scene.bonusWeaponDmg['drones'] = (scene.bonusWeaponDmg['drones'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+50% damage',                               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['drones'] = (scene.bonusWeaponDmg['drones'] ?? 0) + 0.5; scene.recalculateStats() } },
+      { desc: '+1 drone  ·  −150ms cooldown',              icon: 'wico_drones', apply: () => { scene.droneCount++; scene.flatWeaponShootRateReductions['drones'] = (scene.flatWeaponShootRateReductions['drones'] ?? 0) + 150; scene.recalculateStats() } },
+      { desc: '+70% damage  ·  −200ms cooldown',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['drones'] = (scene.bonusWeaponDmg['drones'] ?? 0) + 0.7; scene.flatWeaponShootRateReductions['drones'] = (scene.flatWeaponShootRateReductions['drones'] ?? 0) + 200; scene.recalculateStats() } },
+      { desc: '+2 drones  ·  +30% damage',                 icon: 'wico_drones', apply: () => { scene.droneCount += 2; scene.bonusWeaponDmg['drones'] = (scene.bonusWeaponDmg['drones'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+100% damage  ·  +1 drone  ·  −200ms',      icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['drones'] = (scene.bonusWeaponDmg['drones'] ?? 0) + 1.0; scene.droneCount++; scene.flatWeaponShootRateReductions['drones'] = (scene.flatWeaponShootRateReductions['drones'] ?? 0) + 200; scene.recalculateStats() } },
+    ],
   }
   const result: any[] = []
   for (const wt of scene.weapons) {
@@ -127,8 +207,8 @@ export function getUpgrades(scene: IGameScene) {
   const weaponUpgrades = scene.getWeaponUpgrades()
   const passiveUpgrades = scene.passives.map(pt => {
     const lvl = scene.passiveLevels[pt] ?? 1
-    if (lvl >= 5) return null
     const data = PASSIVE_DATA[pt]
+    if (lvl >= (data.maxLevel ?? 5)) return null
     return {
       name: `${data.name} Lv ${lvl + 1}`,
       icon: data.icon,
@@ -199,6 +279,14 @@ function weaponUnlockDesc(wt: WeaponType): string {
     boomerang:  'Returning blade · hits enemies twice',
     rocket:     'Seeking missiles · explosive impact',
     trail:      'Fire walk · leaves damaging path',
+    laser:      'Beam of light · pierces several enemies',
+    turret:     'Deploys a sentry · fires for 8 seconds',
+    orbital:    'Marks a target · strikes from above',
+    blackhole:  'Gravity well · pulls and crushes',
+    grenade:    'Timed explosive · bounces off walls',
+    cryo:       'Icy shards · slow enemies on hit',
+    railgun:    'Charges up · pierces across the screen',
+    drones:     'Swarm drones · ram and return',
   }
   return descs[wt]
 }
@@ -350,6 +438,9 @@ export function unlockWeapon(scene: IGameScene, wt: WeaponType) {
   if (wt === 'boomerang') scene.boomerangCount = 1
   if (wt === 'rocket')   scene.rocketBurst = 1
   if (wt === 'trail')    scene.trailSize = 20
+  if (wt === 'drones')   scene.droneCount = 1
+  if (wt === 'orbital')  scene.orbitalCount = 1
+  if (wt === 'turret')   scene.turretMax = Math.max(scene.turretMax, 2)
 
   if (scene.weaponShootRates[wt] === undefined) {
     scene.weaponShootRates[wt] = WEAPON_BASE[wt].shootRate

@@ -32,6 +32,8 @@ export interface IGameScene {
   passiveLevels: Partial<Record<PassiveType, number>>
   hp: number
   maxHp: number
+  hpRegen: number
+  _hpRegenAccum: number
   xp: number
   xpNeeded: number
   level: number
@@ -77,6 +79,33 @@ export interface IGameScene {
   trailExplode: boolean
   trailLastX: number
   trailLastY: number
+  laserDmg: number
+  laserRange: number
+  laserWidth: number
+  laserPierce: number
+  turretDmg: number
+  turretDuration: number
+  turretFireRate: number
+  turretMax: number
+  orbitalDmg: number
+  orbitalRadius: number
+  orbitalCount: number
+  blackholeDmg: number
+  blackholeRadius: number
+  blackholeDuration: number
+  blackholePull: number
+  grenadeDmg: number
+  grenadeRadius: number
+  grenadeBounces: number
+  cryoDmg: number
+  cryoShardCount: number
+  cryoSlowDuration: number
+  railgunDmg: number
+  railgunChargeTime: number
+  railgunWidth: number
+  droneDmg: number
+  droneCount: number
+  bonusProjectiles: number
   powerUpSpawnTimer: number
   frenzyTimer: number
   freezeTimer: number
@@ -117,6 +146,13 @@ export interface IGameScene {
   scoreText: any
   timerText: any
   effectText: any
+
+  // --- specials ---
+  turrets: any[]
+  blackholes: any[]
+  orbitalStrikes: any[]
+  railgunCharges: any[]
+  drones: any[]
 
   // --- methods ---
   resetState(): void
@@ -161,6 +197,7 @@ export interface IGameScene {
   _trailCheckTimer: number
   _lastAuraRadius: number
   updateTrailSprites(delta: number): void
+  updateSpecials(delta: number): void
   fireShotgun(angle: number, wt: WeaponType): void
   fireSniper(angle: number, wt: WeaponType): void
   fireMachineGun(angle: number, wt: WeaponType): void
@@ -170,6 +207,14 @@ export interface IGameScene {
   fireBoomerang(angle: number, wt: WeaponType): void
   fireRocket(angle: number, wt: WeaponType): void
   fireTrail(): void
+  fireLaser(angle: number): void
+  fireTurret(): void
+  fireOrbital(): void
+  fireBlackhole(angle: number, wt: WeaponType): void
+  fireGrenade(angle: number, wt: WeaponType): void
+  fireCryo(angle: number, wt: WeaponType): void
+  fireRailgun(angle: number): void
+  fireDrones(): void
   move(): void
   autoShoot(time: number): void
   moveEnemies(delta: number): void

@@ -109,6 +109,55 @@ export function buildStatLines(scene: IGameScene) {
         { label: 'Pierce', value: scene.machineGunPierce ? 'Yes' : 'No', icon: 'ico_pierce' },
         { label: 'Damage', value: String(dmgValue),              icon: 'ico_damage' },
       )
+    } else if (wt === 'laser') {
+      lines.push(
+        { label: 'Range',  value: String(Math.round(scene.laserRange * (1 + scene.bonusArea))), icon: 'ico_range' },
+        { label: 'Pierce', value: String(scene.laserPierce), icon: 'ico_pierce' },
+        { label: 'Damage', value: String(dmgValue),          icon: 'ico_damage' },
+      )
+    } else if (wt === 'turret') {
+      lines.push(
+        { label: 'Duration',  value: `${(scene.turretDuration / 1000).toFixed(1)}s`, icon: 'ico_cooldown' },
+        { label: 'Max',       value: String(scene.turretMax), icon: 'wico_turret' },
+        { label: 'Fire Rate', value: `${(1000 / scene.turretFireRate).toFixed(1)}/s`, icon: 'ico_cooldown' },
+        { label: 'Damage',    value: String(dmgValue),        icon: 'ico_damage' },
+      )
+    } else if (wt === 'orbital') {
+      lines.push(
+        { label: 'Strikes', value: String(scene.orbitalCount), icon: 'wico_orbital' },
+        { label: 'Radius',  value: String(Math.round(scene.orbitalRadius * (1 + scene.bonusArea))), icon: 'ico_radius' },
+        { label: 'Damage',  value: String(dmgValue),           icon: 'ico_damage' },
+      )
+    } else if (wt === 'blackhole') {
+      lines.push(
+        { label: 'Radius',   value: String(Math.round(scene.blackholeRadius * (1 + scene.bonusArea))), icon: 'ico_radius' },
+        { label: 'Duration', value: `${(scene.blackholeDuration / 1000).toFixed(1)}s`, icon: 'ico_cooldown' },
+        { label: 'Pull',     value: String(scene.blackholePull), icon: 'wico_blackhole' },
+        { label: 'Damage',   value: String(dmgValue),            icon: 'ico_damage' },
+      )
+    } else if (wt === 'grenade') {
+      lines.push(
+        { label: 'Radius',  value: String(Math.round(scene.grenadeRadius * (1 + scene.bonusArea))), icon: 'ico_radius' },
+        { label: 'Bounces', value: String(scene.grenadeBounces), icon: 'ico_split' },
+        { label: 'Damage',  value: String(dmgValue),             icon: 'ico_damage' },
+      )
+    } else if (wt === 'cryo') {
+      lines.push(
+        { label: 'Shards',     value: String(scene.cryoShardCount), icon: 'wico_cryo' },
+        { label: 'Slow',       value: `${(scene.cryoSlowDuration / 1000).toFixed(1)}s`, icon: 'ico_slow' },
+        { label: 'Damage',     value: String(dmgValue),             icon: 'ico_damage' },
+      )
+    } else if (wt === 'railgun') {
+      lines.push(
+        { label: 'Charge', value: `${(scene.railgunChargeTime / 1000).toFixed(2)}s`, icon: 'ico_charge' },
+        { label: 'Width',  value: String(scene.railgunWidth), icon: 'ico_radius' },
+        { label: 'Damage', value: String(dmgValue),           icon: 'ico_damage' },
+      )
+    } else if (wt === 'drones') {
+      lines.push(
+        { label: 'Drones', value: String(scene.droneCount), icon: 'wico_drones' },
+        { label: 'Damage', value: String(dmgValue),         icon: 'ico_damage' },
+      )
     }
   }
   lines.push({ label: '── Passive', value: '' })
@@ -118,6 +167,7 @@ export function buildStatLines(scene: IGameScene) {
   }
   lines.push(
     { label: 'HP',         value: `${scene.hp} / ${scene.maxHp}`, icon: 'ico_hp' },
+    ...(scene.hpRegen > 0 ? [{ label: 'HP Regen', value: `${scene.hpRegen.toFixed(1)}/s`, icon: 'ico_regen' }] : []),
     { label: 'Move Speed', value: String(scene.moveSpeed),        icon: 'ico_movespeed' },
     { label: 'Dmg Boost',  value: `+${Math.round(scene.bonusDamage * 100)}%`,    icon: 'ico_damage' },
     { label: 'Fire Rate',  value: `+${Math.round(scene.bonusCooldown * 100)}%`, icon: 'ico_cooldown' },

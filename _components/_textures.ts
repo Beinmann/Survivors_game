@@ -120,6 +120,46 @@ export function buildTextures(scene: IGameScene) {
     g.fillStyle(0xfacc15, 0.5); g.fillCircle(8, 8, 5)
   }, 16, 16)
 
+  make('turret', g => {
+    g.fillStyle(0x1f2937); g.fillCircle(14, 14, 11)
+    g.lineStyle(2, 0xfbbf24); g.strokeCircle(14, 14, 11)
+    g.fillStyle(0xfbbf24); g.fillRect(14, 12, 14, 4)
+    g.fillStyle(0xf59e0b); g.fillCircle(14, 14, 4)
+  }, 28, 28)
+
+  make('turretbullet', g => {
+    g.fillStyle(0xfbbf24); g.fillRect(0, 1, 10, 4)
+    g.lineStyle(1, 0xfde68a); g.strokeRect(0, 1, 10, 4)
+  }, 10, 6)
+
+  make('blackhole', g => {
+    g.fillStyle(0x000000, 1); g.fillCircle(14, 14, 10)
+    g.lineStyle(2, 0xa78bfa, 0.9); g.strokeCircle(14, 14, 12)
+    g.lineStyle(1, 0xc4b5fd, 0.7); g.strokeCircle(14, 14, 8)
+    g.fillStyle(0xa78bfa, 0.5); g.fillCircle(14, 14, 4)
+  }, 28, 28)
+
+  make('grenade', g => {
+    g.fillStyle(0x4b5563); g.fillCircle(7, 7, 6)
+    g.lineStyle(1, 0x9ca3af); g.strokeCircle(7, 7, 6)
+    g.fillStyle(0xfbbf24); g.fillRect(6, 0, 2, 3)
+    g.fillStyle(0xef4444); g.fillCircle(7, 1, 1.5)
+  }, 14, 14)
+
+  make('cryoshard', g => {
+    g.fillStyle(0x22d3ee); g.fillTriangle(6, 0, 12, 6, 6, 12)
+    g.fillTriangle(6, 0, 0, 6, 6, 12)
+    g.lineStyle(1, 0xa5f3fc); g.strokeTriangle(6, 0, 12, 6, 6, 12)
+    g.strokeTriangle(6, 0, 0, 6, 6, 12)
+  }, 12, 12)
+
+  make('drone', g => {
+    g.fillStyle(0xd1d5db); g.fillRect(2, 4, 10, 4)
+    g.fillStyle(0x6b7280); g.fillRect(5, 3, 4, 6)
+    g.lineStyle(1, 0x9ca3af); g.strokeRect(2, 4, 10, 4)
+    g.fillStyle(0xef4444); g.fillCircle(12, 6, 1.2)
+  }, 14, 12)
+
   make('orb', g => {
     g.fillStyle(0x38bdf8, 0.65)
     g.fillTriangle(5, 1, 9, 5, 5, 9)

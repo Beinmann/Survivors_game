@@ -9,7 +9,7 @@ import { showTitleScreen, showModeSelection, showMapSelection, showWeaponSelecti
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
 import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies } from './_spawning'
-import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireTrail, updateTrailSprites } from './_combat'
+import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireTrail, updateTrailSprites, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireGrenade, fireCryo, fireRailgun, fireDrones, updateSpecials, explodeGrenade } from './_combat'
 import { onCollectOrb, getWeaponUpgrades, getUpgrades, showUpgradeMenu, pullOrbs, unlockWeapon } from './_progression'
 
 export function createGameScene(Phaser: any) {
@@ -46,6 +46,8 @@ export function createGameScene(Phaser: any) {
     public passiveLevels: Partial<Record<PassiveType, number>> = {}
     public hp = 0
     public maxHp = 0
+    public hpRegen = 0
+    public _hpRegenAccum = 0
     public xp = 0
     public xpNeeded = 0
     public level = 0
@@ -93,6 +95,40 @@ export function createGameScene(Phaser: any) {
     public trailExplode = false
     public trailLastX = 0
     public trailLastY = 0
+    public laserDmg = 0
+    public laserRange = 0
+    public laserWidth = 0
+    public laserPierce = 0
+    public turretDmg = 0
+    public turretDuration = 0
+    public turretFireRate = 0
+    public turretMax = 0
+    public orbitalDmg = 0
+    public orbitalRadius = 0
+    public orbitalCount = 0
+    public blackholeDmg = 0
+    public blackholeRadius = 0
+    public blackholeDuration = 0
+    public blackholePull = 0
+    public grenadeDmg = 0
+    public grenadeRadius = 0
+    public grenadeBounces = 0
+    public cryoDmg = 0
+    public cryoShardCount = 0
+    public cryoSlowDuration = 0
+    public railgunDmg = 0
+    public railgunChargeTime = 0
+    public railgunWidth = 0
+    public droneDmg = 0
+    public droneCount = 0
+    public bonusProjectiles = 0
+
+    // --- specials (long-lived, manually updated) ---
+    public turrets: any[] = []
+    public blackholes: any[] = []
+    public orbitalStrikes: any[] = []
+    public railgunCharges: any[] = []
+    public drones: any[] = []
 
     // --- power-up state ---
     public powerUpSpawnTimer = 0
@@ -216,6 +252,12 @@ export function createGameScene(Phaser: any) {
         this.bullets,
         this.obstacles,
         (bullet: any) => {
+          if (bullet.getData('wt') === 'grenade') {
+            const bl = bullet.getData('bouncesLeft') ?? 0
+            if (bl > 0) { bullet.setData('bouncesLeft', bl - 1); return }
+            explodeGrenade(this, bullet)
+            return
+          }
           bullet.destroy()
         },
         undefined,
@@ -262,12 +304,13 @@ export function createGameScene(Phaser: any) {
       this.bonusWeaponDmg = {}; this.bonusWeaponBulletSpd = {}; this.flatWeaponShootRateReductions = {}
       this.recalculateStats()
 
-      this.hp = 100; this.maxHp = 100; this.xp = 0; this.xpNeeded = 10
+      this.hp = 100; this.maxHp = 100; this.hpRegen = 0; this._hpRegenAccum = 0
+      this.xp = 0; this.xpNeeded = 10
       this.level = 1; this.score = 0
       this.spawnTimer = 0; this.spawnRate = SPAWN_INTERVAL_MS
       this.iframes = 0; this.dead = false; this.levelUpPending = false
       this.paused = false; this.showBaseStats = false; this.pauseUI = []
-      this.extraBullets = 0; this.pierceCount = 2
+      this.extraBullets = 0; this.pierceCount = 2; this.bonusProjectiles = 0
       this.magnetRadius = 70; this.orbMultiplier = 1.0
       this.auraRadius = 110; this.shotgunRange = 220
       this.machineGunBurst = 1; this.machineGunPierce = false
@@ -277,6 +320,15 @@ export function createGameScene(Phaser: any) {
       this.rocketRadius = 40; this.rocketBurst = 1; this.rocketSplit = false
       this.trailDuration = 3000; this.trailSize = 20; this.trailBurn = false; this.trailExplode = false
       this.trailLastX = 0; this.trailLastY = 0
+      this.laserRange = 340; this.laserWidth = 10; this.laserPierce = 3
+      this.turretDuration = 8000; this.turretFireRate = 400; this.turretMax = 2
+      this.orbitalRadius = 110; this.orbitalCount = 1
+      this.blackholeRadius = 150; this.blackholeDuration = 2500; this.blackholePull = 160
+      this.grenadeRadius = 80; this.grenadeBounces = 1
+      this.cryoShardCount = 3; this.cryoSlowDuration = 1500
+      this.railgunChargeTime = 1500; this.railgunWidth = 6
+      this.droneCount = 1
+      this.clearSpecials()
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
       this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
       this.hudDirty = true
@@ -285,6 +337,23 @@ export function createGameScene(Phaser: any) {
       if (this.trailSprites) { this.trailSprites.forEach((f: any) => { if (f?.active) f.destroy() }) }
       this.trailSprites = []; this._trailCheckTimer = 0; this._lastAuraRadius = -1
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
+    }
+
+    public clearSpecials() {
+      const destroyAll = (arr: any[]) => arr.forEach(o => {
+        if (!o) return
+        if (o.sprite?.active) o.sprite.destroy()
+        if (o.ring?.active) o.ring.destroy()
+        if (o.line?.active) o.line.destroy()
+        if (o.reticle?.active) o.reticle.destroy()
+        if (o.gfx?.active) o.gfx.destroy()
+        if (o.label?.active) o.label.destroy()
+      })
+      destroyAll(this.turrets); this.turrets = []
+      destroyAll(this.blackholes); this.blackholes = []
+      destroyAll(this.orbitalStrikes); this.orbitalStrikes = []
+      destroyAll(this.railgunCharges); this.railgunCharges = []
+      destroyAll(this.drones); this.drones = []
     }
 
     public togglePause() {
@@ -386,7 +455,7 @@ export function createGameScene(Phaser: any) {
               img.setVelocity(Math.cos(angle) * spd, Math.sin(angle) * spd)
               if (bdist < 20) { img.destroy(); continue }
             }
-          } else if (dist > this.shotgunRange) {
+          } else if (dist > (img.getData('maxRange') ?? this.shotgunRange)) {
             img.destroy(); continue
           }
         }
@@ -404,10 +473,20 @@ export function createGameScene(Phaser: any) {
         }
       }
 
+      if (this.hpRegen > 0 && this.hp < this.maxHp) {
+        this._hpRegenAccum += this.hpRegen * delta / 1000
+        if (this._hpRegenAccum >= 1) {
+          const gain = Math.floor(this._hpRegenAccum)
+          this._hpRegenAccum -= gain
+          this.hp = Math.min(this.maxHp, this.hp + gain)
+        }
+      }
+
       this.drawUI()
       this.updateAura()
       this.updateScythes(delta)
       this.updateTrailSprites(delta)
+      this.updateSpecials(delta)
     }
 
     public updateScythes(delta: number) {
@@ -566,6 +645,42 @@ export function createGameScene(Phaser: any) {
       fireTrail(this)
     }
 
+    public fireLaser(angle: number) {
+      fireLaser(this, angle)
+    }
+
+    public fireTurret() {
+      fireTurret(this)
+    }
+
+    public fireOrbital() {
+      fireOrbital(this)
+    }
+
+    public fireBlackhole(angle: number, wt: WeaponType) {
+      fireBlackhole(this, angle, wt)
+    }
+
+    public fireGrenade(angle: number, wt: WeaponType) {
+      fireGrenade(this, angle, wt)
+    }
+
+    public fireCryo(angle: number, wt: WeaponType) {
+      fireCryo(this, angle, wt)
+    }
+
+    public fireRailgun(angle: number) {
+      fireRailgun(this, angle)
+    }
+
+    public fireDrones() {
+      fireDrones(this)
+    }
+
+    public updateSpecials(delta: number) {
+      updateSpecials(this, delta)
+    }
+
     // ─── movement / orbs ────────────────────────────────────────────────
 
     public moveEnemies(delta: number) {
@@ -627,6 +742,14 @@ export function createGameScene(Phaser: any) {
       this.boomerangDmg = Math.round(WEAPON_BASE['boomerang'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['boomerang'] ?? 0)))
       this.rocketDmg = Math.round(WEAPON_BASE['rocket'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['rocket'] ?? 0)))
       this.trailDmg = Math.round(WEAPON_BASE['trail'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['trail'] ?? 0)))
+      this.laserDmg = Math.round(WEAPON_BASE['laser'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['laser'] ?? 0)))
+      this.turretDmg = Math.round(WEAPON_BASE['turret'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['turret'] ?? 0)))
+      this.orbitalDmg = Math.round(WEAPON_BASE['orbital'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['orbital'] ?? 0)))
+      this.blackholeDmg = Math.round(WEAPON_BASE['blackhole'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['blackhole'] ?? 0)))
+      this.grenadeDmg = Math.round(WEAPON_BASE['grenade'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['grenade'] ?? 0)))
+      this.cryoDmg = Math.round(WEAPON_BASE['cryo'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['cryo'] ?? 0)))
+      this.railgunDmg = Math.round(WEAPON_BASE['railgun'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['railgun'] ?? 0)))
+      this.droneDmg = Math.round(WEAPON_BASE['drones'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['drones'] ?? 0)))
 
       for (const wt of ALL_WEAPON_TYPES) {
         const baseSpd = WEAPON_BASE[wt].bulletSpd
@@ -666,14 +789,15 @@ export function createGameScene(Phaser: any) {
     }
 
     public applyPassiveBoost(pt: PassiveType) {
-      if (pt === 'movespeed') this.bonusMoveSpeed += 0.20
-      if (pt === 'magnet')    this.magnetRadius += 50
-      if (pt === 'orbmult')   this.orbMultiplier += 0.25
-      if (pt === 'hp')        { this.maxHp += 20; this.hp = Math.min(this.maxHp, this.hp + 40) }
-      if (pt === 'damage')    this.bonusDamage += 0.15
-      if (pt === 'cooldown')  this.bonusCooldown += 0.12
-      if (pt === 'area')      { this.bonusArea += 0.15; this._lastAuraRadius = -1 }
-      
+      if (pt === 'movespeed')   this.bonusMoveSpeed += 0.20
+      if (pt === 'magnet')      this.magnetRadius += 50
+      if (pt === 'orbmult')     this.orbMultiplier += 0.25
+      if (pt === 'hp')          { this.maxHp += 25; this.hp += 25; this.hpRegen += 0.5 }
+      if (pt === 'damage')      this.bonusDamage += 0.15
+      if (pt === 'cooldown')    this.bonusCooldown += 0.12
+      if (pt === 'area')        { this.bonusArea += 0.15; this._lastAuraRadius = -1 }
+      if (pt === 'projectiles') this.bonusProjectiles += 1
+
       this.recalculateStats()
     }
 

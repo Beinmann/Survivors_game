@@ -28,10 +28,23 @@ Pick one starting weapon; up to two more can be unlocked through the level-up me
 
 | Weapon | Base stats | Upgrade path focus |
 |--------|-----------|-------------------|
-| **Shotgun** | 6 pellets · 550ms cooldown · 220px range | More pellets, damage, range, rear shot |
+| **Shotgun** | 6 pellets · 950ms cooldown · 220px range | More pellets, damage, range, rear shot |
 | **Sniper Rifle** | 2 pierce · 1400ms cooldown · 680px/s bullets | Pierce, damage multipliers, bullet speed, rear shot |
 | **Shock Aura** | 110px radius · 500ms pulse · omnidirectional | Radius, damage, cooldown |
-| **Machine Gun** | 1 bullet · 100ms cooldown · 520px/s bullets | Damage, pierce, 2–3 round burst, rear shot |
+| **Machine Gun** | 1 bullet · 200ms cooldown · 520px/s bullets | Damage, pierce, 2–3 round burst, rear shot |
+| **Spectral Scythes** | 1 blade · 100px orbit · continuous | Blade count, radius, damage, lifesteal |
+| **Tesla Chain** | 2 jumps · 1400ms cooldown · 85px jump range | Jumps, damage, stun, arc-back |
+| **Ricochet Boomerang** | 1 projectile · 1000ms cooldown · 250px range | Range, count, pierce, speed |
+| **Homing Rockets** | 1 rocket · 1500ms cooldown · 40px blast | Radius, burst count, damage, split |
+| **Incendiary Trail** | 20px patch · 100ms tick · 3s duration | Duration, size, burn, explode on expiry |
+| **Laser Beam** | Pierces 3 · 250ms pulse · 340px range | Pierce, range, beam width, damage |
+| **Sentry Turret** | 8s duration · 400ms fire rate · 2 max | Duration, fire rate, max turrets, damage |
+| **Orbital Strike** | 1 strike · 110px radius · 1s telegraph | Strike count, radius, cooldown, damage |
+| **Black Hole** | 150px pull · 2.5s duration · tick damage | Radius, duration, pull strength, damage |
+| **Grenade Launcher** | 1 bounce · 80px radius · 1.5s fuse | Radius, bounces, cooldown, damage |
+| **Cryo Shards** | 3 shards · 1.5s slow · 900ms cooldown | Shards, slow duration, damage |
+| **Railgun** | 1.5s charge · pierces all · screen-wide | Charge time, beam width, damage |
+| **Swarm Drones** | 1 drone · 1800ms cooldown · ram + return | Drone count, damage |
 
 ---
 
@@ -94,14 +107,16 @@ Difficulty is time-based:
 
 **Passive upgrades:**
 
-| Name | Effect |
-|------|--------|
-| Swift Feet | +20% move speed |
-| XP Magnet | +50px magnet radius |
-| Bounty Hunter | +25% XP per orb collected |
-| Vital Surge | +20 max HP, restore 40 HP |
-| Power Core | +15% damage to all active weapons |
-| Overclock | −12% cooldown on all active weapons |
+| Name | Effect | Max |
+|------|--------|-----|
+| Swift Feet | +20% move speed | 5 |
+| XP Magnet | +50px magnet radius | 5 |
+| Bounty Hunter | +25% XP per orb collected | 5 |
+| Vital Surge | +25 max HP, +25 HP, +0.5 HP/s regen | 5 |
+| Power Core | +15% damage to all active weapons | 5 |
+| Overclock | −12% cooldown on all active weapons | 5 |
+| Arcane Reach | +15% size to all weapons and shots | 5 |
+| Multishot | +1 projectile per volley (shotgun, MG, boomerang, rocket, grenade, cryo, drones) | 2 |
 
 ---
 

@@ -109,6 +109,147 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
       g.strokeCircle(cx, cy, 12)
     },
   },
+  {
+    key: 'wico_laser', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.fillStyle(0xfde047).fillRect(cx - 3, cy - 3, 6, 6)
+      g.lineStyle(3, 0xfde047, 0.9)
+      g.lineBetween(cx + 3, cy, cx + 13, cy)
+      g.lineStyle(1.5, 0xffffff, 1)
+      g.lineBetween(cx + 3, cy, cx + 13, cy)
+      g.fillStyle(0xffffff, 0.7).fillCircle(cx + 13, cy, 2)
+    },
+  },
+  {
+    key: 'wico_turret', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.fillStyle(0x1f2937).fillCircle(cx, cy, 9)
+      g.lineStyle(2, 0xfbbf24).strokeCircle(cx, cy, 9)
+      g.fillStyle(0xfbbf24).fillRect(cx, cy - 2, 12, 4)
+      g.fillStyle(0xf59e0b).fillCircle(cx, cy, 3)
+    },
+  },
+  {
+    key: 'wico_orbital', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xef4444).strokeCircle(cx, cy, 9)
+      g.lineStyle(1.5, 0xfca5a5).strokeCircle(cx, cy, 5)
+      g.lineStyle(1.5, 0xef4444)
+      g.lineBetween(cx - 13, cy, cx - 9, cy)
+      g.lineBetween(cx + 9, cy, cx + 13, cy)
+      g.lineBetween(cx, cy - 13, cx, cy - 9)
+      g.lineBetween(cx, cy + 9, cx, cy + 13)
+      g.fillStyle(0xef4444).fillCircle(cx, cy, 1.5)
+    },
+  },
+  {
+    key: 'wico_blackhole', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.fillStyle(0x000000).fillCircle(cx, cy, 8)
+      g.lineStyle(2, 0xa78bfa).strokeCircle(cx, cy, 11)
+      g.lineStyle(1, 0xc4b5fd, 0.65).strokeCircle(cx, cy, 7)
+      g.fillStyle(0xa78bfa, 0.65).fillCircle(cx, cy, 3)
+    },
+  },
+  {
+    key: 'wico_grenade', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.fillStyle(0x4b5563).fillCircle(cx, cy + 1, 9)
+      g.lineStyle(1.5, 0x9ca3af).strokeCircle(cx, cy + 1, 9)
+      g.fillStyle(0xfbbf24).fillRect(cx - 2, cy - 9, 4, 5)
+      g.fillStyle(0xef4444).fillCircle(cx, cy - 9, 2)
+      g.lineStyle(1, 0x1f2937).lineBetween(cx - 5, cy - 2, cx + 5, cy + 4)
+    },
+  },
+  {
+    key: 'wico_cryo', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.fillStyle(0x22d3ee)
+      g.fillTriangle(cx, cy - 10, cx + 5, cy, cx, cy + 10)
+      g.fillTriangle(cx, cy - 10, cx - 5, cy, cx, cy + 10)
+      g.fillTriangle(cx - 10, cy, cx, cy - 5, cx + 10, cy)
+      g.fillTriangle(cx - 10, cy, cx, cy + 5, cx + 10, cy)
+      g.lineStyle(1, 0xa5f3fc, 0.8).strokeCircle(cx, cy, 2)
+    },
+  },
+  {
+    key: 'wico_railgun', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.fillStyle(0x1e3a8a).fillRect(cx - 10, cy - 2, 14, 4)
+      g.lineStyle(1, 0x60a5fa).strokeRect(cx - 10, cy - 2, 14, 4)
+      g.fillStyle(0x93c5fd).fillRect(cx + 4, cy - 1, 8, 2)
+      g.lineStyle(1.5, 0xfde68a, 0.85)
+      g.lineBetween(cx + 12, cy, cx + 14, cy)
+      g.fillStyle(0xfbbf24).fillCircle(cx - 8, cy, 2)
+    },
+  },
+  {
+    key: 'wico_drones', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * Math.PI * 2 - Math.PI / 2
+        const x = cx + Math.cos(a) * 8
+        const y = cy + Math.sin(a) * 8
+        g.fillStyle(0xd1d5db).fillRect(x - 3, y - 1, 6, 3)
+        g.fillStyle(0x6b7280).fillRect(x - 1, y - 2, 2, 5)
+      }
+    },
+  },
+  {
+    key: 'ico_projectiles', w: 24, h: 24,
+    draw: (g: G) => {
+      g.fillStyle(0xfbbf24)
+      g.fillCircle(6, 12, 2)
+      g.fillCircle(12, 12, 2)
+      g.fillCircle(18, 12, 2)
+      g.lineStyle(1.5, 0xfde68a)
+      g.lineBetween(2, 12, 4, 12)
+      g.lineBetween(8, 12, 10, 12)
+      g.lineBetween(14, 12, 16, 12)
+      g.lineBetween(20, 12, 22, 12)
+    },
+  },
+  {
+    key: 'ico_slow', w: 24, h: 24,
+    draw: (g: G) => {
+      g.lineStyle(2, 0x22d3ee).strokeCircle(12, 12, 9)
+      g.lineBetween(12, 12, 12, 6)
+      g.lineBetween(12, 12, 16, 14)
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2
+        g.fillStyle(0xa5f3fc).fillCircle(12 + Math.cos(a) * 11, 12 + Math.sin(a) * 11, 1.2)
+      }
+    },
+  },
+  {
+    key: 'ico_charge', w: 24, h: 24,
+    draw: (g: G) => {
+      g.fillStyle(0x60a5fa)
+      g.fillTriangle(10, 2, 18, 12, 12, 12)
+      g.fillTriangle(12, 12, 6, 22, 14, 12)
+    },
+  },
+  {
+    key: 'ico_regen', w: 24, h: 24,
+    draw: (g: G) => {
+      g.fillStyle(0x4ade80)
+      g.fillCircle(8, 9, 5)
+      g.fillCircle(16, 9, 5)
+      g.fillTriangle(3, 11, 21, 11, 12, 22)
+      g.lineStyle(1.5, 0x86efac)
+      g.beginPath()
+      g.arc(19, 4, 4, Math.PI * 0.3, Math.PI * 1.9, false)
+      g.strokePath()
+    },
+  },
 
   // ── power-up icons ──────────────────────────────────────────────────────
   {
