@@ -370,15 +370,31 @@ export function killEnemy(scene: IGameScene, e: any) {
   }
   const crowded = nearbyCount >= CONSOLIDATE_THRESHOLD
 
-  if (crowded && scene.xpOrbs.countActive() < MAX_ORBS) {
-    const angle = Math.random() * Math.PI * 2
-    const dist = CONSOLIDATE_EDGE_MIN + Math.random() * (CONSOLIDATE_EDGE_MAX - CONSOLIDATE_EDGE_MIN)
-    const cx = Math.max(0, Math.min(WORLD, scene.player.x + Math.cos(angle) * dist))
-    const cy = Math.max(0, Math.min(WORLD, scene.player.y + Math.sin(angle) * dist))
-    const orb = scene.xpOrbs.create(cx, cy, 'orb')
-    orb.setDepth(2).setVelocity(0, 0)
-    orb.setData('xpValue', orbCount)
-    scene.tintConsolidatedOrb(orb, orbCount)
+  if (crowded) {
+    let existing: any = null
+    let bestDist2 = Infinity
+    for (const o of scene.xpOrbs.getChildren() as any[]) {
+      if (!o.active) continue
+      if ((o.getData('xpValue') ?? 1) <= 1) continue
+      const dx = scene.player.x - o.x, dy = scene.player.y - o.y
+      const d2 = dx*dx + dy*dy
+      if (d2 < bestDist2) { bestDist2 = d2; existing = o }
+    }
+
+    if (existing) {
+      const newVal = (existing.getData('xpValue') ?? 1) + orbCount
+      existing.setData('xpValue', newVal)
+      scene.tintConsolidatedOrb(existing, newVal)
+    } else if (scene.xpOrbs.countActive() < MAX_ORBS) {
+      const angle = Math.random() * Math.PI * 2
+      const dist = CONSOLIDATE_EDGE_MIN + Math.random() * (CONSOLIDATE_EDGE_MAX - CONSOLIDATE_EDGE_MIN)
+      const cx = Math.max(0, Math.min(WORLD, scene.player.x + Math.cos(angle) * dist))
+      const cy = Math.max(0, Math.min(WORLD, scene.player.y + Math.sin(angle) * dist))
+      const orb = scene.xpOrbs.create(cx, cy, 'orb')
+      orb.setDepth(2).setVelocity(0, 0)
+      orb.setData('xpValue', orbCount)
+      scene.tintConsolidatedOrb(orb, orbCount)
+    }
   } else {
     for (let i = 0; i < orbCount; i++) {
       if (scene.xpOrbs.countActive() < MAX_ORBS) {
@@ -396,8 +412,8 @@ export function killEnemy(scene: IGameScene, e: any) {
 }
 
 export function tintConsolidatedOrb(scene: IGameScene, orb: any, value: number) {
-  const t = Math.min(1, (value - 1) / 15)
+  const t = Math.min(1, (value - 1) / 40)
   const g = Math.round(0x50 * (1 - t))
   orb.setTint((0xff << 16) | (g << 8))
-  orb.setScale(1 + Math.min(1.5, (value - 1) * 0.08))
+  orb.setScale(1 + Math.min(3.5, Math.sqrt(Math.max(0, value - 1)) * 0.25))
 }
