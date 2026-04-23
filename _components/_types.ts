@@ -49,12 +49,11 @@ export const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: num
   drones:     { shootRate: 1800, bulletSpd: 400, damage: 30 },
 }
 
-export type PassiveType = 'movespeed' | 'magnet' | 'orbmult' | 'hp' | 'damage' | 'cooldown' | 'area' | 'projectiles'
-export const ALL_PASSIVE_TYPES: PassiveType[] = ['movespeed', 'magnet', 'orbmult', 'hp', 'damage', 'cooldown', 'area', 'projectiles']
+export type PassiveType = 'movespeed' | 'bounty' | 'hp' | 'damage' | 'cooldown' | 'area' | 'projectiles'
+export const ALL_PASSIVE_TYPES: PassiveType[] = ['movespeed', 'bounty', 'hp', 'damage', 'cooldown', 'area', 'projectiles']
 export const PASSIVE_DATA: Record<PassiveType, { name: string, icon: string, desc: string, maxLevel?: number }> = {
   movespeed:   { name: 'Swift Feet',    icon: 'ico_movespeed',   desc: 'Move 20% faster' },
-  magnet:      { name: 'XP Magnet',     icon: 'ico_magnet',      desc: 'Pull orbs from 50px further away' },
-  orbmult:     { name: 'Bounty Hunter', icon: 'ico_orbmult',     desc: 'Gain 25% more XP from every orb' },
+  bounty:      { name: 'Bounty Magnet', icon: 'ico_magnet',      desc: '+35px pickup range and +15% XP per orb' },
   hp:          { name: 'Vital Surge',   icon: 'ico_hp',          desc: '+25 max HP and +0.5 HP/s regen' },
   damage:      { name: 'Power Core',    icon: 'ico_damage',      desc: '+15% damage for all active weapons' },
   cooldown:    { name: 'Overclock',     icon: 'ico_cooldown',    desc: 'All weapons fire 12% faster' },

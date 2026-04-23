@@ -791,8 +791,7 @@ export function createGameScene(Phaser: any) {
 
     public applyPassiveBoost(pt: PassiveType) {
       if (pt === 'movespeed')   this.bonusMoveSpeed += 0.20
-      if (pt === 'magnet')      this.magnetRadius += 50
-      if (pt === 'orbmult')     this.orbMultiplier += 0.25
+      if (pt === 'bounty')      { this.magnetRadius += 35; this.orbMultiplier += 0.15 }
       if (pt === 'hp')          { this.maxHp += 25; this.hp += 25; this.hpRegen += 0.5 }
       if (pt === 'damage')      this.bonusDamage += 0.15
       if (pt === 'cooldown')    this.bonusCooldown += 0.12
