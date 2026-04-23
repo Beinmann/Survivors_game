@@ -197,6 +197,11 @@ export function createGameScene(Phaser: any) {
           this.showUpgradeMenu()
         }
       })
+      this.input.keyboard?.on('keydown-O', () => {
+        if (!this.dead && !this.levelUpPending && !this.paused && this.weapons.length > 0) {
+          this.gameTime += 10000
+        }
+      })
 
       this.physics.add.collider(this.enemies, this.enemies)
       this.physics.add.collider(this.player, this.obstacles)
