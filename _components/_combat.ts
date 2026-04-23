@@ -646,6 +646,7 @@ export function fireDrones(scene: IGameScene) {
     ).setDepth(4)
     scene.drones.push({
       sprite: s,
+      gfx: scene.add.graphics().setDepth(5),
       target: null,
       atkCd: 0,
       orbitAngle: ang,
@@ -653,6 +654,11 @@ export function fireDrones(scene: IGameScene) {
       diving: false,
       diveTargetX: 0,
       diveTargetY: 0,
+      striking: false,
+      strikeTimer: 0,
+      strikeRot: 0,
+      strikeOffsetX: 0,
+      strikeOffsetY: 0,
     })
   }
 }
@@ -861,8 +867,25 @@ function updateDrones(scene: IGameScene, delta: number) {
 
   for (let i = scene.drones.length - 1; i >= 0; i--) {
     const d = scene.drones[i]
-    if (!d.sprite?.active) { scene.drones.splice(i, 1); continue }
+    if (!d.sprite?.active) { d.gfx?.destroy(); scene.drones.splice(i, 1); continue }
     d.atkCd = Math.max(0, d.atkCd - delta)
+    d.gfx.clear()
+
+    if (d.striking) {
+      d.strikeTimer -= delta
+      if (d.target?.active && d.strikeTimer > 0) {
+        d.sprite.x = d.target.x + d.strikeOffsetX
+        d.sprite.y = d.target.y + d.strikeOffsetY
+        d.sprite.setRotation(d.strikeRot)
+        const alpha = Math.max(0, d.strikeTimer / 200)
+        d.gfx.lineStyle(3, 0xfde68a, alpha)
+        d.gfx.lineBetween(d.sprite.x, d.sprite.y, d.target.x, d.target.y)
+        d.gfx.lineStyle(1.5, 0xfbbf24, Math.min(1, alpha + 0.2))
+        d.gfx.lineBetween(d.sprite.x, d.sprite.y, d.target.x, d.target.y)
+        continue
+      }
+      d.striking = false
+    }
 
     const pdx = d.sprite.x - scene.player.x, pdy = d.sprite.y - scene.player.y
     if (pdx * pdx + pdy * pdy > recallDist2) {
@@ -897,6 +920,11 @@ function updateDrones(scene: IGameScene, delta: number) {
           scene.damageEnemy(d.target, scene.droneDmg, true)
           d.atkCd = scene.weaponShootRates['drones']
           d.diving = false
+          d.striking = true
+          d.strikeTimer = 200
+          d.strikeRot = d.sprite.rotation
+          d.strikeOffsetX = d.sprite.x - d.target.x
+          d.strikeOffsetY = d.sprite.y - d.target.y
           scene.tweens.add({ targets: d.sprite, scale: { from: 1.5, to: 1 }, duration: 180 })
         } else if (ddist < 6) {
           d.diving = false
