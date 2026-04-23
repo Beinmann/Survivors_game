@@ -122,7 +122,7 @@ Difficulty is time-based:
 
 ## Orb consolidation
 
-When 18+ XP orbs are within 180px of the player (a dense cluster right next to them that isn't being picked up), new orbs from kills spawn as a single consolidated orb at 180–260px from the player rather than dropping at the kill site. The consolidated orb's `xpValue` equals the full drop count (1 + orbBonus). It turns red and scales up to reflect its stacked value. A hard cap of 180 active orbs is enforced globally.
+When 70+ XP orbs are within 120px of the player (a dense pile heaped right on top of them that isn't being picked up), new orbs from kills spawn as a single consolidated orb at 60–140px from the player rather than dropping at the kill site. The consolidated orb's `xpValue` equals the full drop count (1 + orbBonus). It turns red and scales up to reflect its stacked value. A hard cap of 180 active orbs is enforced globally.
 
 ---
 
@@ -194,6 +194,6 @@ Phaser must be dynamically imported as it is a browser-only ESM. The `createGame
 | `SPAWN_INTERVAL_MS` | 2500 | Initial enemy spawn interval |
 | `MAX_ORBS` | 180 | Hard cap on active XP orb physics objects |
 | `DESPAWN_DIST` | 2000 | Distance at which enemies silently despawn |
-| `CONSOLIDATE_NEARBY_RADIUS` | 180 | Radius for "crowded" orb check |
-| `CONSOLIDATE_THRESHOLD` | 18 | Nearby orb count that triggers consolidation |
-| `CONSOLIDATE_EDGE_MIN/MAX` | 180 / 260 | Target distance band for consolidated orb |
+| `CONSOLIDATE_NEARBY_RADIUS` | 120 | Radius for "crowded" orb check |
+| `CONSOLIDATE_THRESHOLD` | 70 | Nearby orb count that triggers consolidation |
+| `CONSOLIDATE_EDGE_MIN/MAX` | 60 / 140 | Target distance band for consolidated orb |
