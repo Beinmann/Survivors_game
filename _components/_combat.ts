@@ -200,14 +200,14 @@ function spawnTrailSprite(scene: IGameScene, x: number, y: number) {
   const effectiveTrailSize = scene.trailSize * (1 + scene.bonusArea)
   const f = scene.add.sprite(x, y, 'fire').setDepth(3).setScale(effectiveTrailSize / 16)
   f.setData('isTrail', true)
-  f.setData('expiry', scene.time.now + scene.trailDuration)
+  f.setData('expiry', scene.gameTime + scene.trailDuration)
   scene.trailSprites.push(f)
 }
 
 export function updateTrailSprites(scene: IGameScene, delta: number) {
   if (scene.trailSprites.length === 0) return
 
-  const now = scene.time.now
+  const now = scene.gameTime
   for (let i = scene.trailSprites.length - 1; i >= 0; i--) {
     const f = scene.trailSprites[i]
     if (!f.active) { scene.trailSprites.splice(i, 1); continue }

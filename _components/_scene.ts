@@ -287,6 +287,8 @@ export function createGameScene(Phaser: any) {
       this.paused = !this.paused
       if (this.paused) {
         this.physics.world.pause()
+        this.tweens.pauseAll()
+        this.time.paused = true
         const { width: w, height: h } = this.cameras.main
         const overlay = this.add.graphics().setScrollFactor(0).setDepth(35)
         overlay.fillStyle(0x000000, 0.55).fillRect(0, 0, w, h)
@@ -302,6 +304,8 @@ export function createGameScene(Phaser: any) {
         this.pauseUI.forEach(o => o.destroy())
         this.pauseUI = []
         this.physics.world.resume()
+        this.tweens.resumeAll()
+        this.time.paused = false
         ;(this as any).game.loop.resetDelta()
       }
     }

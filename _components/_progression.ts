@@ -206,6 +206,8 @@ function weaponUnlockDesc(wt: WeaponType): string {
 export function showUpgradeMenu(scene: IGameScene) {
   scene.levelUpPending = true
   scene.physics.world.pause()
+  scene.tweens.pauseAll()
+  scene.time.paused = true
 
   const { width: w, height: h } = scene.cameras.main
   const upgrades = scene.getUpgrades()
@@ -225,13 +227,18 @@ export function showUpgradeMenu(scene: IGameScene) {
     const hint = scene.add.text(w / 2, h / 2 + 55, 'Click to continue', {
       fontSize: '13px', color: '#888899', stroke: '#000', strokeThickness: 2,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(41)
+    let dismissed = false
     const dismiss = () => {
+      if (dismissed) return
+      dismissed = true
       overlay.destroy(); msg.destroy(); sub.destroy(); hint.destroy()
       scene.levelUpPending = false
+      scene.tweens.resumeAll()
+      scene.time.paused = false
       scene.physics.world.resume()
     }
     scene.input.once('pointerdown', dismiss)
-    scene.time.delayedCall(3000, dismiss)
+    window.setTimeout(dismiss, 3000)
     return
   }
 
@@ -302,6 +309,8 @@ export function showUpgradeMenu(scene: IGameScene) {
       scene.hudDirty = true
       scene.children.list.filter((o: any) => o.__menuCard).forEach((o: any) => o.destroy())
       scene.levelUpPending = false
+      scene.tweens.resumeAll()
+      scene.time.paused = false
       scene.physics.world.resume()
     })
 
