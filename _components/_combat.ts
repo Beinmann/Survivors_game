@@ -897,10 +897,14 @@ function updateDrones(scene: IGameScene, delta: number) {
 
     if (!d.target?.active) {
       d.diving = false
+      const claimed = new Set<any>()
+      for (const other of scene.drones) {
+        if (other !== d && other.target?.active) claimed.add(other.target)
+      }
       const enemies = scene.enemies.getChildren() as any[]
       let best: any = null, bestD2 = Infinity
       for (const e of enemies) {
-        if (!e.active) continue
+        if (!e.active || claimed.has(e)) continue
         const d2 = (e.x - d.sprite.x) ** 2 + (e.y - d.sprite.y) ** 2
         if (d2 < bestD2) { bestD2 = d2; best = e }
       }
