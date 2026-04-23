@@ -115,7 +115,7 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
     result.push({
       name: `${WEAPON_NAMES[wt]} Lv ${lvl + 1}`,
       desc: step.desc,
-      icon: step.icon ?? `wico_${wt}`,
+      icon: `wico_${wt}`,
       apply: () => { step.apply(); scene.weaponLevels[wt] = lvl + 1 },
       isWeaponUpgrade: true,
     })
