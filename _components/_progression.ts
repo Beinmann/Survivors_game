@@ -175,9 +175,10 @@ export function getUpgrades(scene: IGameScene) {
     if (!seen.has(u.name) && result.length < 3) { seen.add(u.name); result.push(u) }
   }
 
+  const totalAcquired = scene.weapons.length + scene.passives.length
   const existingUpgrades = [...weaponUpgrades, ...passiveUpgrades]
   const hasExisting = result.some(u => u.isWeaponUpgrade || u.isPassiveUpgrade)
-  if (!hasExisting && existingUpgrades.length > 0) {
+  if (totalAcquired >= 3 && !hasExisting && existingUpgrades.length > 0) {
     const available = existingUpgrades.filter(u => !result.some(r => r.name === u.name))
     const candidates = available.length > 0 ? available : existingUpgrades
     const pick = candidates[Math.floor(Math.random() * candidates.length)]
