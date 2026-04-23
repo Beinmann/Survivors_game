@@ -650,6 +650,9 @@ export function fireDrones(scene: IGameScene) {
       atkCd: 0,
       orbitAngle: ang,
       speed: 460,
+      diving: false,
+      diveTargetX: 0,
+      diveTargetY: 0,
     })
   }
 }
@@ -848,14 +851,29 @@ function updateRailgunCharges(scene: IGameScene, delta: number) {
 
 function updateDrones(scene: IGameScene, delta: number) {
   const dtSec = delta / 1000
-  const standoff = 30
+  const standoff = 55
   const idleRadius = 110
+  const hitRange = 16
+  const dashSpeedMul = 2.8
+  const cam = scene.cameras.main
+  const recallDist = Math.max(cam.width, cam.height) * 0.6
+  const recallDist2 = recallDist * recallDist
+
   for (let i = scene.drones.length - 1; i >= 0; i--) {
     const d = scene.drones[i]
     if (!d.sprite?.active) { scene.drones.splice(i, 1); continue }
     d.atkCd = Math.max(0, d.atkCd - delta)
 
+    const pdx = d.sprite.x - scene.player.x, pdy = d.sprite.y - scene.player.y
+    if (pdx * pdx + pdy * pdy > recallDist2) {
+      d.sprite.x = scene.player.x + Math.cos(d.orbitAngle) * 60
+      d.sprite.y = scene.player.y + Math.sin(d.orbitAngle) * 60
+      d.target = null
+      d.diving = false
+    }
+
     if (!d.target?.active) {
+      d.diving = false
       const enemies = scene.enemies.getChildren() as any[]
       let best: any = null, bestD2 = Infinity
       for (const e of enemies) {
@@ -867,19 +885,38 @@ function updateDrones(scene: IGameScene, delta: number) {
     }
 
     if (d.target?.active) {
-      d.orbitAngle += dtSec * 2.2
-      const tx = d.target.x + Math.cos(d.orbitAngle) * standoff
-      const ty = d.target.y + Math.sin(d.orbitAngle) * standoff
-      const dx = tx - d.sprite.x, dy = ty - d.sprite.y
-      const dist = Math.sqrt(dx * dx + dy * dy) || 1
-      const move = Math.min(d.speed * dtSec, dist)
-      d.sprite.x += (dx / dist) * move
-      d.sprite.y += (dy / dist) * move
-      const fdx = d.target.x - d.sprite.x, fdy = d.target.y - d.sprite.y
-      d.sprite.setRotation(Math.atan2(fdy, fdx))
-      if (fdx * fdx + fdy * fdy < (standoff + 12) ** 2 && d.atkCd <= 0) {
-        scene.damageEnemy(d.target, scene.droneDmg, true)
-        d.atkCd = scene.weaponShootRates['drones']
+      if (d.diving) {
+        const ddx = d.diveTargetX - d.sprite.x, ddy = d.diveTargetY - d.sprite.y
+        const ddist = Math.sqrt(ddx * ddx + ddy * ddy) || 1
+        const move = Math.min(d.speed * dashSpeedMul * dtSec, ddist)
+        d.sprite.x += (ddx / ddist) * move
+        d.sprite.y += (ddy / ddist) * move
+        d.sprite.setRotation(Math.atan2(ddy, ddx))
+        const hdx = d.target.x - d.sprite.x, hdy = d.target.y - d.sprite.y
+        if (hdx * hdx + hdy * hdy < hitRange * hitRange) {
+          scene.damageEnemy(d.target, scene.droneDmg, true)
+          d.atkCd = scene.weaponShootRates['drones']
+          d.diving = false
+          scene.tweens.add({ targets: d.sprite, scale: { from: 1.5, to: 1 }, duration: 180 })
+        } else if (ddist < 6) {
+          d.diving = false
+        }
+      } else {
+        d.orbitAngle += dtSec * 2.2
+        const tx = d.target.x + Math.cos(d.orbitAngle) * standoff
+        const ty = d.target.y + Math.sin(d.orbitAngle) * standoff
+        const dx = tx - d.sprite.x, dy = ty - d.sprite.y
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1
+        const move = Math.min(d.speed * dtSec, dist)
+        d.sprite.x += (dx / dist) * move
+        d.sprite.y += (dy / dist) * move
+        const fdx = d.target.x - d.sprite.x, fdy = d.target.y - d.sprite.y
+        d.sprite.setRotation(Math.atan2(fdy, fdx))
+        if (d.atkCd <= 0 && dist < standoff * 0.8) {
+          d.diving = true
+          d.diveTargetX = d.target.x
+          d.diveTargetY = d.target.y
+        }
       }
     } else {
       d.orbitAngle += dtSec * 1.1
