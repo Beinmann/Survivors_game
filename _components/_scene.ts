@@ -311,7 +311,7 @@ export function createGameScene(Phaser: any) {
       this.iframes = 0; this.dead = false; this.levelUpPending = false
       this.paused = false; this.showBaseStats = false; this.pauseUI = []
       this.extraBullets = 0; this.pierceCount = 2; this.bonusProjectiles = 0
-      this.magnetRadius = 70; this.orbMultiplier = 1.0
+      this.magnetRadius = 145; this.orbMultiplier = 1.0
       this.auraRadius = 110; this.shotgunRange = 220
       this.machineGunBurst = 1; this.machineGunPierce = false
       this.scythesCount = 0; this.scythesRadius = 100; this.scythesLifeSteal = false
