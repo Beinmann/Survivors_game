@@ -281,9 +281,9 @@ export function showWeaponSelection(scene: IGameScene) {
       accent: 0x22d3ee,
     },
     {
-      type: 'railgun', name: 'Railgun',
-      desc: 'Charges then fires a piercing beam.\nReaches across the screen.',
-      stats: '300 dmg · 1.5s charge',
+      type: 'railgun', name: 'Plasma Lance',
+      desc: 'Charges then sustains a piercing beam.\nTicks damage across the screen.',
+      stats: '35 dmg / tick · 1.5s charge · 900ms beam',
       accent: 0x60a5fa,
     },
     {

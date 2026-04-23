@@ -25,7 +25,7 @@ export const WEAPON_NAMES: Record<WeaponType, string> = {
   blackhole: 'Black Hole',
   grenade: 'Grenade Launcher',
   cryo: 'Cryo Shards',
-  railgun: 'Railgun',
+  railgun: 'Plasma Lance',
   drones: 'Swarm Drones',
 }
 
