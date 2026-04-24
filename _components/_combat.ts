@@ -311,6 +311,7 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
     const wt = b.getData('wt')
     const dmg = b.getData('dmg') ?? (wt === 'rocket' ? scene.rocketDmg : scene.shotgunDmg)
     if (wt === 'grenade') {
+      explodeGrenade(scene, b)
       return
     }
     if (wt === 'rocket') {
@@ -564,7 +565,7 @@ export function fireGrenade(scene: IGameScene, angle: number, wt: WeaponType) {
   b.setRotation(angle)
   b.setData('dmg', scene.grenadeDmg)
   b.setData('wt', 'grenade')
-  b.setData('timer', 1500)
+  b.setData('timer', 500)
   b.setData('bouncesLeft', scene.grenadeBounces)
   b.setBounce(1, 1)
   b.setDepth(4)
@@ -578,7 +579,7 @@ export function fireGrenade(scene: IGameScene, angle: number, wt: WeaponType) {
     b2.setRotation(a)
     b2.setData('dmg', scene.grenadeDmg)
     b2.setData('wt', 'grenade')
-    b2.setData('timer', 1500)
+    b2.setData('timer', 500)
     b2.setData('bouncesLeft', scene.grenadeBounces)
     b2.setBounce(1, 1)
     b2.setDepth(4)
