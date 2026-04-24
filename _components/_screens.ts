@@ -307,13 +307,23 @@ export function showWeaponSelection(scene: IGameScene) {
     const cardW = 140, cardH = 100
     const colGap = 160, rowGap = 110
     const startX = w / 2 - colGap * (cols - 1) / 2
-    const startY = 88
+    const viewportTop = 62
+    const viewportBottom = h - 8
+    const viewportH = viewportBottom - viewportTop
+    const startY = viewportTop + cardH / 2 + 6
+
+    const container = (scene.add as any).container(0, 0).setScrollFactor(0).setDepth(51)
+    allUI.push(container)
+
+    const zones: any[] = []
+    const cardCys: number[] = []
 
     pool.forEach((weapon, i) => {
       const cx = startX + (i % cols) * colGap
       const cy = startY + Math.floor(i / cols) * rowGap
+      cardCys.push(cy)
 
-      const bg = scene.add.graphics().setScrollFactor(0).setDepth(51)
+      const bg = scene.add.graphics()
       const draw = (hover: boolean) => {
         bg.clear()
         bg.fillStyle(hover ? 0x1e1e30 : 0x111118)
@@ -326,20 +336,78 @@ export function showWeaponSelection(scene: IGameScene) {
       const nameText = scene.add.text(cx, cy - 28, weapon.name, {
         fontSize: '14px', color: '#ffffff', stroke: '#000', strokeThickness: 2,
         fontStyle: 'bold',
-      }).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(52)
+      }).setOrigin(0.5, 0.5)
 
       const icon = scene.add.image(cx, cy + 18, `wico_${weapon.type}`)
-        .setScrollFactor(0).setDepth(52).setDisplaySize(40, 40)
+        .setDisplaySize(40, 40)
 
       const zone = scene.add.zone(cx, cy, cardW, cardH)
-        .setScrollFactor(0).setDepth(53).setInteractive({ useHandCursor: true })
+        .setInteractive({ useHandCursor: true })
 
       zone.on('pointerover', () => draw(true))
       zone.on('pointerout', () => draw(false))
       zone.on('pointerdown', () => pick(weapon))
 
-      allUI.push(bg, nameText, icon, zone)
+      container.add([bg, nameText, icon, zone])
+      zones.push(zone)
     })
+
+    const maskG = scene.make.graphics({ x: 0, y: 0 })
+    maskG.fillStyle(0xffffff).fillRect(0, viewportTop, w, viewportH)
+    container.setMask(maskG.createGeometryMask())
+    allUI.push(maskG)
+
+    const rows = Math.ceil(pool.length / cols)
+    const contentBottom = startY + (rows - 1) * rowGap + cardH / 2 + 6
+    const maxScroll = Math.max(0, contentBottom - viewportBottom)
+    let scrollY = 0
+
+    const refreshZoneVisibility = () => {
+      for (let i = 0; i < zones.length; i++) {
+        const worldCy = cardCys[i] - scrollY
+        const visible = worldCy + cardH / 2 > viewportTop && worldCy - cardH / 2 < viewportBottom
+        if (zones[i].input) zones[i].input.enabled = visible
+      }
+    }
+
+    const setScroll = (v: number) => {
+      scrollY = Math.max(0, Math.min(maxScroll, v))
+      container.y = -scrollY
+      refreshZoneVisibility()
+    }
+
+    if (maxScroll > 0) {
+      const hint = scene.add.text(w - 12, viewportTop + 4, '▲▼ scroll', {
+        fontSize: '11px', color: '#6b7280',
+      }).setOrigin(1, 0).setScrollFactor(0).setDepth(52)
+      allUI.push(hint)
+
+      const wheelHandler = (_p: any, _objs: any, _dx: number, dy: number) => {
+        setScroll(scrollY + dy * 0.5)
+      }
+      scene.input.on('wheel', wheelHandler)
+
+      const kbd = scene.input.keyboard
+      const onUp = () => setScroll(scrollY - rowGap)
+      const onDown = () => setScroll(scrollY + rowGap)
+      const onPgUp = () => setScroll(scrollY - viewportH)
+      const onPgDown = () => setScroll(scrollY + viewportH)
+      kbd?.on('keydown-UP', onUp)
+      kbd?.on('keydown-DOWN', onDown)
+      kbd?.on('keydown-PAGE_UP', onPgUp)
+      kbd?.on('keydown-PAGE_DOWN', onPgDown)
+
+      const cleanup = { destroy: () => {
+        scene.input.off('wheel', wheelHandler)
+        kbd?.off('keydown-UP', onUp)
+        kbd?.off('keydown-DOWN', onDown)
+        kbd?.off('keydown-PAGE_UP', onPgUp)
+        kbd?.off('keydown-PAGE_DOWN', onPgDown)
+      } }
+      allUI.push(cleanup)
+    }
+
+    refreshZoneVisibility()
   } else {
     const shuffled = [...pool].sort(() => 0.5 - Math.random())
     const selected = shuffled.slice(0, Math.min(3, shuffled.length))

@@ -30,7 +30,7 @@ export function getActiveWave(
   return null
 }
 
-export function showWaveBanner(scene: IGameScene, text: string) {
+export function showWaveBanner(scene: IGameScene, text: string, enemyKeys?: string[]) {
   const { width: w, height: h } = scene.cameras.main
   const banner = scene.add.text(w / 2, h / 2 - 100, text, {
     fontSize: '28px', color: '#facc15', stroke: '#000000', strokeThickness: 5,
@@ -39,6 +39,24 @@ export function showWaveBanner(scene: IGameScene, text: string) {
     targets: banner, alpha: 0, duration: 2500, delay: 500,
     onComplete: () => banner.destroy(),
   })
+
+  if (enemyKeys && enemyKeys.length > 0) {
+    const ordered = ENEMY_TYPES.map(t => t.key).filter(k => enemyKeys.includes(k))
+    const iconSize = 28, gap = 8
+    const rowW = ordered.length * iconSize + (ordered.length - 1) * gap
+    const startX = w / 2 - rowW / 2 + iconSize / 2
+    const y = h / 2 - 100 + 32
+    const icons: any[] = []
+    ordered.forEach((key, i) => {
+      const img = scene.add.image(startX + i * (iconSize + gap), y, key)
+        .setScrollFactor(0).setDepth(30).setDisplaySize(iconSize, iconSize)
+      icons.push(img)
+    })
+    scene.tweens.add({
+      targets: icons, alpha: 0, duration: 2500, delay: 500,
+      onComplete: () => icons.forEach(o => o.destroy()),
+    })
+  }
 }
 
 export function spawnWave(scene: IGameScene) {

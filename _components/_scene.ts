@@ -442,10 +442,13 @@ export function createGameScene(Phaser: any) {
         this.currentWaveIndex = idx
         this.currentWaveEndSec = active ? active.endSec : -1
         if (active) {
-          showWaveBanner(this, `Wave ${idx + 1}: ${active.wave.name}`)
+          const w = active.wave.weights
+          const keys = Object.keys(w).filter(k => (w[k] ?? 0) > 0)
+          showWaveBanner(this, `Wave ${idx + 1}: ${active.wave.name}`, keys)
           if (active.wave.isBoss) this.spawnBossWave()
         } else {
-          showWaveBanner(this, 'ENDLESS — all enemies unleashed')
+          const keys = ENEMY_TYPES.filter(t => t.weight > 0).map(t => t.key)
+          showWaveBanner(this, 'ENDLESS — all enemies unleashed', keys)
         }
       }
 
