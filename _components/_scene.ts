@@ -446,10 +446,6 @@ export function createGameScene(Phaser: any) {
       }
       if (this.frenzyTimer > 0) this.frenzyTimer = Math.max(0, this.frenzyTimer - delta)
       if (this.freezeTimer > 0) this.freezeTimer = Math.max(0, this.freezeTimer - delta)
-      for (const p of this.powerUps.getChildren() as any[]) {
-        const lbl = p.getData('label')
-        if (lbl) lbl.setPosition(p.x, p.y - 26)
-      }
 
       if (this.iframes > 0) {
         this.iframes -= delta
