@@ -45,7 +45,7 @@ Pick one starting weapon; up to two more can be unlocked through the level-up me
 | **Black Hole** | 150px pull · 2.5s duration · tick damage | Radius, duration, pull strength, damage |
 | **Cryo Shards** | 3 shards · 1.5s slow · 900ms cooldown | Shards, slow duration, damage |
 | **Plasma Lance** | 1.5s charge · 900ms sustained beam · pierces all · ticks every 150ms | Charge time, beam width, damage |
-| **Swarm Drones** | 1 drone · 1800ms attack cooldown · persistent swarm orbits nearest enemy | Drone count, damage |
+| **Swarm Drones** | 1 drone · 8s target lock · homes onto a target and zooms past on contact; pass-through damages any enemy en route | Drone count, damage, respawn cooldown |
 
 ---
 

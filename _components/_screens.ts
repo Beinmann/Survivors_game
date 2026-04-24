@@ -282,8 +282,8 @@ export function showWeaponSelection(scene: IGameScene) {
     },
     {
       type: 'drones', name: 'Swarm Drones',
-      desc: 'Deploys drones that ram enemies.\nReturn to you after impact.',
-      stats: '1 drone · 1800ms cooldown',
+      desc: 'Homing drones that chase a target.\nDeal contact damage to anything they pass.',
+      stats: '1 drone · 8s target lock',
       accent: 0xd1d5db,
     },
   ]

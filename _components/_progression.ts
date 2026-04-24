@@ -275,7 +275,7 @@ function weaponUnlockDesc(wt: WeaponType): string {
     blackhole:  'Gravity well · pulls and crushes',
     cryo:       'Icy shards · slow enemies on hit',
     railgun:    'Charges then sustains a piercing beam',
-    drones:     'Autonomous drones · hunt and orbit enemies',
+    drones:     'Homing drones · ram their target, pass-through damage',
   }
   return descs[wt]
 }
