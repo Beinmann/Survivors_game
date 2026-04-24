@@ -598,7 +598,7 @@ export function createGameScene(Phaser: any) {
       const rotSpeed = 0.004
       const angleBase = this.gameTime * rotSpeed
       const areaMul = 1 + this.bonusArea
-      const effectiveScythesRadius = this.scythesRadius * areaMul
+      const effectiveScythesRadius = this.scythesRadius * (1 + this.bonusArea / 3)
       children.forEach((s: any, i: number) => {
         const angle = angleBase + (i / count) * Math.PI * 2
         const x = this.player.x + Math.cos(angle) * effectiveScythesRadius
