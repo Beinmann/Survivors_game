@@ -46,6 +46,7 @@ Pick one starting weapon; up to two more can be unlocked through the level-up me
 | **Cryo Shards** | 3 shards · 1.5s slow · 900ms cooldown | Shards, slow duration, damage |
 | **Plasma Lance** | 1.5s charge · 900ms sustained beam · pierces all · ticks every 150ms | Charge time, beam width, damage |
 | **Swarm Drones** | 1 drone · 8s target lock · homes onto a target and zooms past on contact; pass-through damages any enemy en route | Drone count, damage, respawn cooldown |
+| **Crescent Cleave** | 80 dmg · 1800ms cooldown · 140° forward arc · 150px reach | Damage, radius, arc width, extra slashes |
 
 ---
 

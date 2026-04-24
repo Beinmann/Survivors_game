@@ -2,11 +2,13 @@ export type WeaponType =
   | 'shotgun' | 'sniper' | 'aura' | 'machinegun' | 'scythes' | 'tesla'
   | 'boomerang' | 'rocket' | 'trail'
   | 'laser' | 'turret' | 'orbital' | 'blackhole' | 'cryo' | 'railgun' | 'drones'
+  | 'cleave'
 
 export const ALL_WEAPON_TYPES: WeaponType[] = [
   'shotgun', 'sniper', 'aura', 'machinegun', 'scythes', 'tesla',
   'boomerang', 'rocket', 'trail',
   'laser', 'turret', 'orbital', 'blackhole', 'cryo', 'railgun', 'drones',
+  'cleave',
 ]
 
 export const WEAPON_NAMES: Record<WeaponType, string> = {
@@ -26,6 +28,7 @@ export const WEAPON_NAMES: Record<WeaponType, string> = {
   cryo: 'Cryo Shards',
   railgun: 'Plasma Lance',
   drones: 'Swarm Drones',
+  cleave: 'Crescent Cleave',
 }
 
 export const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: number; damage: number }> = {
@@ -45,6 +48,7 @@ export const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: num
   cryo:       { shootRate: 900,  bulletSpd: 360, damage: 14 },
   railgun:    { shootRate: 4500, bulletSpd: 0,   damage: 35 },
   drones:     { shootRate: 1800, bulletSpd: 400, damage: 30 },
+  cleave:     { shootRate: 1800, bulletSpd: 0,   damage: 80 },
 }
 
 export type PassiveType = 'movespeed' | 'bounty' | 'hp' | 'damage' | 'cooldown' | 'area' | 'projectiles'

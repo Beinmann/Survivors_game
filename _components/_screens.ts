@@ -286,6 +286,12 @@ export function showWeaponSelection(scene: IGameScene) {
       stats: '1 drone · 8s target lock',
       accent: 0xd1d5db,
     },
+    {
+      type: 'cleave', name: 'Crescent Cleave',
+      desc: 'Heavy melee sweep in a wide arc.\nLong cooldown, big burst.',
+      stats: '80 dmg · 140° arc · 1800ms cooldown',
+      accent: 0xfca5a5,
+    },
   ]
 
   const overlay = scene.add.graphics().setScrollFactor(0).setDepth(50)

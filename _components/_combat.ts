@@ -45,6 +45,7 @@ export function autoShoot(scene: IGameScene, time: number) {
       else if (wt === 'blackhole')  scene.fireBlackhole(angle, wt)
       else if (wt === 'cryo')       scene.fireCryo(angle, wt)
       else if (wt === 'railgun')    scene.fireRailgun(angle)
+      else if (wt === 'cleave')     scene.fireCleave(angle)
     }
     scene.weaponCooldowns[wt] = time + scene.effectiveShootRate(wt)
   }
@@ -944,4 +945,83 @@ function updateDrones(scene: IGameScene, delta: number) {
       d.sprite.setRotation(heading)
     }
   }
+}
+
+// ── Crescent Cleave ───────────────────────────────────────────────────────
+
+export function fireCleave(scene: IGameScene, angle: number) {
+  const count = scene.cleaveCount + scene.bonusProjectiles
+  if (count <= 0) return
+  const areaMul = 1 + scene.bonusArea
+  const outerR = scene.cleaveRadius * areaMul
+  const innerR = outerR * 0.35
+  const arc = Math.min(Math.PI * 2, scene.cleaveArc * areaMul)
+  const halfArc = arc / 2
+  const dmg = scene.cleaveDmg
+  const px = scene.player.x, py = scene.player.y
+  const outerR2 = outerR * outerR
+  const innerR2 = innerR * innerR
+
+  for (let i = 0; i < count; i++) {
+    const centerAngle = count > 1 ? angle + (i * Math.PI * 2) / count : angle
+    for (const e of scene.enemies.getChildren() as any[]) {
+      if (!e.active) continue
+      const dx = e.x - px, dy = e.y - py
+      const d2 = dx * dx + dy * dy
+      if (d2 > outerR2 || d2 < innerR2) continue
+      let diff = Math.atan2(dy, dx) - centerAngle
+      while (diff > Math.PI) diff -= Math.PI * 2
+      while (diff < -Math.PI) diff += Math.PI * 2
+      if (Math.abs(diff) > halfArc) continue
+      scene.damageEnemy(e, dmg, true)
+    }
+    spawnCleaveVisual(scene, px, py, centerAngle, innerR, outerR, halfArc)
+  }
+}
+
+function spawnCleaveVisual(scene: IGameScene, px: number, py: number, centerAngle: number, innerR: number, outerR: number, halfArc: number) {
+  const gfx = scene.acquireGfx(6)
+  const steps = 22
+  const startA = centerAngle - halfArc
+  const endA = centerAngle + halfArc
+
+  gfx.fillStyle(0xfca5a5, 0.28)
+  gfx.beginPath()
+  for (let i = 0; i <= steps; i++) {
+    const a = startA + (endA - startA) * (i / steps)
+    const x = px + Math.cos(a) * outerR
+    const y = py + Math.sin(a) * outerR
+    if (i === 0) gfx.moveTo(x, y)
+    else gfx.lineTo(x, y)
+  }
+  for (let i = steps; i >= 0; i--) {
+    const a = startA + (endA - startA) * (i / steps)
+    gfx.lineTo(px + Math.cos(a) * innerR, py + Math.sin(a) * innerR)
+  }
+  gfx.closePath()
+  gfx.fillPath()
+
+  gfx.lineStyle(3, 0xffffff, 0.95)
+  gfx.beginPath()
+  for (let i = 0; i <= steps; i++) {
+    const a = startA + (endA - startA) * (i / steps)
+    const x = px + Math.cos(a) * outerR
+    const y = py + Math.sin(a) * outerR
+    if (i === 0) gfx.moveTo(x, y)
+    else gfx.lineTo(x, y)
+  }
+  gfx.strokePath()
+
+  gfx.lineStyle(1.5, 0xef4444, 0.8)
+  gfx.beginPath()
+  for (let i = 0; i <= steps; i++) {
+    const a = startA + (endA - startA) * (i / steps)
+    const x = px + Math.cos(a) * (outerR * 0.78)
+    const y = py + Math.sin(a) * (outerR * 0.78)
+    if (i === 0) gfx.moveTo(x, y)
+    else gfx.lineTo(x, y)
+  }
+  gfx.strokePath()
+
+  scene.tweens.add({ targets: gfx, alpha: 0, duration: 260, onComplete: () => scene.releaseGfx(gfx) })
 }

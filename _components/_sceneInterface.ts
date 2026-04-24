@@ -103,6 +103,10 @@ export interface IGameScene {
   railgunWidth: number
   droneDmg: number
   droneCount: number
+  cleaveDmg: number
+  cleaveCount: number
+  cleaveRadius: number
+  cleaveArc: number
   bonusProjectiles: number
   powerUpSpawnTimer: number
   frenzyTimer: number
@@ -229,6 +233,7 @@ export interface IGameScene {
   fireCryo(angle: number, wt: WeaponType): void
   fireRailgun(angle: number): void
   fireDrones(): void
+  fireCleave(angle: number): void
   move(): void
   autoShoot(time: number): void
   moveEnemies(delta: number): void

@@ -193,6 +193,43 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
     },
   },
   {
+    key: 'wico_cleave', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      const startA = -Math.PI * 0.78
+      const endA = Math.PI * 0.78
+      const outerR = 12
+      const innerR = 7
+      const steps = 16
+      g.fillStyle(0xfca5a5, 0.35)
+      g.beginPath()
+      for (let i = 0; i <= steps; i++) {
+        const a = startA + (endA - startA) * (i / steps)
+        const x = cx + Math.cos(a) * outerR
+        const y = cy + Math.sin(a) * outerR
+        if (i === 0) g.moveTo(x, y)
+        else g.lineTo(x, y)
+      }
+      for (let i = steps; i >= 0; i--) {
+        const a = startA + (endA - startA) * (i / steps)
+        g.lineTo(cx + Math.cos(a) * innerR, cy + Math.sin(a) * innerR)
+      }
+      g.closePath()
+      g.fillPath()
+      g.lineStyle(2, 0xffffff, 0.95)
+      g.beginPath()
+      for (let i = 0; i <= steps; i++) {
+        const a = startA + (endA - startA) * (i / steps)
+        const x = cx + Math.cos(a) * outerR
+        const y = cy + Math.sin(a) * outerR
+        if (i === 0) g.moveTo(x, y)
+        else g.lineTo(x, y)
+      }
+      g.strokePath()
+      g.fillStyle(0xef4444).fillCircle(cx, cy, 1.8)
+    },
+  },
+  {
     key: 'ico_projectiles', w: 24, h: 24,
     draw: (g: G) => {
       g.fillStyle(0xfbbf24)

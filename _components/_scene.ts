@@ -9,7 +9,7 @@ import { showTitleScreen, showModeSelection, showMapSelection, showWeaponSelecti
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
 import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies } from './_spawning'
-import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireTrail, updateTrailSprites, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireCryo, fireRailgun, fireDrones, updateSpecials } from './_combat'
+import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireTrail, updateTrailSprites, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireCryo, fireRailgun, fireDrones, fireCleave, updateSpecials } from './_combat'
 import { onCollectOrb, getWeaponUpgrades, getUpgrades, showUpgradeMenu, pullOrbs, unlockWeapon } from './_progression'
 import { openDebugMenu, closeDebugMenu, drawDebugOverlays } from './_debug'
 
@@ -120,6 +120,10 @@ export function createGameScene(Phaser: any) {
     public railgunWidth = 0
     public droneDmg = 0
     public droneCount = 0
+    public cleaveDmg = 0
+    public cleaveCount = 0
+    public cleaveRadius = 0
+    public cleaveArc = 0
     public bonusProjectiles = 0
 
     // --- specials (long-lived, manually updated) ---
@@ -342,6 +346,7 @@ export function createGameScene(Phaser: any) {
       this.cryoShardCount = 3; this.cryoSlowDuration = 1500
       this.railgunChargeTime = 1500; this.railgunWidth = 6
       this.droneCount = 1
+      this.cleaveCount = 1; this.cleaveRadius = 150; this.cleaveArc = (140 * Math.PI) / 180
       this.clearSpecials()
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
       this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
@@ -752,6 +757,10 @@ export function createGameScene(Phaser: any) {
       fireDrones(this)
     }
 
+    public fireCleave(angle: number) {
+      fireCleave(this, angle)
+    }
+
     public updateSpecials(delta: number) {
       updateSpecials(this, delta)
     }
@@ -836,6 +845,7 @@ export function createGameScene(Phaser: any) {
       this.cryoDmg = Math.round(WEAPON_BASE['cryo'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['cryo'] ?? 0)))
       this.railgunDmg = Math.round(WEAPON_BASE['railgun'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['railgun'] ?? 0)))
       this.droneDmg = Math.round(WEAPON_BASE['drones'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['drones'] ?? 0)))
+      this.cleaveDmg = Math.round(WEAPON_BASE['cleave'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['cleave'] ?? 0)))
 
       for (const wt of ALL_WEAPON_TYPES) {
         const baseSpd = WEAPON_BASE[wt].bulletSpd

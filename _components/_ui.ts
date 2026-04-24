@@ -152,6 +152,13 @@ export function buildStatLines(scene: IGameScene) {
         { label: 'Drones', value: String(scene.droneCount), icon: 'wico_drones' },
         { label: 'Damage', value: String(dmgValue),         icon: 'ico_damage' },
       )
+    } else if (wt === 'cleave') {
+      lines.push(
+        { label: 'Slashes', value: String(scene.cleaveCount),                                      icon: 'wico_cleave' },
+        { label: 'Radius',  value: String(Math.round(scene.cleaveRadius * (1 + scene.bonusArea))), icon: 'ico_radius' },
+        { label: 'Arc',     value: `${Math.round((scene.cleaveArc * (1 + scene.bonusArea) * 180) / Math.PI)}°`, icon: 'ico_area' },
+        { label: 'Damage',  value: String(dmgValue),                                               icon: 'ico_damage' },
+      )
     }
   }
   lines.push({ label: '── Passive', value: '' })

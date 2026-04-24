@@ -175,6 +175,16 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: '+2 drones  ·  +30% damage',                 icon: 'wico_drones', apply: () => { scene.droneCount += 2; scene.bonusWeaponDmg['drones'] = (scene.bonusWeaponDmg['drones'] ?? 0) + 0.3; scene.recalculateStats() } },
       { desc: '+100% damage  ·  +1 drone  ·  −200ms',      icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['drones'] = (scene.bonusWeaponDmg['drones'] ?? 0) + 1.0; scene.droneCount++; scene.flatWeaponShootRateReductions['drones'] = (scene.flatWeaponShootRateReductions['drones'] ?? 0) + 200; scene.recalculateStats() } },
     ],
+    cleave: [
+      { desc: '+40% damage  ·  +15px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cleave'] = (scene.bonusWeaponDmg['cleave'] ?? 0) + 0.4; scene.cleaveRadius += 15; scene.recalculateStats() } },
+      { desc: '−250ms cooldown  ·  +20° arc',              icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['cleave'] = (scene.flatWeaponShootRateReductions['cleave'] ?? 0) + 250; scene.cleaveArc += (20 * Math.PI) / 180; scene.recalculateStats() } },
+      { desc: '+1 slash  ·  +20% damage',                  icon: 'wico_cleave', apply: () => { scene.cleaveCount++; scene.bonusWeaponDmg['cleave'] = (scene.bonusWeaponDmg['cleave'] ?? 0) + 0.2; scene.recalculateStats() } },
+      { desc: '+50% damage  ·  +20px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cleave'] = (scene.bonusWeaponDmg['cleave'] ?? 0) + 0.5; scene.cleaveRadius += 20; scene.recalculateStats() } },
+      { desc: '−250ms cooldown  ·  +25° arc',              icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['cleave'] = (scene.flatWeaponShootRateReductions['cleave'] ?? 0) + 250; scene.cleaveArc += (25 * Math.PI) / 180; scene.recalculateStats() } },
+      { desc: '+1 slash  ·  +30° arc',                     icon: 'wico_cleave', apply: () => { scene.cleaveCount++; scene.cleaveArc += (30 * Math.PI) / 180 } },
+      { desc: '+70% damage  ·  +25px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cleave'] = (scene.bonusWeaponDmg['cleave'] ?? 0) + 0.7; scene.cleaveRadius += 25; scene.recalculateStats() } },
+      { desc: '+100% damage  ·  +1 slash  ·  −300ms',      icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cleave'] = (scene.bonusWeaponDmg['cleave'] ?? 0) + 1.0; scene.cleaveCount++; scene.flatWeaponShootRateReductions['cleave'] = (scene.flatWeaponShootRateReductions['cleave'] ?? 0) + 300; scene.recalculateStats() } },
+    ],
   }
   const result: any[] = []
   for (const wt of scene.weapons) {
@@ -276,6 +286,7 @@ function weaponUnlockDesc(wt: WeaponType): string {
     cryo:       'Icy shards · slow enemies on hit',
     railgun:    'Charges then sustains a piercing beam',
     drones:     'Homing drones · ram their target, pass-through damage',
+    cleave:     'Crescent slash · heavy burst hit in a wide arc',
   }
   return descs[wt]
 }
@@ -518,6 +529,7 @@ export function unlockWeapon(scene: IGameScene, wt: WeaponType) {
   if (wt === 'drones')   scene.droneCount = 1
   if (wt === 'orbital')  scene.orbitalCount = 1
   if (wt === 'turret')   scene.turretMax = Math.max(scene.turretMax, 2)
+  if (wt === 'cleave')   scene.cleaveCount = 1
 
   if (scene.weaponShootRates[wt] === undefined) {
     scene.weaponShootRates[wt] = WEAPON_BASE[wt].shootRate
