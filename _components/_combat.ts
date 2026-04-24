@@ -338,20 +338,46 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
 
 export function onPlayerHitEnemy(scene: IGameScene, _p: any, _e: any) {
   if (scene.iframes > 0 || scene.debugInvuln) return
+  const e = _e as any
+  if (e?.getData?.('isAmbusher') && e.getData('ambushState') === 'dormant') return
   const contactDmg = 10 + Math.floor((scene.gameTime / 1000) / 60) * 4
   scene.hp = Math.max(0, scene.hp - contactDmg)
   scene.iframes = 650
+  if (e?.getData?.('knockback')) {
+    const dx = scene.player.x - e.x, dy = scene.player.y - e.y
+    const d = Math.hypot(dx, dy) || 1
+    const push = 420
+    scene.player.setVelocity((dx / d) * push, (dy / d) * push)
+  }
   if (scene.hp <= 0) scene.showGameOver()
 }
 
 export function damageEnemy(scene: IGameScene, e: any, dmg: number, flash = true) {
   if (!e.active) return
+  if (e.getData('isAmbusher') && e.getData('ambushState') === 'dormant') {
+    e.setData('ambushState', 'active')
+    e.clearTint()
+    e.setAlpha(1)
+  }
   const hp = e.getData('hp') - dmg
   if (hp <= 0) { scene.killEnemy(e); return }
   e.setData('hp', hp)
+  if (e.getData('berserker') && !e.getData('berserked')) {
+    const maxHp = e.getData('maxHp') ?? hp
+    if (hp / maxHp <= 0.3) {
+      e.setData('berserked', true)
+      e.setData('speed', (e.getData('speed') ?? 75) * 2)
+      e.setTint(0xff0000)
+      return
+    }
+  }
   if (flash) {
     e.setTint(0xffffff)
-    scene.time.delayedCall(90, () => { if (e.active) e.clearTint() })
+    scene.time.delayedCall(90, () => {
+      if (!e.active) return
+      if (e.getData('berserked')) e.setTint(0xff0000)
+      else e.clearTint()
+    })
   }
 }
 
@@ -359,11 +385,10 @@ export function killEnemy(scene: IGameScene, e: any) {
   if (!e.active || e.getData('_dying')) return
   e.setData('_dying', true)
 
-  if (e.getData('explodes')) {
-    const expRadius = 80
+  const doExplosion = (expRadius: number, color: number, ringColor: number, dmgToEnemies: number) => {
     const expFlash = scene.add.graphics().setDepth(8)
-    expFlash.fillStyle(0xff4400, 0.55).fillCircle(e.x, e.y, expRadius)
-    expFlash.lineStyle(2, 0xff8800, 0.9).strokeCircle(e.x, e.y, expRadius)
+    expFlash.fillStyle(color, 0.55).fillCircle(e.x, e.y, expRadius)
+    expFlash.lineStyle(2, ringColor, 0.9).strokeCircle(e.x, e.y, expRadius)
     scene.tweens.add({ targets: expFlash, alpha: 0, duration: 450, onComplete: () => expFlash.destroy() })
 
     const distToPlayer = Math.sqrt((scene.player.x - e.x) ** 2 + (scene.player.y - e.y) ** 2)
@@ -378,8 +403,31 @@ export function killEnemy(scene: IGameScene, e: any) {
     for (const other of scene.enemies.getChildren() as any[]) {
       if (!other.active || other === e) continue
       const dx = other.x - e.x, dy = other.y - e.y
-      if (dx * dx + dy * dy <= expR2) damageEnemy(scene, other, 150, false)
+      if (dx * dx + dy * dy <= expR2) damageEnemy(scene, other, dmgToEnemies, false)
     }
+  }
+
+  if (e.getData('explodes')) {
+    doExplosion(80, 0xff4400, 0xff8800, 150)
+  }
+  if (e.getData('sapper')) {
+    doExplosion(160, 0xfbbf24, 0xb45309, 120)
+  }
+  if (e.getData('splits')) {
+    const count = 3
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2 + Math.random() * 0.3
+      const r = 18 + Math.random() * 10
+      const sx = e.x + Math.cos(a) * r, sy = e.y + Math.sin(a) * r
+      const child = scene.enemies.create(sx, sy, 'enemy_splitterling') as any
+      child.setDepth(3).setData('hp', 20).setData('speed', 140).setData('orbBonus', 0).setData('maxHp', 20)
+    }
+  }
+  if (e.getData('leavesPool')) {
+    const radius = 65
+    const duration = 4000
+    const gfx = scene.add.graphics().setDepth(1)
+    scene.plaguePools.push({ x: e.x, y: e.y, radius, age: 0, duration, tickAccum: 0, gfx })
   }
 
   const orbBonus = e.getData('orbBonus') ?? 0

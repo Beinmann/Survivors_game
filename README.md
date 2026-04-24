@@ -53,20 +53,33 @@ Pick one starting weapon; up to two more can be unlocked through the level-up me
 
 Enemies spawn in waves off-screen (550–800px from the player). New types unlock as the run progresses. Enemies beyond 2000px from the player despawn silently (no orbs, no score).
 
-| Enemy | Color | HP | Speed | Unlock | Weight | Orb bonus | Special |
-|-------|-------|----|-------|--------|--------|-----------|---------|
-| Grunt | Red | 30 | 80 | 0s | 1.0 | 0 | — |
-| Bomber | Dark red | 90 | 44 | 25s | 0.15 | +2 | Rare; explodes on death (80px radius), deals 150 dmg to nearby enemies |
-| Brute | Orange | 110 | 60 | 30s | 0.3 | +4 | Rare, high orb yield |
-| Speeder | Cyan | 28 | 160 | 60s | 1.0 | 0 | Fast |
-| Charger | Orange-red | 80 | 63 | 75s | 0.7 | +1 | Telegraphs then dashes at 380px/s |
-| Ghost | White | 45 | 126 | 90s | 0.9 | 0 | Semi-transparent, passes through obstacles |
-| Tank | Purple | 300 | 42 | 100s | 0.5 | +2 | High HP |
-| Elite | Yellow | 170 | 124 | 150s | 0.8 | +1 | Fast and tanky |
-| Swarm | Pink | 15 | 184 | 180s | 0.8 | 0 | Spawns 5 at once per wave slot |
-| Boss | Red | 1500 | 54 | every 180s | — | +18 | Spawned separately; see Boss Waves |
+| Enemy | Color | HP | Speed | Unlock | Weight | Orb bonus | Maps | Special |
+|-------|-------|----|-------|--------|--------|-----------|------|---------|
+| Grunt | Red | 30 | 80 | 0s | 1.0 | 0 | all | — |
+| Bomber | Dark red | 90 | 44 | 25s | 0.15 | +2 | all | Rare; explodes on death (80px radius), deals 150 dmg to nearby enemies |
+| Brute | Orange | 110 | 60 | 30s | 0.3 | +4 | all | Rare, high orb yield |
+| Speeder | Cyan | 28 | 160 | 60s | 1.0 | 0 | all | Fast |
+| Charger | Orange-red | 80 | 63 | 75s | 0.7 | +1 | all | Telegraphs then dashes at 380px/s |
+| Ghost | White | 45 | 126 | 90s | 0.9 | 0 | all | Semi-transparent, passes through obstacles |
+| Tank | Purple | 300 | 42 | 100s | 0.5 | +2 | all | High HP |
+| Elite | Yellow | 170 | 124 | 150s | 0.8 | +1 | all | Fast and tanky |
+| Swarm | Pink | 15 | 184 | 180s | 0.8 | 0 | all | Spawns 5 at once per wave slot |
+| Splitter | Teal | 120 | 70 | 140s | 0.35 | +3 | all | On death, spawns 3 Splitterlings (fast, 20 HP each) |
+| Healer | Soft green | 60 | 55 | 180s | 0.35 | +2 | all | Pulses every 1.5s, heals all enemies within 140px by 12 HP |
+| Plague | Sickly green | 55 | 70 | 60s | — | +1 | **swamp** | Drops a 65px poison puddle on death (4s, ticks 4 dmg/0.5s) |
+| Nest | Mossy | 220 | 0 | 50s | — | +4 | **swamp** | Stationary; spawns 1 Grunt every 2s, max 3 children alive |
+| Juggernaut | Dark grey | 650 | 35 | 110s | — | +6 | **fortress** | Massive HP; slams the player back on contact |
+| Sapper | Brown/amber | 70 | 50 | 80s | — | +2 | **fortress** | Stops within 150px, telegraphs, detonates a 160px blast for 120 dmg to enemies |
+| Berserker | Deep red | 110 | 75 → 150 | 100s | — | +2 | **fortress** | Under 30% HP, doubles speed and turns bright red |
+| Lockdown | Indigo | 160 | 45 | 120s | — | +3 | **fortress** | 200px aura slows the player's move speed by 40% while inside |
+| Hunter | Pink/magenta | 50 | 110 | 70s | — | +1 | **speedzone** | Orbits the player at ~140px instead of charging in |
+| Dasher | Cyan | 60 | 60 | 90s | — | +1 | **speedzone** | Telegraphs then chains two dashes at 430px/s back-to-back |
+| Blinker | Bright cyan | 45 | 90 | 90s | — | +1 | **speedzone** | Teleports ~140px toward the player every ~2s |
+| Scavenger | Amber | 45 | 130 | 50s | — | 0 | **ruins** | Targets the nearest XP orb instead of the player; destroys orbs on reach |
+| Ambusher | Stone grey | 55 | 120 | 70s | — | +1 | **ruins** | Spawns dormant (rubble); wakes up after 3s, when player gets within 120px, or when damaged |
+| Boss | Red | 1500 | 54 | every 180s | — | +18 | all | Spawned separately; see Boss Waves |
 
-Weight controls selection probability within the available pool. Lower weight = rarer.
+Weight controls selection probability within the available pool. Lower weight = rarer. Map-exclusive enemies have no base weight — they spawn only on the maps that explicitly opt them in.
 
 ### Charger behaviour
 

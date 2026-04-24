@@ -128,6 +128,8 @@ export function createGameScene(Phaser: any) {
     public orbitalStrikes: any[] = []
     public railgunCharges: any[] = []
     public drones: any[] = []
+    public plaguePools: any[] = []
+    public lockdownSlow = 0
 
     // --- power-up state ---
     public powerUpSpawnTimer = 0
@@ -380,6 +382,8 @@ export function createGameScene(Phaser: any) {
       destroyAll(this.orbitalStrikes); this.orbitalStrikes = []
       destroyAll(this.railgunCharges); this.railgunCharges = []
       destroyAll(this.drones); this.drones = []
+      destroyAll(this.plaguePools); this.plaguePools = []
+      this.lockdownSlow = 0
     }
 
     public togglePause() {
@@ -513,7 +517,52 @@ export function createGameScene(Phaser: any) {
       this.updateScythes(delta)
       this.updateTrailSprites(delta)
       this.updateSpecials(delta)
+      this.updatePlaguePools(delta)
+      this.updateLockdownAura()
       this.drawDebugOverlays()
+    }
+
+    public updatePlaguePools(delta: number) {
+      if (this.plaguePools.length === 0) return
+      const px = this.player.x, py = this.player.y
+      for (let i = this.plaguePools.length - 1; i >= 0; i--) {
+        const p = this.plaguePools[i]
+        p.age += delta
+        if (p.age >= p.duration) {
+          if (p.gfx?.active) p.gfx.destroy()
+          this.plaguePools.splice(i, 1)
+          continue
+        }
+        const lifeT = 1 - p.age / p.duration
+        p.gfx.clear()
+        p.gfx.fillStyle(0x65a30d, 0.35 * lifeT + 0.15).fillCircle(p.x, p.y, p.radius)
+        p.gfx.lineStyle(2, 0xa3e635, 0.6 * lifeT).strokeCircle(p.x, p.y, p.radius)
+
+        const dx = px - p.x, dy = py - p.y
+        if (dx*dx + dy*dy <= p.radius * p.radius && this.iframes <= 0 && !this.debugInvuln) {
+          p.tickAccum = (p.tickAccum ?? 0) + delta
+          if (p.tickAccum >= 500) {
+            p.tickAccum -= 500
+            this.hp = Math.max(0, this.hp - 4)
+            if (this.hp <= 0) this.showGameOver()
+          }
+        } else {
+          p.tickAccum = 0
+        }
+      }
+    }
+
+    public updateLockdownAura() {
+      let slow = 0
+      const px = this.player.x, py = this.player.y
+      const r = 200
+      const r2 = r * r
+      for (const e of this.enemies.getChildren() as any[]) {
+        if (!e.active || !e.getData('lockdown')) continue
+        const dx = px - e.x, dy = py - e.y
+        if (dx*dx + dy*dy <= r2) { slow = 0.4; break }
+      }
+      this.lockdownSlow = slow
     }
 
     public updateScythes(delta: number) {
@@ -623,10 +672,11 @@ export function createGameScene(Phaser: any) {
       const up    = this.cursors.up?.isDown || this.wasd.up?.isDown
       const down  = this.cursors.down?.isDown || this.wasd.down?.isDown
 
-      if (left) vx -= this.moveSpeed
-      if (right) vx += this.moveSpeed
-      if (up) vy -= this.moveSpeed
-      if (down) vy += this.moveSpeed
+      const effSpeed = this.moveSpeed * (1 - this.lockdownSlow)
+      if (left) vx -= effSpeed
+      if (right) vx += effSpeed
+      if (up) vy -= effSpeed
+      if (down) vy += effSpeed
       if (vx !== 0 && vy !== 0) { vx *= 0.707; vy *= 0.707 }
       this.player.setVelocity(vx, vy)
     }

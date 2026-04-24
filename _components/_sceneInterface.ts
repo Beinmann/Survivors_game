@@ -164,6 +164,8 @@ export interface IGameScene {
   orbitalStrikes: any[]
   railgunCharges: any[]
   drones: any[]
+  plaguePools: any[]
+  lockdownSlow: number
 
   // --- methods ---
   resetState(): void
@@ -209,6 +211,8 @@ export interface IGameScene {
   _lastAuraRadius: number
   updateTrailSprites(delta: number): void
   updateSpecials(delta: number): void
+  updatePlaguePools(delta: number): void
+  updateLockdownAura(): void
   fireShotgun(angle: number, wt: WeaponType): void
   fireSniper(angle: number, wt: WeaponType): void
   fireMachineGun(angle: number, wt: WeaponType): void

@@ -30,6 +30,8 @@ export const MAPS: readonly MapDef[] = [
     bgPattern: 'hex',
     enemyWeights: {
       enemy_charger: 0.35,
+      enemy_scavenger: 0.8,
+      enemy_ambusher: 0.6,
     },
   },
   {
@@ -52,6 +54,8 @@ export const MAPS: readonly MapDef[] = [
       enemy_charger: 0.1,
       enemy_elite: 0,
       enemy_tank: 0,
+      enemy_plague: 1.5,
+      enemy_nest: 0.4,
     },
   },
   {
@@ -74,6 +78,10 @@ export const MAPS: readonly MapDef[] = [
       enemy_speeder: 0.2,
       enemy_ghost: 0,
       enemy_swarm: 0,
+      enemy_juggernaut: 0.8,
+      enemy_sapper: 0.6,
+      enemy_berserker: 1.0,
+      enemy_lockdown: 0.5,
     },
   },
   {
@@ -96,6 +104,9 @@ export const MAPS: readonly MapDef[] = [
       enemy_tank: 0,
       enemy_bomber: 0,
       enemy_brute: 0,
+      enemy_hunter: 1.4,
+      enemy_dasher: 1.0,
+      enemy_blinker: 1.0,
     },
   },
 ]
