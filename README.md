@@ -53,16 +53,16 @@ Enemies spawn in waves off-screen (550–800px from the player). New types unloc
 
 | Enemy | Color | HP | Speed | Unlock | Weight | Orb bonus | Special |
 |-------|-------|----|-------|--------|--------|-----------|---------|
-| Grunt | Red | 30 | 70 | 0s | 1.0 | 0 | — |
-| Bomber | Dark red | 90 | 38 | 25s | 0.15 | +2 | Rare; explodes on death (80px radius), deals 150 dmg to nearby enemies |
-| Brute | Orange | 110 | 52 | 30s | 0.3 | +4 | Rare, high orb yield |
-| Speeder | Cyan | 28 | 140 | 60s | 1.0 | 0 | Fast |
-| Charger | Orange-red | 80 | 55 | 75s | 0.7 | +1 | Telegraphs then dashes at 380px/s |
-| Ghost | White | 45 | 110 | 90s | 0.9 | 0 | Semi-transparent, passes through obstacles |
-| Tank | Purple | 300 | 36 | 100s | 0.5 | +2 | High HP |
-| Elite | Yellow | 170 | 108 | 150s | 0.8 | +1 | Fast and tanky |
-| Swarm | Pink | 15 | 160 | 180s | 0.8 | 0 | Spawns 5 at once per wave slot |
-| Boss | Red | 1500 | 47 | every 180s | — | +18 | Spawned separately; see Boss Waves |
+| Grunt | Red | 30 | 80 | 0s | 1.0 | 0 | — |
+| Bomber | Dark red | 90 | 44 | 25s | 0.15 | +2 | Rare; explodes on death (80px radius), deals 150 dmg to nearby enemies |
+| Brute | Orange | 110 | 60 | 30s | 0.3 | +4 | Rare, high orb yield |
+| Speeder | Cyan | 28 | 160 | 60s | 1.0 | 0 | Fast |
+| Charger | Orange-red | 80 | 63 | 75s | 0.7 | +1 | Telegraphs then dashes at 380px/s |
+| Ghost | White | 45 | 126 | 90s | 0.9 | 0 | Semi-transparent, passes through obstacles |
+| Tank | Purple | 300 | 42 | 100s | 0.5 | +2 | High HP |
+| Elite | Yellow | 170 | 124 | 150s | 0.8 | +1 | Fast and tanky |
+| Swarm | Pink | 15 | 184 | 180s | 0.8 | 0 | Spawns 5 at once per wave slot |
+| Boss | Red | 1500 | 54 | every 180s | — | +18 | Spawned separately; see Boss Waves |
 
 Weight controls selection probability within the available pool. Lower weight = rarer.
 
@@ -78,9 +78,8 @@ Every 180 seconds a "⚠ BOSS INCOMING" warning appears, then a single Boss enem
 
 ## Difficulty scaling
 
-Difficulty is time-based:
+Difficulty is time-based. Enemy movement speed is flat — only wave size, spawn rate, contact damage, and new enemy unlocks scale with time.
 
-- **Global speed multiplier** = `1 + (gameTimeSecs / 300)` — all enemy movement speeds are multiplied each frame
 - **Wave size** = `2 + floor(gameTimeSecs / 25) + floor(gameTimeSecs / 120)`
 - **Spawn interval** starts at 2500ms, decreases by 30ms per wave, floors at 600ms
 - **Contact damage** = `10 + floor(gameTimeSecs / 60) × 4` (scales every minute)

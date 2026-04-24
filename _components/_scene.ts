@@ -382,7 +382,7 @@ export function createGameScene(Phaser: any) {
         this.timerText.setText(`${Math.floor(totalSecs / 60)}:${(totalSecs % 60).toString().padStart(2, '0')}`)
         this._lastTimerSecs = totalSecs
       }
-      this.globalSpeedMult = 1.0 + (this.gameTime / 1000) / 300
+      this.globalSpeedMult = 1.0
       if (totalSecs >= this.nextBossWave) {
         this.spawnBossWave()
         this.nextBossWave += 180
