@@ -139,13 +139,6 @@ export function buildTextures(scene: IGameScene) {
     g.fillStyle(0xa78bfa, 0.5); g.fillCircle(14, 14, 4)
   }, 28, 28)
 
-  make('grenade', g => {
-    g.fillStyle(0x4b5563); g.fillCircle(7, 7, 6)
-    g.lineStyle(1, 0x9ca3af); g.strokeCircle(7, 7, 6)
-    g.fillStyle(0xfbbf24); g.fillRect(6, 0, 2, 3)
-    g.fillStyle(0xef4444); g.fillCircle(7, 1, 1.5)
-  }, 14, 14)
-
   make('cryoshard', g => {
     g.fillStyle(0x22d3ee); g.fillTriangle(6, 0, 12, 6, 6, 12)
     g.fillTriangle(6, 0, 0, 6, 6, 12)

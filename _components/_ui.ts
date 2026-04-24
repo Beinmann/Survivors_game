@@ -135,12 +135,6 @@ export function buildStatLines(scene: IGameScene) {
         { label: 'Pull',     value: String(scene.blackholePull), icon: 'wico_blackhole' },
         { label: 'Damage',   value: String(dmgValue),            icon: 'ico_damage' },
       )
-    } else if (wt === 'grenade') {
-      lines.push(
-        { label: 'Radius',  value: String(Math.round(scene.grenadeRadius * (1 + scene.bonusArea))), icon: 'ico_radius' },
-        { label: 'Bounces', value: String(scene.grenadeBounces), icon: 'ico_split' },
-        { label: 'Damage',  value: String(dmgValue),             icon: 'ico_damage' },
-      )
     } else if (wt === 'cryo') {
       lines.push(
         { label: 'Shards',     value: String(scene.cryoShardCount), icon: 'wico_cryo' },

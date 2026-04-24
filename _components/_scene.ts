@@ -9,7 +9,7 @@ import { showTitleScreen, showModeSelection, showMapSelection, showWeaponSelecti
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
 import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies } from './_spawning'
-import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireTrail, updateTrailSprites, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireGrenade, fireCryo, fireRailgun, fireDrones, updateSpecials, explodeGrenade } from './_combat'
+import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireTrail, updateTrailSprites, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireCryo, fireRailgun, fireDrones, updateSpecials } from './_combat'
 import { onCollectOrb, getWeaponUpgrades, getUpgrades, showUpgradeMenu, pullOrbs, unlockWeapon } from './_progression'
 
 export function createGameScene(Phaser: any) {
@@ -111,9 +111,6 @@ export function createGameScene(Phaser: any) {
     public blackholeRadius = 0
     public blackholeDuration = 0
     public blackholePull = 0
-    public grenadeDmg = 0
-    public grenadeRadius = 0
-    public grenadeBounces = 0
     public cryoDmg = 0
     public cryoShardCount = 0
     public cryoSlowDuration = 0
@@ -252,15 +249,7 @@ export function createGameScene(Phaser: any) {
       this.physics.add.collider(
         this.bullets,
         this.obstacles,
-        (bullet: any) => {
-          if (bullet.getData('wt') === 'grenade') {
-            const bl = bullet.getData('bouncesLeft') ?? 0
-            if (bl > 0) { bullet.setData('bouncesLeft', bl - 1); return }
-            explodeGrenade(this, bullet)
-            return
-          }
-          bullet.destroy()
-        },
+        (bullet: any) => { bullet.destroy() },
         undefined,
         this
       )
@@ -325,7 +314,6 @@ export function createGameScene(Phaser: any) {
       this.turretDuration = 8000; this.turretFireRate = 400; this.turretMax = 2
       this.orbitalRadius = 110; this.orbitalCount = 1
       this.blackholeRadius = 150; this.blackholeDuration = 2500; this.blackholePull = 160
-      this.grenadeRadius = 80; this.grenadeBounces = 1
       this.cryoShardCount = 3; this.cryoSlowDuration = 1500
       this.railgunChargeTime = 1500; this.railgunWidth = 6
       this.droneCount = 1
@@ -664,10 +652,6 @@ export function createGameScene(Phaser: any) {
       fireBlackhole(this, angle, wt)
     }
 
-    public fireGrenade(angle: number, wt: WeaponType) {
-      fireGrenade(this, angle, wt)
-    }
-
     public fireCryo(angle: number, wt: WeaponType) {
       fireCryo(this, angle, wt)
     }
@@ -749,7 +733,6 @@ export function createGameScene(Phaser: any) {
       this.turretDmg = Math.round(WEAPON_BASE['turret'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['turret'] ?? 0)))
       this.orbitalDmg = Math.round(WEAPON_BASE['orbital'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['orbital'] ?? 0)))
       this.blackholeDmg = Math.round(WEAPON_BASE['blackhole'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['blackhole'] ?? 0)))
-      this.grenadeDmg = Math.round(WEAPON_BASE['grenade'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['grenade'] ?? 0)))
       this.cryoDmg = Math.round(WEAPON_BASE['cryo'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['cryo'] ?? 0)))
       this.railgunDmg = Math.round(WEAPON_BASE['railgun'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['railgun'] ?? 0)))
       this.droneDmg = Math.round(WEAPON_BASE['drones'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['drones'] ?? 0)))

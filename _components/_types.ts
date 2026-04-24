@@ -1,12 +1,12 @@
 export type WeaponType =
   | 'shotgun' | 'sniper' | 'aura' | 'machinegun' | 'scythes' | 'tesla'
   | 'boomerang' | 'rocket' | 'trail'
-  | 'laser' | 'turret' | 'orbital' | 'blackhole' | 'grenade' | 'cryo' | 'railgun' | 'drones'
+  | 'laser' | 'turret' | 'orbital' | 'blackhole' | 'cryo' | 'railgun' | 'drones'
 
 export const ALL_WEAPON_TYPES: WeaponType[] = [
   'shotgun', 'sniper', 'aura', 'machinegun', 'scythes', 'tesla',
   'boomerang', 'rocket', 'trail',
-  'laser', 'turret', 'orbital', 'blackhole', 'grenade', 'cryo', 'railgun', 'drones',
+  'laser', 'turret', 'orbital', 'blackhole', 'cryo', 'railgun', 'drones',
 ]
 
 export const WEAPON_NAMES: Record<WeaponType, string> = {
@@ -23,7 +23,6 @@ export const WEAPON_NAMES: Record<WeaponType, string> = {
   turret: 'Sentry Turret',
   orbital: 'Orbital Strike',
   blackhole: 'Black Hole',
-  grenade: 'Grenade Launcher',
   cryo: 'Cryo Shards',
   railgun: 'Plasma Lance',
   drones: 'Swarm Drones',
@@ -43,7 +42,6 @@ export const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: num
   turret:     { shootRate: 6000, bulletSpd: 460, damage: 18 },
   orbital:    { shootRate: 3500, bulletSpd: 0,   damage: 90 },
   blackhole:  { shootRate: 7000, bulletSpd: 420, damage: 6 },
-  grenade:    { shootRate: 1200, bulletSpd: 380, damage: 55 },
   cryo:       { shootRate: 900,  bulletSpd: 360, damage: 14 },
   railgun:    { shootRate: 4500, bulletSpd: 0,   damage: 35 },
   drones:     { shootRate: 1800, bulletSpd: 400, damage: 30 },

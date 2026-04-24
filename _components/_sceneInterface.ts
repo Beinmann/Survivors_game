@@ -95,9 +95,6 @@ export interface IGameScene {
   blackholeRadius: number
   blackholeDuration: number
   blackholePull: number
-  grenadeDmg: number
-  grenadeRadius: number
-  grenadeBounces: number
   cryoDmg: number
   cryoShardCount: number
   cryoSlowDuration: number
@@ -212,7 +209,6 @@ export interface IGameScene {
   fireTurret(): void
   fireOrbital(): void
   fireBlackhole(angle: number, wt: WeaponType): void
-  fireGrenade(angle: number, wt: WeaponType): void
   fireCryo(angle: number, wt: WeaponType): void
   fireRailgun(angle: number): void
   fireDrones(): void

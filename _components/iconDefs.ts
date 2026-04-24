@@ -156,17 +156,6 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
     },
   },
   {
-    key: 'wico_grenade', w: 28, h: 28,
-    draw: (g: G) => {
-      const cx = 14, cy = 14
-      g.fillStyle(0x4b5563).fillCircle(cx, cy + 1, 9)
-      g.lineStyle(1.5, 0x9ca3af).strokeCircle(cx, cy + 1, 9)
-      g.fillStyle(0xfbbf24).fillRect(cx - 2, cy - 9, 4, 5)
-      g.fillStyle(0xef4444).fillCircle(cx, cy - 9, 2)
-      g.lineStyle(1, 0x1f2937).lineBetween(cx - 5, cy - 2, cx + 5, cy + 4)
-    },
-  },
-  {
     key: 'wico_cryo', w: 28, h: 28,
     draw: (g: G) => {
       const cx = 14, cy = 14

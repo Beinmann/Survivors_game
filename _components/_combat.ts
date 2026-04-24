@@ -43,7 +43,6 @@ export function autoShoot(scene: IGameScene, time: number) {
       else if (wt === 'rocket')     scene.fireRocket(angle, wt)
       else if (wt === 'laser')      scene.fireLaser(angle)
       else if (wt === 'blackhole')  scene.fireBlackhole(angle, wt)
-      else if (wt === 'grenade')    scene.fireGrenade(angle, wt)
       else if (wt === 'cryo')       scene.fireCryo(angle, wt)
       else if (wt === 'railgun')    scene.fireRailgun(angle)
     }
@@ -310,10 +309,6 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
   } else {
     const wt = b.getData('wt')
     const dmg = b.getData('dmg') ?? (wt === 'rocket' ? scene.rocketDmg : scene.shotgunDmg)
-    if (wt === 'grenade') {
-      explodeGrenade(scene, b)
-      return
-    }
     if (wt === 'rocket') {
       const effectiveRocketRadius = scene.rocketRadius * (1 + scene.bonusArea)
       const exp = scene.acquireGfx(15)
@@ -556,54 +551,6 @@ export function fireBlackhole(scene: IGameScene, angle: number, wt: WeaponType) 
   })
 }
 
-// ── Grenade Launcher ──────────────────────────────────────────────────────
-
-export function fireGrenade(scene: IGameScene, angle: number, wt: WeaponType) {
-  const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
-  const b = scene.bullets.create(scene.player.x, scene.player.y, 'grenade') as any
-  b.setVelocity(Math.cos(angle) * spd, Math.sin(angle) * spd)
-  b.setRotation(angle)
-  b.setData('dmg', scene.grenadeDmg)
-  b.setData('wt', 'grenade')
-  b.setData('timer', 500)
-  b.setData('bouncesLeft', scene.grenadeBounces)
-  b.setBounce(1, 1)
-  b.setDepth(4)
-  const bulletScale = 1 + scene.bonusArea * 0.5
-  if (bulletScale !== 1) { b.setScale(bulletScale); b.refreshBody() }
-  const extra = scene.bonusProjectiles
-  for (let i = 0; i < extra; i++) {
-    const a = angle + (i + 1) * 0.18 * (i % 2 === 0 ? 1 : -1)
-    const b2 = scene.bullets.create(scene.player.x, scene.player.y, 'grenade') as any
-    b2.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
-    b2.setRotation(a)
-    b2.setData('dmg', scene.grenadeDmg)
-    b2.setData('wt', 'grenade')
-    b2.setData('timer', 500)
-    b2.setData('bouncesLeft', scene.grenadeBounces)
-    b2.setBounce(1, 1)
-    b2.setDepth(4)
-    if (bulletScale !== 1) { b2.setScale(bulletScale); b2.refreshBody() }
-  }
-}
-
-export function explodeGrenade(scene: IGameScene, b: any) {
-  if (!b.active) return
-  const radius = scene.grenadeRadius * (1 + scene.bonusArea)
-  const dmg = b.getData('dmg') ?? scene.grenadeDmg
-  const exp = scene.acquireGfx(15)
-  exp.fillStyle(0xfbbf24, 0.55).fillCircle(b.x, b.y, radius)
-  exp.lineStyle(2, 0xfde68a, 0.9).strokeCircle(b.x, b.y, radius)
-  scene.tweens.add({ targets: exp, alpha: 0, duration: 280, onComplete: () => scene.releaseGfx(exp) })
-  for (const e of scene.enemies.getChildren() as any[]) {
-    if (!e.active) continue
-    if ((b.x - e.x) ** 2 + (b.y - e.y) ** 2 < radius * radius) {
-      scene.damageEnemy(e, dmg)
-    }
-  }
-  b.destroy()
-}
-
 // ── Cryo Shards ───────────────────────────────────────────────────────────
 
 export function fireCryo(scene: IGameScene, angle: number, wt: WeaponType) {
@@ -680,19 +627,6 @@ export function updateSpecials(scene: IGameScene, delta: number) {
   updateOrbitalStrikes(scene, delta)
   updateRailgunCharges(scene, delta)
   updateDrones(scene, delta)
-  updateGrenadeTimers(scene, delta)
-}
-
-function updateGrenadeTimers(scene: IGameScene, delta: number) {
-  const bullets = scene.bullets.getChildren() as any[]
-  for (let i = bullets.length - 1; i >= 0; i--) {
-    const b = bullets[i]
-    if (!b.active) continue
-    if (b.getData('wt') !== 'grenade') continue
-    const t = (b.getData('timer') ?? 1500) - delta
-    if (t <= 0) { explodeGrenade(scene, b); continue }
-    b.setData('timer', t)
-  }
 }
 
 function updateTurrets(scene: IGameScene, delta: number) {

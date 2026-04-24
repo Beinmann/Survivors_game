@@ -269,12 +269,6 @@ export function showWeaponSelection(scene: IGameScene) {
       accent: 0xa78bfa,
     },
     {
-      type: 'grenade', name: 'Grenade Launcher',
-      desc: 'Timed explosive projectile.\nBounces off walls.',
-      stats: '80px radius · 1200ms cooldown',
-      accent: 0xfbbf24,
-    },
-    {
       type: 'cryo', name: 'Cryo Shards',
       desc: 'Spray of icy shards.\nSlows enemies on impact.',
       stats: '3 shards · 1.5s slow',

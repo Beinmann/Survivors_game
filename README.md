@@ -41,7 +41,6 @@ Pick one starting weapon; up to two more can be unlocked through the level-up me
 | **Sentry Turret** | 8s duration · 400ms fire rate · 2 max | Duration, fire rate, max turrets, damage |
 | **Orbital Strike** | 1 strike · 110px radius · 1s telegraph | Strike count, radius, cooldown, damage |
 | **Black Hole** | 150px pull · 2.5s duration · tick damage | Radius, duration, pull strength, damage |
-| **Grenade Launcher** | 1 bounce · 80px radius · 1.5s fuse | Radius, bounces, cooldown, damage |
 | **Cryo Shards** | 3 shards · 1.5s slow · 900ms cooldown | Shards, slow duration, damage |
 | **Plasma Lance** | 1.5s charge · 900ms sustained beam · pierces all · ticks every 150ms | Charge time, beam width, damage |
 | **Swarm Drones** | 1 drone · 1800ms attack cooldown · persistent swarm orbits nearest enemy | Drone count, damage |
@@ -116,7 +115,7 @@ Difficulty is time-based:
 | Power Core | +15% damage to all active weapons | 5 |
 | Overclock | −12% cooldown on all active weapons | 5 |
 | Arcane Reach | +15% size to all weapons and shots | 5 |
-| Multishot | +1 projectile per volley (shotgun, MG, boomerang, rocket, grenade, cryo, drones) | 2 |
+| Multishot | +1 projectile per volley (shotgun, MG, boomerang, rocket, cryo, drones) | 2 |
 
 ---
 
