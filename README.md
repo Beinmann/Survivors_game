@@ -2,7 +2,7 @@
 
 2026.04.19
 
-Phaser 3 top-down survivor. Pick a starting weapon, kill enemies, collect XP orbs, level up, unlock more weapons, survive as long as possible.
+Phaser 4 top-down survivor. Pick a starting weapon, kill enemies, collect XP orbs, level up, unlock more weapons, survive as long as possible.
 
 **Route:** `/projects/survivors_game`  
 **Source:** `src/app/projects/survivors_game/` (Modular structure)
@@ -115,18 +115,17 @@ Difficulty is time-based. Enemy movement speed is flat — only wave size, spawn
 - XP needed per level scales ×1.25 each level
 - **Level-up menu** shows 3 choices: passive upgrades, the next weapon upgrade (3× weight), or a weapon unlock option (2× weight, available until 3 weapons are active)
 
-**Passive upgrades:**
+**Passive upgrades** *(snapshot — see `_components/_types.ts` `PASSIVE_DATA` for live values):*
 
 | Name | Effect | Max |
 |------|--------|-----|
-| Swift Feet | +20% move speed | 5 |
-| XP Magnet | +50px magnet radius | 5 |
-| Bounty Hunter | +25% XP per orb collected | 5 |
-| Vital Surge | +25 max HP, +25 HP, +0.5 HP/s regen | 5 |
-| Power Core | +15% damage to all active weapons | 5 |
-| Overclock | −12% cooldown on all active weapons | 5 |
+| Swift Feet | Move 20% faster | 5 |
+| Bounty Magnet | +35px pickup range and +15% XP per orb | 5 |
+| Vital Surge | +25 max HP and +0.5 HP/s regen | 5 |
+| Power Core | +15% damage for all active weapons | 5 |
+| Overclock | All weapons fire 12% faster | 5 |
 | Arcane Reach | +15% size to all weapons and shots | 5 |
-| Multishot | +1 projectile per volley (shotgun, MG, boomerang, rocket, cryo, drones) | 2 |
+| Multishot | +1 projectile per volley | 2 |
 
 ---
 
@@ -167,18 +166,26 @@ Obstacles spawn at least 700px from the world center (player start). Ghosts igno
 
 ## Code architecture
 
-The game logic is modularized across several files in `_components/` to maintain clean separation of concerns.
+The game logic is modularized across several files in `_components/` to maintain clean separation of concerns. `AGENTS.md` has the authoritative "which file do I edit for X" map — the table below is an overview.
 
 | File | Responsibility |
 |------|----------------|
 | `Game.tsx` | React wrapper, Phaser initialization, dynamic imports |
 | `_scene.ts` | Main `GameScene` class, state management, and main loop |
+| `_sceneInterface.ts` | `IGameScene` interface — must stay in sync with `_scene.ts` |
 | `_combat.ts` | Shooting logic, collision handlers, and damage calculation |
 | `_progression.ts` | XP collection, level-up logic, and upgrade definitions |
 | `_spawning.ts` | Enemy wave spawning and obstacle generation |
 | `_textures.ts` | Procedural texture generation (Canvas-based) |
-| `_ui.ts` / `_screens.ts` | Heads-up display, upgrade menu, and screen overlays |
-| `_types.ts` / `_constants.ts` | Shared type definitions and game-wide constants |
+| `_ui.ts` | Heads-up display, weapon icons, stats panel |
+| `_screens.ts` | Title, mode, map, weapon-selection, and game-over screens |
+| `_powerups.ts` | `PU_TYPES`, `applyPowerUp` — power-up data and effects |
+| `_types.ts` | `WeaponType` / `PassiveType` unions, base stats, display names |
+| `_enemyTypes.ts` | `ENEMY_TYPES` catalogue — textures auto-derive from it |
+| `_maps.ts` | `MapKey`, `MAPS`, `bgPattern` union, background drawing |
+| `_constants.ts` | World size, spawn rate, orb caps, consolidation tuning |
+| `iconDefs.ts` | Icon drawing definitions (weapon/passive cards, HUD) |
+| `EVOLUTIONS_PLAN.md` | Design notes for weapon evolutions (not code) |
 
 Phaser must be dynamically imported as it is a browser-only ESM. The `createGameScene` factory in `_scene.ts` allows passing the `Phaser` instance into the scene class.
 
