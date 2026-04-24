@@ -2,6 +2,7 @@ import { IGameScene } from './_sceneInterface'
 import { WORLD, DESPAWN_DIST } from './_constants'
 import { ENEMY_TYPES } from './_enemyTypes'
 import { getMapDef } from './_maps'
+import { WaveDef } from './_waves'
 
 function clamp(val: number, min: number, max: number) {
   return Math.max(min, Math.min(max, val))
@@ -16,17 +17,51 @@ export function spawnPressure(scene: IGameScene): number {
   return 2.5
 }
 
+export function getActiveWave(
+  waves: WaveDef[],
+  gameTimeSecs: number,
+): { wave: WaveDef; index: number; startSec: number; endSec: number } | null {
+  let acc = 0
+  for (let i = 0; i < waves.length; i++) {
+    const end = acc + waves[i].durationSec
+    if (gameTimeSecs < end) return { wave: waves[i], index: i, startSec: acc, endSec: end }
+    acc = end
+  }
+  return null
+}
+
+export function showWaveBanner(scene: IGameScene, text: string) {
+  const { width: w, height: h } = scene.cameras.main
+  const banner = scene.add.text(w / 2, h / 2 - 100, text, {
+    fontSize: '28px', color: '#facc15', stroke: '#000000', strokeThickness: 5,
+  }).setOrigin(0.5).setScrollFactor(0).setDepth(30)
+  scene.tweens.add({
+    targets: banner, alpha: 0, duration: 2500, delay: 500,
+    onComplete: () => banner.destroy(),
+  })
+}
+
 export function spawnWave(scene: IGameScene) {
   const gameTimeSecs = scene.gameTime / 1000
   const count = 2 + Math.floor(gameTimeSecs / 25) + Math.floor(gameTimeSecs / 120)
-  const mapWeights = getMapDef(scene.selectedMap).enemyWeights
-  const available = ENEMY_TYPES
-    .filter(t => gameTimeSecs >= t.unlockSecs)
-    .map(t => {
-      const ow = mapWeights[t.key]
-      return ow !== undefined ? { ...t, weight: ow } : t
-    })
-    .filter(t => t.weight > 0)
+  const map = getMapDef(scene.selectedMap)
+  const active = getActiveWave(map.waves, gameTimeSecs)
+
+  let available: typeof ENEMY_TYPES
+  if (active) {
+    const w = active.wave.weights
+    available = ENEMY_TYPES
+      .map(t => ({ ...t, weight: w[t.key] ?? 0 }))
+      .filter(t => t.weight > 0)
+  } else {
+    available = ENEMY_TYPES.filter(t => t.weight > 0)
+  }
+
+  if (available.length === 0) {
+    scene.spawnTimer = scene.spawnRate * spawnPressure(scene)
+    return
+  }
+
   const totalWeight = available.reduce((s, t) => s + t.weight, 0)
   for (let i = 0; i < count; i++) {
     const angle = Math.random() * Math.PI * 2

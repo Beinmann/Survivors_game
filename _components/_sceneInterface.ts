@@ -113,7 +113,9 @@ export interface IGameScene {
   freezeTimer: number
   gameTime: number
   globalSpeedMult: number
-  nextBossWave: number
+  currentWaveIndex: number
+  currentWaveEndSec: number
+  _lastWaveIndexApplied: number
   paused: boolean
   showBaseStats: boolean
   pauseUI: any[]

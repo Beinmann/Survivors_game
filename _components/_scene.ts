@@ -8,7 +8,7 @@ import { buildTextures } from './_textures'
 import { showTitleScreen, showModeSelection, showMapSelection, showWeaponSelection, showGameOver } from './_screens'
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
-import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies } from './_spawning'
+import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies, getActiveWave, showWaveBanner } from './_spawning'
 import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireTrail, updateTrailSprites, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireCryo, fireRailgun, fireDrones, fireCleave, updateSpecials } from './_combat'
 import { onCollectOrb, getWeaponUpgrades, getUpgrades, showUpgradeMenu, pullOrbs, unlockWeapon } from './_progression'
 import { openDebugMenu, closeDebugMenu, drawDebugOverlays } from './_debug'
@@ -143,7 +143,9 @@ export function createGameScene(Phaser: any) {
     // --- timer ---
     public gameTime = 0
     public globalSpeedMult = 0
-    public nextBossWave = 0
+    public currentWaveIndex = 0
+    public currentWaveEndSec = 0
+    public _lastWaveIndexApplied = 0
 
     // --- bonus tracking ---
     public bonusMoveSpeed = 0
@@ -349,7 +351,8 @@ export function createGameScene(Phaser: any) {
       this.cleaveCount = 1; this.cleaveRadius = 150; this.cleaveArc = (140 * Math.PI) / 180
       this.clearSpecials()
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
-      this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
+      this.gameTime = 0; this.globalSpeedMult = 1.0
+      this.currentWaveIndex = 0; this.currentWaveEndSec = 0; this._lastWaveIndexApplied = -1
       this.hudDirty = true
       this._lastHp = -1; this._lastMaxHp = -1; this._lastXp = -1; this._lastXpNeeded = -1
       this.gfxPoolFree = []; this._lastTimerSecs = -1; this._lastEffectStr = ''
@@ -429,9 +432,20 @@ export function createGameScene(Phaser: any) {
         this._lastTimerSecs = totalSecs
       }
       this.globalSpeedMult = 1.0
-      if (totalSecs >= this.nextBossWave) {
-        this.spawnBossWave()
-        this.nextBossWave += 180
+
+      const waves = getMapDef(this.selectedMap).waves
+      const active = getActiveWave(waves, totalSecs)
+      const idx = active ? active.index : waves.length
+      if (idx !== this._lastWaveIndexApplied) {
+        this._lastWaveIndexApplied = idx
+        this.currentWaveIndex = idx
+        this.currentWaveEndSec = active ? active.endSec : -1
+        if (active) {
+          showWaveBanner(this, `Wave ${idx + 1}: ${active.wave.name}`)
+          if (active.wave.isBoss) this.spawnBossWave()
+        } else {
+          showWaveBanner(this, 'ENDLESS — all enemies unleashed')
+        }
       }
 
       this.move()
