@@ -1,5 +1,6 @@
 import { IGameScene } from './_sceneInterface'
 import { WeaponType, PassiveType, WEAPON_NAMES, ALL_WEAPON_TYPES, WEAPON_BASE, PASSIVE_DATA, ALL_PASSIVE_TYPES } from './_types'
+import { isWeaponUnlocked } from './_persistence'
 
 export function onCollectOrb(scene: IGameScene, _p: any, orb: any) {
   const o = orb as any
@@ -220,7 +221,7 @@ export function getUpgrades(scene: IGameScene) {
 
   const weaponUnlockOptions = (!scene.oneWeaponMode && scene.weapons.length < 3)
     ? ALL_WEAPON_TYPES
-        .filter(wt => !scene.weapons.includes(wt))
+        .filter(wt => !scene.weapons.includes(wt) && isWeaponUnlocked(wt))
         .map(wt => ({
           name: `Unlock ${WEAPON_NAMES[wt]}`,
           icon: `wico_${wt}`,
