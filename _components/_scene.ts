@@ -589,7 +589,7 @@ export function createGameScene(Phaser: any) {
         this.scythes.clear(true, true)
         return
       }
-      const count = this.scythesCount
+      const count = this.scythesCount + this.bonusProjectiles
       const children = this.scythes.getChildren()
       if (children.length !== count) {
         this.scythes.clear(true, true)

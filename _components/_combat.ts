@@ -132,7 +132,7 @@ export function fireTesla(scene: IGameScene, angle: number, wt: WeaponType) {
   })
 
   const hitSet = new Set()
-  let jumps = scene.teslaJumps
+  let jumps = scene.teslaJumps + scene.bonusProjectiles
   const chain = () => {
     if (!currentTarget || !currentTarget.active) return
     hitSet.add(currentTarget)
@@ -524,7 +524,8 @@ export function fireLaser(scene: IGameScene, angle: number) {
 // ── Turret ────────────────────────────────────────────────────────────────
 
 export function fireTurret(scene: IGameScene) {
-  while (scene.turrets.length >= scene.turretMax) {
+  const maxTurrets = scene.turretMax + scene.bonusProjectiles
+  while (scene.turrets.length >= maxTurrets) {
     const old = scene.turrets.shift()
     if (old?.sprite?.active) old.sprite.destroy()
   }

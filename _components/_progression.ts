@@ -2,6 +2,11 @@ import { IGameScene } from './_sceneInterface'
 import { WeaponType, PassiveType, WEAPON_NAMES, ALL_WEAPON_TYPES, WEAPON_BASE, PASSIVE_DATA, ALL_PASSIVE_TYPES } from './_types'
 import { isWeaponUnlocked } from './_persistence'
 
+const MULTISHOT_AFFECTS: ReadonlySet<WeaponType> = new Set<WeaponType>([
+  'shotgun', 'machinegun', 'boomerang', 'rocket', 'cryo', 'drones',
+  'cleave', 'scythes', 'tesla', 'turret',
+])
+
 export function onCollectOrb(scene: IGameScene, _p: any, orb: any) {
   const o = orb as any
   const xpValue = o.getData('xpValue') ?? 1
@@ -454,6 +459,34 @@ export function showUpgradeMenu(scene: IGameScene) {
       fontSize: '12px', color: descColor,
       align: 'center', wordWrap: { width: cardW - 16 },
     }).setOrigin(0.5).setScrollFactor(0).setDepth(42)
+
+    const isMultishot = (u.icon as string | undefined) === 'ico_projectiles'
+    if (isMultishot && scene.weapons.length > 0) {
+      const iconSize = 18
+      const gap = 6
+      const rowW = scene.weapons.length * iconSize + (scene.weapons.length - 1) * gap
+      const rowY = cy + 56
+      const startCx = cx - rowW / 2 + iconSize / 2
+      scene.weapons.forEach((wt, idx) => {
+        const ix = startCx + idx * (iconSize + gap)
+        const wIcon = scene.add.image(ix, rowY, `wico_${wt}`)
+          .setDisplaySize(iconSize, iconSize).setScrollFactor(0).setDepth(42)
+        tag(wIcon)
+        if (!MULTISHOT_AFFECTS.has(wt)) {
+          wIcon.setTint(0x666666)
+          const cross = scene.add.graphics().setScrollFactor(0).setDepth(43)
+          cross.lineStyle(2, 0xef4444, 1)
+          const half = iconSize / 2 - 1
+          cross.beginPath()
+          cross.moveTo(ix - half, rowY - half)
+          cross.lineTo(ix + half, rowY + half)
+          cross.moveTo(ix + half, rowY - half)
+          cross.lineTo(ix - half, rowY + half)
+          cross.strokePath()
+          tag(cross)
+        }
+      })
+    }
 
     const zone = scene.add.zone(cx, cy, cardW, cardH)
       .setScrollFactor(0).setDepth(43).setInteractive({ useHandCursor: true })
