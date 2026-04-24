@@ -28,7 +28,9 @@ export const MAPS: readonly MapDef[] = [
     bgDark: 0x101e32,
     bgAccent: 0x2e4870,
     bgPattern: 'hex',
-    enemyWeights: {},
+    enemyWeights: {
+      enemy_charger: 0.35,
+    },
   },
   {
     key: 'swamp',
@@ -47,7 +49,7 @@ export const MAPS: readonly MapDef[] = [
       enemy_swarm: 2.0,
       enemy_speeder: 1.5,
       enemy_grunt: 0.6,
-      enemy_charger: 0.2,
+      enemy_charger: 0.1,
       enemy_elite: 0,
       enemy_tank: 0,
     },
@@ -67,7 +69,7 @@ export const MAPS: readonly MapDef[] = [
       enemy_tank: 1.8,
       enemy_brute: 1.6,
       enemy_elite: 1.8,
-      enemy_charger: 1.5,
+      enemy_charger: 0.25,
       enemy_grunt: 0.4,
       enemy_speeder: 0.2,
       enemy_ghost: 0,
@@ -87,7 +89,7 @@ export const MAPS: readonly MapDef[] = [
     bgPattern: 'circuit',
     enemyWeights: {
       enemy_speeder: 3.0,
-      enemy_charger: 2.5,
+      enemy_charger: 1.2,
       enemy_elite: 2.0,
       enemy_swarm: 1.5,
       enemy_grunt: 0.3,
