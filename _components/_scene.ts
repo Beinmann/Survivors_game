@@ -392,7 +392,7 @@ export function createGameScene(Phaser: any) {
     }
 
     public togglePause() {
-      if (this.dead || this.levelUpPending || this.weapons.length === 0) return
+      if (this.dead || this.levelUpPending || this.weapons.length === 0 || this.debugMenuOpen) return
       this.paused = !this.paused
       if (this.paused) {
         this.physics.world.pause()
@@ -420,7 +420,7 @@ export function createGameScene(Phaser: any) {
     }
 
     update(time: number, delta: number) {
-      if (this.dead || this.levelUpPending || this.weapons.length === 0 || this.paused) return
+      if (this.dead || this.levelUpPending || this.weapons.length === 0 || this.paused || this.debugMenuOpen) return
 
       this.gameTime += delta
       const totalSecs = Math.floor(this.gameTime / 1000)
