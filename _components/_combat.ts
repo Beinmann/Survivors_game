@@ -498,10 +498,24 @@ export function fireTurret(scene: IGameScene) {
 export function fireOrbital(scene: IGameScene) {
   const enemies = scene.enemies.getChildren().filter((e: any) => e.active) as any[]
   if (enemies.length === 0) return
-  const count = scene.orbitalCount
+  const count = Math.min(scene.orbitalCount, enemies.length)
+  const px = scene.player.x, py = scene.player.y
+  const pool = enemies.map((e) => ({
+    e,
+    weight: 1 / (Math.hypot(e.x - px, e.y - py) + 100),
+  }))
   const picks: any[] = []
   for (let i = 0; i < count; i++) {
-    picks.push(enemies[Math.floor(Math.random() * enemies.length)])
+    let total = 0
+    for (const c of pool) total += c.weight
+    let r = Math.random() * total
+    let idx = pool.length - 1
+    for (let j = 0; j < pool.length; j++) {
+      r -= pool[j].weight
+      if (r <= 0) { idx = j; break }
+    }
+    picks.push(pool[idx].e)
+    pool.splice(idx, 1)
   }
   const radius = scene.orbitalRadius * (1 + scene.bonusArea)
   for (const t of picks) {
