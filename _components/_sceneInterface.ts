@@ -113,6 +113,19 @@ export interface IGameScene {
   paused: boolean
   showBaseStats: boolean
   pauseUI: any[]
+
+  // --- debug ---
+  debugInvuln: boolean
+  debugRadiusOverlay: boolean
+  debugHpBars: boolean
+  debugHitboxes: boolean
+  debugMenuOpen: boolean
+  debugLevelQueue: number
+  debugRadiusGfx: any
+  debugHpBarGfx: any
+  debugHitboxGfx: any
+  debugRadiusLabels: any[]
+  debugMenuUI: any[]
   hudDirty: boolean
   _lastHp: number
   _lastMaxHp: number
@@ -217,4 +230,7 @@ export interface IGameScene {
   moveEnemies(delta: number): void
   pullOrbs(): void
   tintConsolidatedOrb(orb: any, value: number): void
+  openDebugMenu(): void
+  closeDebugMenu(): void
+  drawDebugOverlays(): void
 }

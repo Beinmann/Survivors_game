@@ -17,6 +17,8 @@ Phaser 4 top-down survivor. Pick a starting weapon, kill enemies, collect XP orb
 | Space | Start game (title screen) |
 | ESC | Pause / resume |
 | L | Force level-up *(debug)* |
+| O | Skip +10s of game time *(debug)* |
+| U | Open debug menu *(debug)* |
 
 Movement is normalized on diagonals (×0.707). Auto-shooting targets the nearest enemy.
 

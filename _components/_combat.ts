@@ -337,7 +337,7 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
 }
 
 export function onPlayerHitEnemy(scene: IGameScene, _p: any, _e: any) {
-  if (scene.iframes > 0) return
+  if (scene.iframes > 0 || scene.debugInvuln) return
   const contactDmg = 10 + Math.floor((scene.gameTime / 1000) / 60) * 4
   scene.hp = Math.max(0, scene.hp - contactDmg)
   scene.iframes = 650
@@ -367,7 +367,7 @@ export function killEnemy(scene: IGameScene, e: any) {
     scene.tweens.add({ targets: expFlash, alpha: 0, duration: 450, onComplete: () => expFlash.destroy() })
 
     const distToPlayer = Math.sqrt((scene.player.x - e.x) ** 2 + (scene.player.y - e.y) ** 2)
-    if (scene.iframes <= 0 && distToPlayer <= expRadius) {
+    if (scene.iframes <= 0 && !scene.debugInvuln && distToPlayer <= expRadius) {
       const contactDmg = 10 + Math.floor((scene.gameTime / 1000) / 60) * 4
       scene.hp = Math.max(0, scene.hp - contactDmg)
       scene.iframes = 650

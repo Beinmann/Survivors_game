@@ -379,6 +379,12 @@ export function showUpgradeMenu(scene: IGameScene) {
     scene.tweens.resumeAll()
     scene.time.paused = false
     scene.physics.world.resume()
+    if (scene.debugLevelQueue > 0) {
+      scene.debugLevelQueue--
+      scene.level++
+      scene.levelText.setText(`Level ${scene.level}`)
+      scene.showUpgradeMenu()
+    }
   }
 
   const moveLeft   = () => setSelected((selectedIndex - 1 + cardDraws.length) % cardDraws.length)

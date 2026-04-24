@@ -11,6 +11,7 @@ import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_power
 import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies } from './_spawning'
 import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireTrail, updateTrailSprites, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireCryo, fireRailgun, fireDrones, updateSpecials } from './_combat'
 import { onCollectOrb, getWeaponUpgrades, getUpgrades, showUpgradeMenu, pullOrbs, unlockWeapon } from './_progression'
+import { openDebugMenu, closeDebugMenu, drawDebugOverlays } from './_debug'
 
 export function createGameScene(Phaser: any) {
   return class GameScene extends Phaser.Scene implements IGameScene {
@@ -182,6 +183,19 @@ export function createGameScene(Phaser: any) {
     public showBaseStats = false
     public pauseUI: { destroy(): void }[] = []
 
+    // --- debug ---
+    public debugInvuln = false
+    public debugRadiusOverlay = false
+    public debugHpBars = false
+    public debugHitboxes = false
+    public debugMenuOpen = false
+    public debugLevelQueue = 0
+    public debugRadiusGfx!: any
+    public debugHpBarGfx!: any
+    public debugHitboxGfx!: any
+    public debugRadiusLabels: any[] = []
+    public debugMenuUI: any[] = []
+
     constructor() {
       super('GameScene')
     }
@@ -236,6 +250,12 @@ export function createGameScene(Phaser: any) {
           this.gameTime += 10000
         }
       })
+      this.input.keyboard?.on('keydown-U', () => {
+        if (this.debugMenuOpen) return
+        if (!this.dead && !this.levelUpPending && !this.paused && this.weapons.length > 0) {
+          this.openDebugMenu()
+        }
+      })
 
       this.physics.add.collider(this.enemies, this.enemies)
       this.physics.add.collider(this.player, this.obstacles)
@@ -269,6 +289,9 @@ export function createGameScene(Phaser: any) {
       this.xpBar = this.add.graphics().setScrollFactor(0).setDepth(20)
       this.weaponHUDGfx = this.add.graphics().setScrollFactor(0).setDepth(20)
       this.auraGfx = this.add.graphics().setDepth(4)
+      this.debugRadiusGfx = this.add.graphics().setDepth(4)
+      this.debugHpBarGfx = this.add.graphics().setDepth(19)
+      this.debugHitboxGfx = this.add.graphics().setDepth(19)
       this.levelText = this.add.text(12, 12, 'Level 1', {
         fontSize: '14px', color: '#ffffff', stroke: '#000000', strokeThickness: 3,
       }).setScrollFactor(0).setDepth(20)
@@ -326,6 +349,20 @@ export function createGameScene(Phaser: any) {
       if (this.trailSprites) { this.trailSprites.forEach((f: any) => { if (f?.active) f.destroy() }) }
       this.trailSprites = []; this._trailCheckTimer = 0; this._lastAuraRadius = -1
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
+
+      this.debugInvuln = false
+      this.debugRadiusOverlay = false
+      this.debugHpBars = false
+      this.debugHitboxes = false
+      this.debugMenuOpen = false
+      this.debugLevelQueue = 0
+      if (this.debugRadiusLabels) { this.debugRadiusLabels.forEach((l: any) => { try { l.destroy() } catch { /* noop */ } }) }
+      this.debugRadiusLabels = []
+      if (this.debugMenuUI) { this.debugMenuUI.forEach((o: any) => { try { o.destroy() } catch { /* noop */ } }) }
+      this.debugMenuUI = []
+      if (this.debugRadiusGfx) this.debugRadiusGfx.clear()
+      if (this.debugHpBarGfx) this.debugHpBarGfx.clear()
+      if (this.debugHitboxGfx) this.debugHitboxGfx.clear()
     }
 
     public clearSpecials() {
@@ -476,6 +513,7 @@ export function createGameScene(Phaser: any) {
       this.updateScythes(delta)
       this.updateTrailSprites(delta)
       this.updateSpecials(delta)
+      this.drawDebugOverlays()
     }
 
     public updateScythes(delta: number) {
@@ -716,6 +754,18 @@ export function createGameScene(Phaser: any) {
 
     public showUpgradeMenu() {
       showUpgradeMenu(this)
+    }
+
+    public openDebugMenu() {
+      openDebugMenu(this)
+    }
+
+    public closeDebugMenu() {
+      closeDebugMenu(this)
+    }
+
+    public drawDebugOverlays() {
+      drawDebugOverlays(this)
     }
 
     public recalculateStats() {
