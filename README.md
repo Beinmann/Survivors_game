@@ -135,7 +135,7 @@ Difficulty is time-based. Enemy movement speed is flat — only wave size, spawn
 
 ## Orb consolidation
 
-When 70+ XP orbs are within 120px of the player (a dense pile heaped right on top of them that isn't being picked up), new orbs from kills spawn as a single consolidated orb at 60–140px from the player rather than dropping at the kill site. The consolidated orb's `xpValue` equals the full drop count (1 + orbBonus). It turns red and scales up to reflect its stacked value. A hard cap of 180 active orbs is enforced globally.
+Consolidation is vision-based. On-screen kills always drop individual orbs at the kill site (each `xpValue = 1`) so the player gets full kill feedback. Off-screen kills — those outside the camera view plus a 64px margin — instead drop a single consolidated orb at the kill location with `xpValue = 1 + orbBonus`. If another consolidated orb already exists within 300px of the kill site, the new drop merges into it (summing `xpValue`) instead of spawning a new orb. Consolidated orbs turn red and scale up with their stacked value. A hard cap of 180 active orbs is enforced globally.
 
 ---
 
@@ -215,6 +215,5 @@ Phaser must be dynamically imported as it is a browser-only ESM. The `createGame
 | `SPAWN_INTERVAL_MS` | 2500 | Initial enemy spawn interval |
 | `MAX_ORBS` | 180 | Hard cap on active XP orb physics objects |
 | `DESPAWN_DIST` | 2000 | Distance at which enemies silently despawn |
-| `CONSOLIDATE_NEARBY_RADIUS` | 120 | Radius for "crowded" orb check |
-| `CONSOLIDATE_THRESHOLD` | 70 | Nearby orb count that triggers consolidation |
-| `CONSOLIDATE_EDGE_MIN/MAX` | 60 / 140 | Target distance band for consolidated orb |
+| `VISION_MARGIN` | 64 | Margin added to camera view rect when deciding on-screen vs. off-screen kills |
+| `OFFSCREEN_MERGE_RADIUS` | 300 | Max distance between kill site and an existing consolidated orb for the new drop to merge into it |

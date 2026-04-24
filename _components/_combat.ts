@@ -1,5 +1,5 @@
 import { IGameScene } from './_sceneInterface'
-import { WORLD, MAX_ORBS, CONSOLIDATE_NEARBY_RADIUS, CONSOLIDATE_THRESHOLD, CONSOLIDATE_EDGE_MIN, CONSOLIDATE_EDGE_MAX } from './_constants'
+import { MAX_ORBS, VISION_MARGIN, OFFSCREEN_MERGE_RADIUS } from './_constants'
 import { WeaponType, WEAPON_BASE } from './_types'
 
 export function autoShoot(scene: IGameScene, time: number) {
@@ -434,41 +434,14 @@ export function killEnemy(scene: IGameScene, e: any) {
   const orbBonus = e.getData('orbBonus') ?? 0
   const orbCount = 1 + orbBonus
 
-  const cr2 = CONSOLIDATE_NEARBY_RADIUS * CONSOLIDATE_NEARBY_RADIUS
-  let nearbyCount = 0
-  for (const o of scene.xpOrbs.getChildren() as any[]) {
-    if (!o.active) continue
-    const dx = scene.player.x - o.x, dy = scene.player.y - o.y
-    if (dx*dx + dy*dy < cr2) nearbyCount++
-  }
-  const crowded = nearbyCount >= CONSOLIDATE_THRESHOLD
+  const view = scene.cameras.main.worldView
+  const onScreen =
+    e.x >= view.x - VISION_MARGIN &&
+    e.x <= view.x + view.width + VISION_MARGIN &&
+    e.y >= view.y - VISION_MARGIN &&
+    e.y <= view.y + view.height + VISION_MARGIN
 
-  if (crowded) {
-    let existing: any = null
-    let bestDist2 = Infinity
-    for (const o of scene.xpOrbs.getChildren() as any[]) {
-      if (!o.active) continue
-      if ((o.getData('xpValue') ?? 1) <= 1) continue
-      const dx = scene.player.x - o.x, dy = scene.player.y - o.y
-      const d2 = dx*dx + dy*dy
-      if (d2 < bestDist2) { bestDist2 = d2; existing = o }
-    }
-
-    if (existing) {
-      const newVal = (existing.getData('xpValue') ?? 1) + orbCount
-      existing.setData('xpValue', newVal)
-      scene.tintConsolidatedOrb(existing, newVal)
-    } else if (scene.xpOrbs.countActive() < MAX_ORBS) {
-      const angle = Math.random() * Math.PI * 2
-      const dist = CONSOLIDATE_EDGE_MIN + Math.random() * (CONSOLIDATE_EDGE_MAX - CONSOLIDATE_EDGE_MIN)
-      const cx = Math.max(0, Math.min(WORLD, scene.player.x + Math.cos(angle) * dist))
-      const cy = Math.max(0, Math.min(WORLD, scene.player.y + Math.sin(angle) * dist))
-      const orb = scene.xpOrbs.create(cx, cy, 'orb')
-      orb.setDepth(2).setVelocity(0, 0)
-      orb.setData('xpValue', orbCount)
-      scene.tintConsolidatedOrb(orb, orbCount)
-    }
-  } else {
+  if (onScreen) {
     for (let i = 0; i < orbCount; i++) {
       if (scene.xpOrbs.countActive() < MAX_ORBS) {
         const ox = e.x + (Math.random() - 0.5) * 16
@@ -477,6 +450,28 @@ export function killEnemy(scene: IGameScene, e: any) {
         orb.setDepth(2).setVelocity(0, 0)
         orb.setData('xpValue', 1)
       }
+    }
+  } else {
+    const mergeR2 = OFFSCREEN_MERGE_RADIUS * OFFSCREEN_MERGE_RADIUS
+    let existing: any = null
+    let bestDist2 = Infinity
+    for (const o of scene.xpOrbs.getChildren() as any[]) {
+      if (!o.active) continue
+      if ((o.getData('xpValue') ?? 1) <= 1) continue
+      const dx = e.x - o.x, dy = e.y - o.y
+      const d2 = dx * dx + dy * dy
+      if (d2 < mergeR2 && d2 < bestDist2) { bestDist2 = d2; existing = o }
+    }
+
+    if (existing) {
+      const newVal = (existing.getData('xpValue') ?? 1) + orbCount
+      existing.setData('xpValue', newVal)
+      scene.tintConsolidatedOrb(existing, newVal)
+    } else if (scene.xpOrbs.countActive() < MAX_ORBS) {
+      const orb = scene.xpOrbs.create(e.x, e.y, 'orb')
+      orb.setDepth(2).setVelocity(0, 0)
+      orb.setData('xpValue', orbCount)
+      if (orbCount > 1) scene.tintConsolidatedOrb(orb, orbCount)
     }
   }
   e.destroy()

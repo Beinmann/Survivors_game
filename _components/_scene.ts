@@ -1,4 +1,4 @@
-import { WORLD, SPAWN_INTERVAL_MS, MAX_ORBS, DESPAWN_DIST, CONSOLIDATE_NEARBY_RADIUS, CONSOLIDATE_THRESHOLD, CONSOLIDATE_EDGE_MIN, CONSOLIDATE_EDGE_MAX } from './_constants'
+import { WORLD, SPAWN_INTERVAL_MS, MAX_ORBS, DESPAWN_DIST } from './_constants'
 import { MapKey, getMapDef, drawBackground } from './_maps'
 import { WeaponType, PassiveType, ALL_WEAPON_TYPES, WEAPON_NAMES, WEAPON_BASE, PASSIVE_DATA } from './_types'
 import { ENEMY_TYPES } from './_enemyTypes'
