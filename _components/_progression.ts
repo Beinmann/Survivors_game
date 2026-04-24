@@ -1,5 +1,5 @@
 import { IGameScene } from './_sceneInterface'
-import { WeaponType, PassiveType, WEAPON_NAMES, ALL_WEAPON_TYPES, WEAPON_BASE, PASSIVE_DATA, ALL_PASSIVE_TYPES } from './_types'
+import { WeaponType, PassiveType, WEAPON_NAMES, ALL_WEAPON_TYPES, WEAPON_BASE, PASSIVE_DATA, ALL_PASSIVE_TYPES, WEAPON_EVOLUTIONS } from './_types'
 
 export function onCollectOrb(scene: IGameScene, _p: any, orb: any) {
   const o = orb as any
@@ -193,8 +193,29 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
   return result
 }
 
+function getEvolutionOptions(scene: IGameScene): any[] {
+  const result: any[] = []
+  for (const wt of scene.weapons) {
+    if (scene.weaponEvolutions[wt]) continue
+    if ((scene.weaponLevels[wt] ?? 1) < 9) continue
+    const evo = WEAPON_EVOLUTIONS[wt]
+    if (!evo) continue
+    if (!scene.passives.includes(evo.linkedPassive)) continue
+    if ((scene.passiveLevels[evo.linkedPassive] ?? 1) < evo.linkedPassiveMinLevel) continue
+    result.push({
+      name: `Evolve → ${evo.name}`,
+      icon: evo.icon,
+      desc: evo.desc,
+      apply: () => { scene.weaponEvolutions[wt] = true; scene.recalculateStats(); scene.rebuildWeaponHUDTexts() },
+      isEvolution: true as const,
+    })
+  }
+  return result
+}
+
 export function getUpgrades(scene: IGameScene) {
   const weaponUpgrades = scene.getWeaponUpgrades()
+  const evolutionOptions = getEvolutionOptions(scene)
   const passiveUpgrades = scene.passives.map(pt => {
     const lvl = scene.passiveLevels[pt] ?? 1
     const data = PASSIVE_DATA[pt]
@@ -237,6 +258,7 @@ export function getUpgrades(scene: IGameScene) {
     ...passiveUpgrades.flatMap(u => [u, u, u]),
     ...weaponUnlockOptions.flatMap(u => [u, u]),
     ...passiveUnlockOptions.flatMap(u => [u, u]),
+    ...evolutionOptions.flatMap(u => [u, u, u, u]),
   ]
   pool.sort(() => Math.random() - 0.5)
   const seen = new Set<string>()
@@ -247,7 +269,7 @@ export function getUpgrades(scene: IGameScene) {
 
   const totalAcquired = scene.weapons.length + scene.passives.length
   const existingUpgrades = [...weaponUpgrades, ...passiveUpgrades]
-  const hasExisting = result.some(u => u.isWeaponUpgrade || u.isPassiveUpgrade)
+  const hasExisting = result.some(u => u.isWeaponUpgrade || u.isPassiveUpgrade || u.isEvolution)
   if (totalAcquired >= 3 && !hasExisting && existingUpgrades.length > 0) {
     const available = existingUpgrades.filter(u => !result.some(r => r.name === u.name))
     const candidates = available.length > 0 ? available : existingUpgrades
@@ -394,18 +416,19 @@ export function showUpgradeMenu(scene: IGameScene) {
     const isNewWeapon  = !!u.isNewWeapon
     const isPassive    = !!u.isPassiveUpgrade
     const isNewPassive = !!u.isNewPassive
+    const isEvolution  = !!u.isEvolution
 
-    const idleColor   = (isNewWeapon || isNewPassive) ? 0x1f1a0a : isWeapon ? 0x1a1f2e : isPassive ? 0x161f16 : 0x16161e
-    const hoverColor  = (isNewWeapon || isNewPassive) ? 0x2e2210 : isWeapon ? 0x1e2a40 : isPassive ? 0x1e2e1e : 0x2a2a3e
-    const idleBorder  = (isNewWeapon || isNewPassive) ? 0xd97706 : isWeapon ? 0x3b82f6 : isPassive ? 0x10b981 : 0x3a3a5a
-    const hoverBorder = (isNewWeapon || isNewPassive) ? 0xfbbf24 : isWeapon ? 0x60a5fa : isPassive ? 0x34d399 : 0xfbbf24
+    const idleColor   = isEvolution ? 0x1e0a26 : (isNewWeapon || isNewPassive) ? 0x1f1a0a : isWeapon ? 0x1a1f2e : isPassive ? 0x161f16 : 0x16161e
+    const hoverColor  = isEvolution ? 0x3a1450 : (isNewWeapon || isNewPassive) ? 0x2e2210 : isWeapon ? 0x1e2a40 : isPassive ? 0x1e2e1e : 0x2a2a3e
+    const idleBorder  = isEvolution ? 0xa855f7 : (isNewWeapon || isNewPassive) ? 0xd97706 : isWeapon ? 0x3b82f6 : isPassive ? 0x10b981 : 0x3a3a5a
+    const hoverBorder = isEvolution ? 0xfbbf24 : (isNewWeapon || isNewPassive) ? 0xfbbf24 : isWeapon ? 0x60a5fa : isPassive ? 0x34d399 : 0xfbbf24
 
     const bg = scene.add.graphics().setScrollFactor(0).setDepth(41)
     const draw = (hover: boolean) => {
       bg.clear()
       bg.fillStyle(hover ? hoverColor : idleColor)
       bg.fillRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 10)
-      bg.lineStyle(hover || isWeapon || isNewWeapon || isPassive || isNewPassive ? 2 : 1, hover ? hoverBorder : idleBorder)
+      bg.lineStyle(hover || isWeapon || isNewWeapon || isPassive || isNewPassive || isEvolution ? 2 : 1, hover ? hoverBorder : idleBorder)
       bg.strokeRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 10)
     }
     draw(i === selectedIndex)
@@ -416,13 +439,13 @@ export function showUpgradeMenu(scene: IGameScene) {
       .setDisplaySize(24, 24).setScrollFactor(0).setDepth(42)
     tag(iconImg)
 
-    const nameColor = (isNewWeapon || isNewPassive) ? '#fcd34d' : isWeapon ? '#93c5fd' : isPassive ? '#6ee7b7' : '#ffffff'
+    const nameColor = isEvolution ? '#fbbf24' : (isNewWeapon || isNewPassive) ? '#fcd34d' : isWeapon ? '#93c5fd' : isPassive ? '#6ee7b7' : '#ffffff'
     const nameText = scene.add.text(cx, cy - 20, upgrade.name, {
       fontSize: '15px', color: nameColor, stroke: '#000', strokeThickness: 2,
       align: 'center', wordWrap: { width: cardW - 16 },
     }).setOrigin(0.5).setScrollFactor(0).setDepth(42)
 
-    const descColor = (isNewWeapon || isNewPassive) ? '#fde68a' : isWeapon ? '#bfdbfe' : isPassive ? '#a7f3d0' : '#aaaacc'
+    const descColor = isEvolution ? '#e9d5ff' : (isNewWeapon || isNewPassive) ? '#fde68a' : isWeapon ? '#bfdbfe' : isPassive ? '#a7f3d0' : '#aaaacc'
     const descText = scene.add.text(cx, cy + 22, upgrade.desc, {
       fontSize: '12px', color: descColor,
       align: 'center', wordWrap: { width: cardW - 16 },

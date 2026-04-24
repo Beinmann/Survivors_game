@@ -255,10 +255,11 @@ export function rebuildWeaponHUDTexts(scene: IGameScene) {
   
   const slotW = 44, slotH = 44, gap = 4, sx = 10, sy = 74
   
-  scene.weaponHUDIcons = scene.weapons.map((wt, i) =>
-    scene.add.image(sx + i * (slotW + gap) + slotW / 2, sy + slotH / 2 - 5, `wico_${wt}`)
+  scene.weaponHUDIcons = scene.weapons.map((wt, i) => {
+    const iconKey = scene.weaponEvolutions[wt] ? `wico_${wt}_evolved` : `wico_${wt}`
+    return scene.add.image(sx + i * (slotW + gap) + slotW / 2, sy + slotH / 2 - 5, iconKey)
       .setDisplaySize(28, 28).setScrollFactor(0).setDepth(21)
-  )
+  })
 
   scene.weaponHUDLvlTexts = scene.weapons.map((_, i) =>
     scene.add.text(sx + i * (slotW + gap) + slotW / 2, sy + slotH, '', {

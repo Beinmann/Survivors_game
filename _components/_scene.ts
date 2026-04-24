@@ -39,6 +39,7 @@ export function createGameScene(Phaser: any) {
     // --- base state ---
     public weapons: WeaponType[] = []
     public weaponLevels: Partial<Record<WeaponType, number>> = {}
+    public weaponEvolutions: Partial<Record<WeaponType, boolean>> = {}
     public weaponCooldowns: Partial<Record<WeaponType, number>> = {}
     public weaponShootRates: Partial<Record<WeaponType, number>> = {}
     public weaponBulletSpd: Partial<Record<WeaponType, number>> = {}
@@ -287,7 +288,7 @@ export function createGameScene(Phaser: any) {
     }
 
     public resetState() {
-      this.weapons = []; this.weaponLevels = {}; this.weaponCooldowns = {}
+      this.weapons = []; this.weaponLevels = {}; this.weaponEvolutions = {}; this.weaponCooldowns = {}
       this.weaponShootRates = {}; this.weaponBulletSpd = {}
       this.passives = []; this.passiveLevels = {}
       this.bonusMoveSpeed = 0; this.bonusDamage = 0; this.bonusCooldown = 0; this.bonusArea = 0
@@ -727,7 +728,8 @@ export function createGameScene(Phaser: any) {
       this.scythesDmg = Math.round(WEAPON_BASE['scythes'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['scythes'] ?? 0)))
       this.teslaDmg = Math.round(WEAPON_BASE['tesla'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['tesla'] ?? 0)))
       this.boomerangDmg = Math.round(WEAPON_BASE['boomerang'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['boomerang'] ?? 0)))
-      this.rocketDmg = Math.round(WEAPON_BASE['rocket'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['rocket'] ?? 0)))
+      const rocketEvoMult = this.weaponEvolutions['rocket'] ? 2.5 : 1
+      this.rocketDmg = Math.round(WEAPON_BASE['rocket'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['rocket'] ?? 0)) * rocketEvoMult)
       this.trailDmg = Math.round(WEAPON_BASE['trail'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['trail'] ?? 0)))
       this.laserDmg = Math.round(WEAPON_BASE['laser'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['laser'] ?? 0)))
       this.turretDmg = Math.round(WEAPON_BASE['turret'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['turret'] ?? 0)))
@@ -742,7 +744,8 @@ export function createGameScene(Phaser: any) {
         this.weaponBulletSpd[wt] = Math.round(baseSpd * (1 + (this.bonusWeaponBulletSpd[wt] ?? 0)))
 
         const baseRate = WEAPON_BASE[wt].shootRate
-        const flatRed = this.flatWeaponShootRateReductions[wt] ?? 0
+        const evoFlatRed = wt === 'rocket' && this.weaponEvolutions['rocket'] ? 400 : 0
+        const flatRed = (this.flatWeaponShootRateReductions[wt] ?? 0) + evoFlatRed
         const minRate = wt === 'machinegun' ? 50 : (wt === 'sniper' ? 300 : 100)
         this.weaponShootRates[wt] = Math.max(minRate, Math.round(baseRate * (1 - this.bonusCooldown)) - flatRed)
       }

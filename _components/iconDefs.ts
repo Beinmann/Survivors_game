@@ -100,6 +100,17 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
     },
   },
   {
+    key: 'wico_rocket_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      g.fillStyle(0xfbbf24).fillRect(cx - 8, cy - 4, 16, 8)
+      g.fillStyle(0xb45309).fillRect(cx - 6, cy - 2, 12, 4)
+      g.fillStyle(0xef4444).fillRect(cx - 11, cy - 3, 4, 6)
+      g.fillStyle(0xfde68a).fillTriangle(cx + 8, cy - 4, cx + 8, cy + 4, cx + 13, cy)
+    },
+  },
+  {
     key: 'wico_trail', w: 28, h: 28,
     draw: (g: G) => {
       const cx = 14, cy = 14

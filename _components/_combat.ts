@@ -194,16 +194,21 @@ export function fireBoomerang(scene: IGameScene, angle: number, wt: WeaponType) 
 
 export function fireRocket(scene: IGameScene, angle: number, wt: WeaponType) {
   const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
-  const burst = scene.rocketBurst + scene.bonusProjectiles
+  const evolved = !!scene.weaponEvolutions['rocket']
+  const burst = (evolved ? 5 : scene.rocketBurst) + scene.bonusProjectiles
+  const stagger = evolved ? 60 : 100
+  const tex = evolved ? 'rocket_evolved' : 'rocket'
   for (let i = 0; i < burst; i++) {
-    scene.time.delayedCall(i * 100, () => {
+    scene.time.delayedCall(i * stagger, () => {
       if (!scene.player.active) return
-      const b = scene.bullets.create(scene.player.x, scene.player.y, 'rocket') as any
+      const b = scene.bullets.create(scene.player.x, scene.player.y, tex) as any
       b.setVelocity(Math.cos(angle) * spd, Math.sin(angle) * spd)
       b.setRotation(angle)
       b.setData('dmg', scene.rocketDmg)
       b.setData('wt', 'rocket')
       b.setData('homing', true)
+      b.setData('splitDepth', 0)
+      if (evolved) b.setData('evolved', true)
       b.setDepth(4)
     })
   }
@@ -319,12 +324,26 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
           scene.damageEnemy(enemyObj, dmg)
         }
       }
-      if (scene.rocketSplit && !b.getData('split')) {
-        for (let i = 0; i < 3; i++) {
-          const m = scene.bullets.create(b.x, b.y, 'rocket') as any
-          m.setScale(0.5).setData('dmg', Math.floor(dmg / 2)).setData('wt', 'rocket').setData('homing', true).setData('split', true).setDepth(4)
+      const evolvedRocket = !!b.getData('evolved')
+      const splitDepth = b.getData('splitDepth') ?? 0
+      const canSplit = (evolvedRocket || scene.rocketSplit) && splitDepth < 1
+      if (canSplit) {
+        const childCount = evolvedRocket ? 6 : 3
+        const childDmgRatio = evolvedRocket ? 0.7 : 0.5
+        const childSpd = evolvedRocket ? 600 : 400
+        const childTex = evolvedRocket ? 'rocket_evolved' : 'rocket'
+        const childScale = evolvedRocket ? 0.65 : 0.5
+        for (let i = 0; i < childCount; i++) {
+          const m = scene.bullets.create(b.x, b.y, childTex) as any
+          m.setScale(childScale)
+            .setData('dmg', Math.max(1, Math.floor(dmg * childDmgRatio)))
+            .setData('wt', 'rocket')
+            .setData('homing', true)
+            .setData('splitDepth', splitDepth + 1)
+            .setDepth(4)
+          if (evolvedRocket) m.setData('evolved', true)
           const ma = Math.random() * Math.PI * 2
-          m.setVelocity(Math.cos(ma) * 400, Math.sin(ma) * 400)
+          m.setVelocity(Math.cos(ma) * childSpd, Math.sin(ma) * childSpd)
         }
       }
     }

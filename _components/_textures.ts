@@ -115,6 +115,14 @@ export function buildTextures(scene: IGameScene) {
     g.fillStyle(0xef4444); g.fillRect(0, 3, 3, 4)
   }, 16, 10)
 
+  make('rocket_evolved', g => {
+    g.fillStyle(0xfbbf24); g.fillRect(2, 1, 14, 8)
+    g.fillStyle(0xb45309); g.fillRect(3, 3, 12, 4)
+    g.fillStyle(0xef4444); g.fillRect(0, 2, 4, 6)
+    g.fillStyle(0xfde68a); g.fillRect(13, 3, 3, 4)
+    g.lineStyle(1, 0xfde68a, 0.9); g.strokeRect(2, 1, 14, 8)
+  }, 18, 10)
+
   make('fire', g => {
     g.fillStyle(0xf97316, 0.8); g.fillCircle(8, 8, 8)
     g.fillStyle(0xfacc15, 0.5); g.fillCircle(8, 8, 5)

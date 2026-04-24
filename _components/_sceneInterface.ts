@@ -25,6 +25,7 @@ export interface IGameScene {
   // --- state ---
   weapons: WeaponType[]
   weaponLevels: Partial<Record<WeaponType, number>>
+  weaponEvolutions: Partial<Record<WeaponType, boolean>>
   weaponCooldowns: Partial<Record<WeaponType, number>>
   weaponShootRates: Partial<Record<WeaponType, number>>
   weaponBulletSpd: Partial<Record<WeaponType, number>>

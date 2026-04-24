@@ -47,6 +47,18 @@ Pick one starting weapon; up to two more can be unlocked through the level-up me
 
 ---
 
+## Weapon evolutions
+
+Once a weapon reaches **level 9** and you hold the right **passive at a required level**, an **Evolution** card can appear in the level-up menu (purple/gold border). Picking it upgrades the weapon in place — the slot stays the same, but firing, damage, and the HUD icon all change.
+
+| Base weapon | Evolution | Linked passive | Required level | What changes |
+|---|---|---|---|---|
+| Homing Rockets | Swarm Barrage | Power Core | 3 | 5-rocket salvo at 60ms stagger, +150% damage, −400ms cooldown, cluster always splits into 6 homing shards at 70% damage |
+
+Evolution cards have slightly higher pool weight than regular upgrades, so they are very likely but not guaranteed to show up right after eligibility. After evolving, no more level upgrades appear for that weapon.
+
+---
+
 ## Enemy types
 
 Enemies spawn in waves off-screen (550–800px from the player). New types unlock as the run progresses. Enemies beyond 2000px from the player despawn silently (no orbs, no score).

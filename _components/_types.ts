@@ -58,3 +58,21 @@ export const PASSIVE_DATA: Record<PassiveType, { name: string, icon: string, des
   area:        { name: 'Arcane Reach',  icon: 'ico_area',        desc: '+15% size to all weapons and shots' },
   projectiles: { name: 'Multishot',     icon: 'ico_projectiles', desc: '+1 projectile per volley', maxLevel: 2 },
 }
+
+export type EvolutionDef = {
+  name: string
+  desc: string
+  icon: string
+  linkedPassive: PassiveType
+  linkedPassiveMinLevel: number
+}
+
+export const WEAPON_EVOLUTIONS: Partial<Record<WeaponType, EvolutionDef>> = {
+  rocket: {
+    name: 'Swarm Barrage',
+    desc: '5-rocket salvo · each shatters into 6 homing shards',
+    icon: 'wico_rocket_evolved',
+    linkedPassive: 'damage',
+    linkedPassiveMinLevel: 3,
+  },
+}
