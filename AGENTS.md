@@ -41,10 +41,16 @@ These are the invariants that TypeScript will *not* catch. Violating them produc
 
 `WeaponType`, `PassiveType`, `MapKey`, and `bgPattern` are all string-literal unions. Adding a member does **not** trigger a compile error at every consumer — most consumers use `if (wt === 'x')` chains or non-exhaustive `switch` statements that silently do nothing for the new value.
 
-**Before adding a member, grep for every consumer of the union:**
+**Before adding a member, grep for every consumer of the union.** Use the union name (type-safe — won't go stale as literals are added):
 ```bash
-# Replace PATTERN with the union name, or with the new literal
-grep -rn "WeaponType\|'shotgun'\|'sniper'\|'aura'\|'machinegun'\|'scythes'\|'tesla'\|'boomerang'\|'rocket'\|'trail'" _components/
+grep -rn "WeaponType\b" _components/
+grep -rn "PassiveType\b" _components/
+grep -rn "MapKey\b"     _components/
+grep -rn "bgPattern\b"  _components/
+```
+For a spot-check of all current literals (source of truth: `_components/_types.ts`):
+```bash
+grep -rnE "'(shotgun|sniper|aura|machinegun|scythes|tesla|boomerang|rocket|trail|laser|turret|orbital|blackhole|cryo|railgun|drones)'" _components/
 ```
 Count matches. Then verify each one handles your new value. There are ~90+ weapon-type branch sites alone. **Missing one = the feature is silently dead** (no firing, no icon, no upgrade card, etc.).
 
