@@ -365,15 +365,14 @@ export function showUpgradeMenu(scene: IGameScene) {
     cardDraws.forEach((d, idx) => d(idx === selectedIndex))
   }
 
-  const confirm = (i: number) => {
+  const cleanup = () => {
     scene.input.keyboard?.off('keydown-LEFT', moveLeft)
     scene.input.keyboard?.off('keydown-A', moveLeft)
     scene.input.keyboard?.off('keydown-RIGHT', moveRight)
     scene.input.keyboard?.off('keydown-D', moveRight)
     scene.input.keyboard?.off('keydown-SPACE', confirmKey)
     scene.input.keyboard?.off('keydown-ENTER', confirmKey)
-    upgrades[i].apply()
-    scene.hudDirty = true
+    scene.input.keyboard?.off('keydown-ESC', skip)
     scene.children.list.filter((o: any) => o.__menuCard).forEach((o: any) => o.destroy())
     scene.levelUpPending = false
     scene.tweens.resumeAll()
@@ -385,6 +384,16 @@ export function showUpgradeMenu(scene: IGameScene) {
       scene.levelText.setText(`Level ${scene.level}`)
       scene.showUpgradeMenu()
     }
+  }
+
+  const confirm = (i: number) => {
+    upgrades[i].apply()
+    scene.hudDirty = true
+    cleanup()
+  }
+
+  const skip = () => {
+    cleanup()
   }
 
   const moveLeft   = () => setSelected((selectedIndex - 1 + cardDraws.length) % cardDraws.length)
@@ -443,12 +452,35 @@ export function showUpgradeMenu(scene: IGameScene) {
     tag(bg); tag(nameText); tag(descText); tag(zone)
   })
 
+  const skipW = 140, skipH = 32
+  const skipY = h / 2 + cardH / 2 + 35
+  const skipBg = scene.add.graphics().setScrollFactor(0).setDepth(41)
+  let skipHover = false
+  const drawSkip = () => {
+    skipBg.clear()
+    skipBg.fillStyle(skipHover ? 0x2a2a3e : 0x16161e)
+    skipBg.fillRoundedRect(w / 2 - skipW / 2, skipY - skipH / 2, skipW, skipH, 8)
+    skipBg.lineStyle(skipHover ? 2 : 1, skipHover ? 0xfbbf24 : 0x3a3a5a)
+    skipBg.strokeRoundedRect(w / 2 - skipW / 2, skipY - skipH / 2, skipW, skipH, 8)
+  }
+  drawSkip()
+  const skipText = scene.add.text(w / 2, skipY, 'Skip (Esc)', {
+    fontSize: '13px', color: '#aaaacc', stroke: '#000', strokeThickness: 2,
+  }).setOrigin(0.5).setScrollFactor(0).setDepth(42)
+  const skipZone = scene.add.zone(w / 2, skipY, skipW, skipH)
+    .setScrollFactor(0).setDepth(43).setInteractive({ useHandCursor: true })
+  skipZone.on('pointerover', () => { skipHover = true; drawSkip() })
+  skipZone.on('pointerout',  () => { skipHover = false; drawSkip() })
+  skipZone.on('pointerdown', () => skip())
+  tag(skipBg); tag(skipText); tag(skipZone)
+
   scene.input.keyboard?.on('keydown-LEFT',  moveLeft)
   scene.input.keyboard?.on('keydown-A',     moveLeft)
   scene.input.keyboard?.on('keydown-RIGHT', moveRight)
   scene.input.keyboard?.on('keydown-D',     moveRight)
   scene.input.keyboard?.on('keydown-SPACE', confirmKey)
   scene.input.keyboard?.on('keydown-ENTER', confirmKey)
+  scene.input.keyboard?.on('keydown-ESC',   skip)
 
   scene.addStatsPanel((o: any) => tag(o))
 }
