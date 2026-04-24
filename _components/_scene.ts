@@ -5,7 +5,7 @@ import { ENEMY_TYPES } from './_enemyTypes'
 import { ICON_DEFS } from './iconDefs'
 import { IGameScene } from './_sceneInterface'
 import { buildTextures } from './_textures'
-import { showTitleScreen, showModeSelection, showMapSelection, showWeaponSelection, showGameOver } from './_screens'
+import { showTitleScreen, showModeSelection, showMapSelection, showWeaponSelection, showGameOver, showShop } from './_screens'
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
 import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies, getActiveWave, showWaveBanner } from './_spawning'
@@ -53,6 +53,7 @@ export function createGameScene(Phaser: any) {
     public xpNeeded = 0
     public level = 0
     public score = 0
+    public runCoins = 0
     public spawnTimer = 0
     public spawnRate = 0
     public iframes = 0
@@ -327,7 +328,7 @@ export function createGameScene(Phaser: any) {
 
       this.hp = 100; this.maxHp = 100; this.hpRegen = 0; this._hpRegenAccum = 0
       this.xp = 0; this.xpNeeded = 10
-      this.level = 1; this.score = 0
+      this.level = 1; this.score = 0; this.runCoins = 0
       this.spawnTimer = 0; this.spawnRate = SPAWN_INTERVAL_MS
       this.iframes = 0; this.dead = false; this.levelUpPending = false; this.maxLevelShown = false
       this.paused = false; this.showBaseStats = false; this.pauseUI = []
@@ -965,6 +966,10 @@ export function createGameScene(Phaser: any) {
 
     public showGameOver() {
       showGameOver(this)
+    }
+
+    public showShop() {
+      showShop(this)
     }
 
     // ─── power-ups ──────────────────────────────────────────────────────

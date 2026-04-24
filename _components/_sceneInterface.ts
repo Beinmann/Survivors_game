@@ -38,6 +38,7 @@ export interface IGameScene {
   xpNeeded: number
   level: number
   score: number
+  runCoins: number
   spawnTimer: number
   spawnRate: number
   iframes: number
@@ -204,6 +205,7 @@ export interface IGameScene {
   showMapSelection(): void
   showWeaponSelection(): void
   showGameOver(): void
+  showShop(): void
   unlockWeapon(wt: WeaponType): void
   rebuildWeaponHUDTexts(): void
   unlockPassive(pt: PassiveType): void

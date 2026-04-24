@@ -2,6 +2,7 @@ import { IGameScene } from './_sceneInterface'
 import { ALL_WEAPON_TYPES, WEAPON_NAMES, WeaponType } from './_types'
 import { PU_TYPES } from './_powerups'
 import { ENEMY_TYPES } from './_enemyTypes'
+import { awardCoins } from './_persistence'
 
 const MAX_HP_BY_KEY: Record<string, number> = (() => {
   const m: Record<string, number> = { enemy_boss: 1500 }
@@ -50,6 +51,10 @@ const mainEntries: DebugEntry[] = [
   {
     label: () => '+1000 XP',
     run: (s) => { s.xp += 1000; s.hudDirty = true },
+  },
+  {
+    label: () => '+1000 coins (shop currency)',
+    run: () => { awardCoins(1000) },
   },
   {
     label: () => 'Unlock ALL weapons (bypass 3-cap)',

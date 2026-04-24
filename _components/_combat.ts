@@ -476,6 +476,8 @@ export function killEnemy(scene: IGameScene, e: any) {
   }
   e.destroy()
   scene.score++
+  const orbBonusVal = e.getData('orbBonus') ?? 0
+  scene.runCoins += e.getData('boss') ? 20 : (orbBonusVal > 0 ? 3 : 1)
   scene.scoreText.setText(`Score: ${scene.score}`)
 }
 
