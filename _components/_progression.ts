@@ -461,31 +461,21 @@ export function showUpgradeMenu(scene: IGameScene) {
     }).setOrigin(0.5).setScrollFactor(0).setDepth(42)
 
     const isMultishot = (u.icon as string | undefined) === 'ico_projectiles'
-    if (isMultishot && scene.weapons.length > 0) {
-      const iconSize = 18
-      const gap = 6
-      const rowW = scene.weapons.length * iconSize + (scene.weapons.length - 1) * gap
-      const rowY = cy + 56
-      const startCx = cx - rowW / 2 + iconSize / 2
-      scene.weapons.forEach((wt, idx) => {
-        const ix = startCx + idx * (iconSize + gap)
-        const wIcon = scene.add.image(ix, rowY, `wico_${wt}`)
-          .setDisplaySize(iconSize, iconSize).setScrollFactor(0).setDepth(42)
-        tag(wIcon)
-        if (!MULTISHOT_AFFECTS.has(wt)) {
-          wIcon.setTint(0x666666)
-          const cross = scene.add.graphics().setScrollFactor(0).setDepth(43)
-          cross.lineStyle(2, 0xef4444, 1)
-          const half = iconSize / 2 - 1
-          cross.beginPath()
-          cross.moveTo(ix - half, rowY - half)
-          cross.lineTo(ix + half, rowY + half)
-          cross.moveTo(ix + half, rowY - half)
-          cross.lineTo(ix - half, rowY + half)
-          cross.strokePath()
-          tag(cross)
-        }
-      })
+    if (isMultishot) {
+      const affected = scene.weapons.filter(wt => MULTISHOT_AFFECTS.has(wt))
+      if (affected.length > 0) {
+        const iconSize = 18
+        const gap = 6
+        const rowW = affected.length * iconSize + (affected.length - 1) * gap
+        const rowY = cy + 56
+        const startCx = cx - rowW / 2 + iconSize / 2
+        affected.forEach((wt, idx) => {
+          const ix = startCx + idx * (iconSize + gap)
+          const wIcon = scene.add.image(ix, rowY, `wico_${wt}`)
+            .setDisplaySize(iconSize, iconSize).setScrollFactor(0).setDepth(42)
+          tag(wIcon)
+        })
+      }
     }
 
     const zone = scene.add.zone(cx, cy, cardW, cardH)
