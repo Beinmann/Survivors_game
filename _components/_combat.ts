@@ -504,27 +504,7 @@ export function killEnemy(scene: IGameScene, e: any) {
   e.setData('_dying', true)
 
   if (scene.weaponEvolutions['cryo'] && (e.getData('slowed') ?? 0) > 0 && !e.getData('_cryoCascadeChild')) {
-    const cx = e.x, cy = e.y
-    const childSpd = (scene.weaponBulletSpd['cryo'] ?? WEAPON_BASE['cryo'].bulletSpd) * 0.7
-    const childDmg = Math.max(1, Math.floor(scene.cryoDmg * 0.4))
-    const bulletScale = (1 + scene.bonusArea * 0.5) * 0.6
-    const baseAng = Math.random() * Math.PI * 2
-    for (let i = 0; i < 3; i++) {
-      const ang = baseAng + (i / 3) * Math.PI * 2 + (Math.random() - 0.5) * 0.3
-      const m = scene.bullets.create(cx, cy, 'cryoshard') as any
-      m.setVelocity(Math.cos(ang) * childSpd, Math.sin(ang) * childSpd)
-      m.setRotation(ang)
-      m.setData('sx', cx).setData('sy', cy)
-      m.setData('maxRange', 180)
-      m.setData('dmg', childDmg)
-      m.setData('wt', 'cryo')
-      m.setData('cascadeChild', true)
-      m.setData('pierceLeft', 999)
-      m.setData('hitEnemies', new Set())
-      m.setScale(bulletScale)
-      m.refreshBody?.()
-      m.setDepth(4)
-    }
+    spawnSnowflakeBurst(scene, e.x, e.y)
   }
 
   const doExplosion = (expRadius: number, color: number, ringColor: number, dmgToEnemies: number) => {
@@ -850,6 +830,52 @@ export function fireCryo(scene: IGameScene, angle: number, wt: WeaponType) {
     b.setData('hitEnemies', new Set())
     b.setDepth(4)
     if (bulletScale !== 1) { b.setScale(bulletScale); b.refreshBody() }
+  }
+}
+
+function spawnSnowflakeBurst(scene: IGameScene, cx: number, cy: number) {
+  const radius = 90 * (1 + scene.bonusArea)
+  const dmg = Math.max(1, Math.floor(scene.cryoDmg * 0.7))
+  const baseAng = Math.random() * Math.PI * 2
+
+  const g = scene.acquireGfx(8)
+  g.setAlpha(1)
+  const arms = 6
+  for (let i = 0; i < arms; i++) {
+    const a = baseAng + (i * Math.PI * 2) / arms
+    const tx = cx + Math.cos(a) * radius
+    const ty = cy + Math.sin(a) * radius
+    g.lineStyle(3, 0x67e8f9, 0.95).lineBetween(cx, cy, tx, ty)
+    g.lineStyle(1.5, 0xecfeff, 1).lineBetween(cx, cy, tx, ty)
+    // Side barbs at ~60% along each arm
+    const bx = cx + Math.cos(a) * radius * 0.6
+    const by = cy + Math.sin(a) * radius * 0.6
+    const barbLen = radius * 0.25
+    const ap = a + Math.PI / 3
+    const am = a - Math.PI / 3
+    g.lineStyle(2, 0xa5f3fc, 0.85)
+    g.lineBetween(bx, by, bx + Math.cos(ap) * barbLen, by + Math.sin(ap) * barbLen)
+    g.lineBetween(bx, by, bx + Math.cos(am) * barbLen, by + Math.sin(am) * barbLen)
+  }
+  g.fillStyle(0xecfeff, 0.9).fillCircle(cx, cy, 6)
+  g.lineStyle(2, 0x67e8f9, 0.9).strokeCircle(cx, cy, radius)
+  scene.tweens.add({
+    targets: g,
+    alpha: 0,
+    duration: 380,
+    onComplete: () => scene.releaseGfx(g),
+  })
+
+  const r2 = radius * radius
+  for (const enemyObj of scene.enemies.getChildren() as any[]) {
+    if (!enemyObj.active || enemyObj === undefined) continue
+    const dx = enemyObj.x - cx, dy = enemyObj.y - cy
+    if (dx * dx + dy * dy > r2) continue
+    enemyObj.setData('_cryoCascadeChild', true)
+    if ((enemyObj.getData('slowed') ?? 0) <= 0) {
+      enemyObj.setData('slowed', scene.cryoSlowDuration)
+    }
+    scene.damageEnemy(enemyObj, dmg, false)
   }
 }
 

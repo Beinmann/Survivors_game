@@ -86,7 +86,7 @@ export const WEAPON_EVOLUTIONS: Partial<Record<WeaponType, EvolutionDef>> = {
   },
   cryo: {
     name: 'Shatter Cascade',
-    desc: 'Slowed enemies that die spawn 3 child shards radially',
+    desc: 'Slowed enemies detonate in a snowflake burst that damages and slows nearby enemies',
     icon: 'wico_cryo_evolved',
     linkedPassive: 'projectiles',
     linkedPassiveMinLevel: 2,
