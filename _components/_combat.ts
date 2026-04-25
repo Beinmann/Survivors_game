@@ -141,7 +141,11 @@ export function fireTesla(scene: IGameScene, angle: number, wt: WeaponType) {
   if (targets.length === 0) return
 
   const px = playerEmitX(scene), py = playerEmitY(scene)
-  let currentTarget = targets.reduce((a, b) => {
+  const teslaRange = 200 * (1 + scene.bonusArea)
+  const nearby = targets.filter(e => e.active &&
+    Math.sqrt((px - e.x) ** 2 + (py - e.y) ** 2) <= teslaRange)
+  if (nearby.length === 0) return
+  let currentTarget = nearby.reduce((a, b) => {
     const distA = Math.sqrt((px - a.x) ** 2 + (py - a.y) ** 2)
     const distB = Math.sqrt((px - b.x) ** 2 + (py - b.y) ** 2)
     return distA <= distB ? a : b
