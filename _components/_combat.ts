@@ -48,6 +48,11 @@ export function autoShoot(scene: IGameScene, time: number) {
       scene.fireDrones()
     } else {
       if (!nearest) continue
+      // Evolved blackhole: suppress fire while the binary pair is still active.
+      // Cooldown is left expired so the next shot fires the instant they collapse;
+      // if the player's fire rate is slower than the pair lifetime, the cooldown
+      // check above gates it normally.
+      if (wt === 'blackhole' && scene.weaponEvolutions['blackhole'] && scene.blackholes.some((b: any) => b.evolved)) continue
       if (wt === 'shotgun')    scene.fireShotgun(angle, wt)
       else if (wt === 'sniper')     scene.fireSniper(angle, wt)
       else if (wt === 'machinegun') scene.fireMachineGun(angle, wt)
@@ -1288,8 +1293,10 @@ function updateBlackholes(scene: IGameScene, delta: number) {
       const px = bh.binaryPair.sprite.x - bh.sprite.x
       const py = bh.binaryPair.sprite.y - bh.sprite.y
       const d = Math.hypot(px, py) || 1
+      // Inverse-distance term gives a gravity-like acceleration when the cores
+      // get close, on top of the slow base drift that begins at long range.
       const closeness = Math.max(0, Math.min(1, 1 - d / 400))
-      const driftSpd = 18 + closeness * closeness * 90
+      const driftSpd = 25 + closeness * closeness * 75 + 4500 / Math.max(d, 28)
       bh.sprite.x += (px / d) * driftSpd * delta / 1000
       bh.sprite.y += (py / d) * driftSpd * delta / 1000
       // Detonate when the visual sprite cores touch (the projectile thrown out),
