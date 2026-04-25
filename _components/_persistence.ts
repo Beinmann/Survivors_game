@@ -93,6 +93,15 @@ function saveMeta(m: MetaSave): void {
   }
 }
 
+export function resetMeta(): void {
+  if (!hasLS()) return
+  try {
+    window.localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // ignore
+  }
+}
+
 export function getCoins(): number {
   return loadMeta().coins
 }

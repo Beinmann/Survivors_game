@@ -6,6 +6,7 @@ import {
   isWeaponUnlocked, unlockWeaponMeta,
   isModeUnlocked, unlockMode,
   getWeaponCost, getModeCost,
+  resetMeta,
 } from './_persistence'
 
 interface WeaponMeta {
@@ -515,6 +516,32 @@ export function showShop(scene: IGameScene) {
     fontSize: '18px', color: '#fde047', stroke: '#000', strokeThickness: 3,
   }).setOrigin(1, 0.5).setScrollFactor(0).setDepth(51)
   ui.push(coinsText)
+
+  const resetBtn = scene.add.text(w - 20, 56, '[ RESET PROGRESS ]', {
+    fontSize: '12px', color: '#fca5a5', stroke: '#000', strokeThickness: 2,
+  }).setOrigin(1, 0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
+  ui.push(resetBtn)
+  let confirmReset = false
+  let confirmTimer: number | null = null
+  const resetIdle = () => {
+    confirmReset = false
+    resetBtn.setText('[ RESET PROGRESS ]').setColor('#fca5a5')
+    if (confirmTimer !== null) { window.clearTimeout(confirmTimer); confirmTimer = null }
+  }
+  resetBtn.on('pointerover', () => resetBtn.setColor(confirmReset ? '#fee2e2' : '#fecaca'))
+  resetBtn.on('pointerout',  () => resetBtn.setColor(confirmReset ? '#ef4444' : '#fca5a5'))
+  resetBtn.on('pointerdown', () => {
+    if (!confirmReset) {
+      confirmReset = true
+      resetBtn.setText('[ CONFIRM? ]').setColor('#ef4444')
+      confirmTimer = window.setTimeout(resetIdle, 3000)
+      return
+    }
+    if (confirmTimer !== null) { window.clearTimeout(confirmTimer); confirmTimer = null }
+    resetMeta()
+    ui.forEach(o => o.destroy())
+    scene.showShop()
+  })
 
   const backBtn = scene.add.text(20, 28, '[ BACK ]', {
     fontSize: '18px', color: '#4ade80', stroke: '#000', strokeThickness: 3,
