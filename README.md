@@ -93,17 +93,17 @@ Enemies spawn in waves off-screen (550–800px from the player). New types unloc
 | Swarm | Pink | 15 | 184 | 180s | 0.8 | 0 | all | Spawns 5 at once per wave slot |
 | Splitter | Teal | 120 | 70 | 140s | 0.35 | +3 | all | On death, spawns 3 Splitterlings (fast, 20 HP each) |
 | Healer | Soft green | 60 | 55 | 180s | 0.35 | +2 | all | Pulses every 1.5s, heals all enemies within 140px by 12 HP |
-| Plague | Sickly green | 55 | 70 | 60s | — | +1 | **swamp** | Drops a 65px poison puddle on death (4s, ticks 4 dmg/0.5s) |
-| Nest | Mossy | 220 | 0 | 50s | — | +4 | **swamp** | Stationary; spawns 1 Grunt every 2s, max 3 children alive |
-| Juggernaut | Dark grey | 650 | 35 | 110s | — | +6 | **fortress** | Massive HP; slams the player back on contact |
-| Sapper | Brown/amber | 70 | 50 | 80s | — | +2 | **fortress** | Stops within 150px, telegraphs, detonates a 160px blast for 120 dmg to enemies |
-| Berserker | Deep red | 110 | 75 → 150 | 100s | — | +2 | **fortress** | Under 30% HP, doubles speed and turns bright red |
-| Lockdown | Indigo | 160 | 45 | 120s | — | +3 | **fortress** | 200px aura slows the player's move speed by 40% while inside |
-| Hunter | Pink/magenta | 50 | 110 | 70s | — | +1 | **speedzone** | Orbits the player at ~140px instead of charging in |
-| Dasher | Cyan | 60 | 60 | 90s | — | +1 | **speedzone** | Telegraphs then chains two dashes at 430px/s back-to-back |
-| Blinker | Bright cyan | 45 | 90 | 90s | — | +1 | **speedzone** | Teleports ~140px toward the player every ~2s |
-| Scavenger | Amber | 45 | 130 | 50s | — | 0 | **ruins** | Targets the nearest XP orb instead of the player; destroys orbs on reach |
-| Ambusher | Stone grey | 55 | 120 | 70s | — | +1 | **ruins** | Spawns dormant (rubble); wakes up after 3s, when player gets within 120px, or when damaged |
+| Plague | Sickly green | 55 | 70 | 60s | — | +1 | **Toxic Swamp** | Drops a 65px poison puddle on death (4s, ticks 4 dmg/0.5s) |
+| Nest | Mossy | 220 | 0 | 50s | — | +4 | **Toxic Swamp** | Stationary; spawns 1 Grunt every 2s, max 3 children alive |
+| Juggernaut | Dark grey | 650 | 35 | 110s | — | +6 | **Volcanic Citadel** | Massive HP; slams the player back on contact |
+| Sapper | Brown/amber | 70 | 50 | 80s | — | +2 | **Volcanic Citadel** | Stops within 150px, telegraphs, detonates a 160px blast for 120 dmg to enemies |
+| Berserker | Deep red | 110 | 75 → 150 | 100s | — | +2 | **Volcanic Citadel** | Under 30% HP, doubles speed and turns bright red |
+| Lockdown | Indigo | 160 | 45 | 120s | — | +3 | **Volcanic Citadel** | 200px aura slows the player's move speed by 40% while inside |
+| Hunter | Pink/magenta | 50 | 110 | 70s | — | +1 | **Neon Raceway** | Orbits the player at ~140px instead of charging in |
+| Dasher | Cyan | 60 | 60 | 90s | — | +1 | **Neon Raceway** | Telegraphs then chains two dashes at 430px/s back-to-back |
+| Blinker | Bright cyan | 45 | 90 | 90s | — | +1 | **Neon Raceway** | Teleports ~140px toward the player every ~2s |
+| Scavenger | Amber | 45 | 130 | 50s | — | 0 | **City Ruins** | Targets the nearest XP orb instead of the player; destroys orbs on reach |
+| Ambusher | Stone grey | 55 | 120 | 70s | — | +1 | **City Ruins** | Spawns dormant (rubble); wakes up after 3s, when player gets within 120px, or when damaged |
 | Boss | Red | 1500 | 54 | every 180s | — | +18 | all | Spawned separately; see Boss Waves |
 | Mini-boss: Brute | Deep purple | 450 | 50 | 60s | — | +8 | all | Spawned separately; see Mini-Bosses. Drops a power-up on death |
 | Mini-boss: Alpha | Hot magenta | 280 | 130 | 90s | — | +6 | all | Spawned separately; see Mini-Bosses. Drops a power-up on death |
