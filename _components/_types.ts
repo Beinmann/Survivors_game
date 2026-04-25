@@ -163,7 +163,7 @@ export const WEAPON_EVOLUTIONS: Partial<Record<WeaponType, EvolutionDef>> = {
   },
   railgun: {
     name: 'Starbreaker',
-    desc: 'Half-second focus on the target · then sweeps 360° in a random direction',
+    desc: 'Half-second focus on the target · then a slow 360° sweep that can overlap with the next shot',
     icon: 'wico_railgun_evolved',
     linkedPassive: 'area',
     linkedPassiveMinLevel: 3,
