@@ -157,6 +157,12 @@ export function buildTextures(scene: IGameScene) {
     g.strokeTriangle(2.5, 0.5, 0.5, 2.5, 2.5, 4.5)
   }, 5, 5)
 
+  make('drone_hit', g => {
+    g.lineStyle(2, 0xf97316)
+    g.lineBetween(1, 1, 9, 9)
+    g.lineBetween(9, 1, 1, 9)
+  }, 10, 10)
+
   make('shock', g => {
     g.lineStyle(2.5, 0xc4b5fd)
     g.beginPath()

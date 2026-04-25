@@ -124,6 +124,11 @@ function spawnShockIcon(scene: IGameScene, x: number, y: number) {
   scene.tweens.add({ targets: shock, alpha: 0, duration: 200, onComplete: () => shock.destroy() })
 }
 
+function spawnDroneHitIcon(scene: IGameScene, x: number, y: number) {
+  const icon = scene.add.sprite(x + (Math.random() - 0.5) * 8, y - 6 + (Math.random() - 0.5) * 4, 'drone_hit').setDepth(15)
+  scene.tweens.add({ targets: icon, alpha: 0, y: icon.y - 6, duration: 220, onComplete: () => icon.destroy() })
+}
+
 export function fireAura(scene: IGameScene) {
   const r = scene.auraRadius * (1 + scene.bonusArea)
   const dmg = scene.auraDmg
@@ -865,6 +870,7 @@ function updateDrones(scene: IGameScene, delta: number) {
         if (dx * dx + dy * dy > hitRange2) continue
         if (d.recentHits.some((h: { e: any; expiry: number }) => h.e === e)) continue
         scene.damageEnemy(e, scene.droneDmg, true)
+        spawnDroneHitIcon(scene, e.x, e.y)
         d.recentHits.push({ e, expiry: now + DRONE_REHIT_MS })
         if (e === d.target) {
           scene.tweens.add({ targets: d.sprite, scale: { from: 1.5, to: 1 }, duration: 180 })
