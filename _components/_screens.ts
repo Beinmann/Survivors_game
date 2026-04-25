@@ -151,6 +151,20 @@ export function showModeSelection(scene: IGameScene) {
     fontSize: '28px', color: '#ffffff', stroke: '#000', strokeThickness: 4,
   }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
 
+  const goBack = () => {
+    scene.input.keyboard?.off('keydown-ESC', goBack)
+    ui.forEach(o => o.destroy())
+    scene.showTitleScreen()
+  }
+  scene.input.keyboard?.on('keydown-ESC', goBack)
+  const backBtn = scene.add.text(20, 28, '[ BACK ]', {
+    fontSize: '18px', color: '#4ade80', stroke: '#000', strokeThickness: 3,
+  }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
+  backBtn.on('pointerover', () => backBtn.setColor('#86efac'))
+  backBtn.on('pointerout', () => backBtn.setColor('#4ade80'))
+  backBtn.on('pointerdown', goBack)
+  ui.push(backBtn)
+
   const OPTIONS = [
     {
       mode: false,
@@ -206,6 +220,7 @@ export function showModeSelection(scene: IGameScene) {
     zone.on('pointerover', () => draw(true))
     zone.on('pointerout', () => draw(false))
     zone.on('pointerdown', () => {
+      scene.input.keyboard?.off('keydown-ESC', goBack)
       ui.forEach(o => o.destroy())
       if (locked) {
         scene.showShop()
@@ -230,6 +245,20 @@ export function showMapSelection(scene: IGameScene) {
   ui.push(scene.add.text(w / 2, 38, 'Choose your map', {
     fontSize: '28px', color: '#ffffff', stroke: '#000', strokeThickness: 4,
   }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
+
+  const goBack = () => {
+    scene.input.keyboard?.off('keydown-ESC', goBack)
+    ui.forEach(o => o.destroy())
+    scene.showModeSelection()
+  }
+  scene.input.keyboard?.on('keydown-ESC', goBack)
+  const backBtn = scene.add.text(20, 28, '[ BACK ]', {
+    fontSize: '18px', color: '#4ade80', stroke: '#000', strokeThickness: 3,
+  }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
+  backBtn.on('pointerover', () => backBtn.setColor('#86efac'))
+  backBtn.on('pointerout', () => backBtn.setColor('#4ade80'))
+  backBtn.on('pointerdown', goBack)
+  ui.push(backBtn)
 
   const cardW = 200, cardH = 156
   const hGap = 220, vGap = 176
@@ -271,6 +300,7 @@ export function showMapSelection(scene: IGameScene) {
     zone.on('pointerover', () => draw(true))
     zone.on('pointerout', () => draw(false))
     zone.on('pointerdown', () => {
+      scene.input.keyboard?.off('keydown-ESC', goBack)
       scene.selectedMap = map.key
       ui.forEach(o => o.destroy())
       scene.showWeaponSelection()
@@ -290,7 +320,22 @@ export function showWeaponSelection(scene: IGameScene) {
 
   const allUI: any[] = [overlay]
 
+  const goBack = () => {
+    scene.input.keyboard?.off('keydown-ESC', goBack)
+    allUI.forEach(o => o.destroy())
+    scene.showMapSelection()
+  }
+  scene.input.keyboard?.on('keydown-ESC', goBack)
+  const backBtn = scene.add.text(20, 28, '[ BACK ]', {
+    fontSize: '18px', color: '#4ade80', stroke: '#000', strokeThickness: 3,
+  }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
+  backBtn.on('pointerover', () => backBtn.setColor('#86efac'))
+  backBtn.on('pointerout', () => backBtn.setColor('#4ade80'))
+  backBtn.on('pointerdown', goBack)
+  allUI.push(backBtn)
+
   const pick = (weapon: typeof ALL_WEAPONS[0]) => {
+    scene.input.keyboard?.off('keydown-ESC', goBack)
     scene.unlockWeapon(weapon.type)
     allUI.forEach(o => o.destroy())
     scene.spawnWave()
