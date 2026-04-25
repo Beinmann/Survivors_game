@@ -936,12 +936,12 @@ export function createGameScene(Phaser: any) {
         this.weaponBulletSpd[wt] = Math.round(baseSpd * (1 + (this.bonusWeaponBulletSpd[wt] ?? 0)))
 
         const baseRate = WEAPON_BASE[wt].shootRate
-        const evoFlatRed = wt === 'rocket' && evo['rocket'] ? 400 : 0
-        const flatRed = (this.flatWeaponShootRateReductions[wt] ?? 0) + evoFlatRed
+        const flatRed = this.flatWeaponShootRateReductions[wt] ?? 0
         const minRate = wt === 'machinegun' ? 50 : (wt === 'sniper' ? 300 : 100)
         const evoRateMult =
           wt === 'machinegun' && evo['machinegun'] ? 1.43 :
           wt === 'orbital'    && evo['orbital']    ? 0.4 :
+          wt === 'rocket'     && evo['rocket']     ? 1.3 :
           1
         this.weaponShootRates[wt] = Math.max(minRate, Math.round(baseRate * (1 - this.bonusCooldown) * evoRateMult) - flatRed)
       }

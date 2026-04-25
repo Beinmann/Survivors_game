@@ -38,7 +38,7 @@ export const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: num
   scythes:    { shootRate: 1500, bulletSpd: 0,   damage: 25 },
   tesla:      { shootRate: 1400, bulletSpd: 0,   damage: 13 },
   boomerang:  { shootRate: 1000, bulletSpd: 350, damage: 22 },
-  rocket:     { shootRate: 1500, bulletSpd: 250, damage: 45 },
+  rocket:     { shootRate: 3000, bulletSpd: 250, damage: 45 },
   laser:      { shootRate: 250,  bulletSpd: 0,   damage: 12 },
   turret:     { shootRate: 6000, bulletSpd: 460, damage: 18 },
   orbital:    { shootRate: 3500, bulletSpd: 0,   damage: 90 },
@@ -72,7 +72,7 @@ export type EvolutionDef = {
 export const WEAPON_EVOLUTIONS: Partial<Record<WeaponType, EvolutionDef>> = {
   rocket: {
     name: 'Cluster Warhead',
-    desc: 'Heavier rockets · each splits into 3 high-damage homing shards',
+    desc: 'Slower heavy rockets · each splits into 2 homing shards on impact',
     icon: 'wico_rocket_evolved',
     linkedPassive: 'damage',
     linkedPassiveMinLevel: 3,

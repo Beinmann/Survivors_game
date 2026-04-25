@@ -376,11 +376,11 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
       const splitDepth = b.getData('splitDepth') ?? 0
       const canSplit = (evolvedRocket || scene.rocketSplit) && splitDepth < 1
       if (canSplit) {
-        const childCount = evolvedRocket ? 3 : 3
+        const childCount = evolvedRocket ? 2 : 3
         const childDmgRatio = evolvedRocket ? 1.0 : 0.5
         const childSpd = evolvedRocket ? 550 : 400
         const childTex = evolvedRocket ? 'rocket_evolved' : 'rocket'
-        const childScale = evolvedRocket ? 0.8 : 0.5
+        const childScale = evolvedRocket ? 0.7 : 0.5
         for (let i = 0; i < childCount; i++) {
           const m = scene.bullets.create(b.x, b.y, childTex) as any
           m.setScale(childScale)
