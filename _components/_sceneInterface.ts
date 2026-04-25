@@ -74,7 +74,6 @@ export interface IGameScene {
   boomerangPierce: boolean
   rocketDmg: number
   rocketRadius: number
-  rocketSplit: boolean
   laserDmg: number
   laserRange: number
   laserWidth: number

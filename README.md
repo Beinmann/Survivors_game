@@ -32,12 +32,12 @@ Pick one starting weapon; up to two more can be unlocked through the level-up me
 |--------|-----------|-------------------|
 | **Shotgun** | 6 pellets · 950ms cooldown · 220px range | More pellets, damage, range, rear shot |
 | **Sniper Rifle** | 2 pierce · 1400ms cooldown · 680px/s bullets | Pierce, damage multipliers, bullet speed, rear shot |
-| **Shock Aura** | 44px radius · 500ms pulse · omnidirectional | Radius, damage, cooldown |
+| **Shock Aura** | 52px radius · 500ms pulse · omnidirectional | Radius, damage, cooldown |
 | **Machine Gun** | 1 bullet · 170ms cooldown · 520px/s bullets · 7 dmg | Damage, fire rate, crit chance, +1 bullet capstone |
 | **Spectral Scythes** | 1 blade · 100px orbit · continuous | Blade count, radius, damage, lifesteal |
 | **Tesla Chain** | 2 jumps · 1400ms cooldown · 85px jump range | Jumps, damage, stun, arc-back |
 | **Ricochet Boomerang** | 1 projectile · 1000ms cooldown · 250px range | Range, count, pierce, speed |
-| **Homing Rockets** | 1 rocket · 1500ms cooldown · 40px blast | Radius, burst count, damage, split |
+| **Homing Rockets** | 1 rocket · 1500ms cooldown · 40px blast | Radius, damage, cooldown |
 | **Incendiary Trail** | 20px patch · 100ms tick · 3s duration | Duration, size, burn, explode on expiry |
 | **Laser Beam** | Pierces 3 · 250ms pulse · 340px range | Pierce, range, beam width, damage |
 | **Sentry Turret** | 8s duration · 400ms fire rate · 2 max | Duration, fire rate, max turrets, damage |
@@ -56,14 +56,14 @@ Once a weapon reaches **level 9** and you hold the right **passive at a required
 
 | Base weapon | Evolution | Linked passive | Required level | What changes |
 |---|---|---|---|---|
-| Homing Rockets | Swarm Barrage | Power Core | 3 | 5-rocket salvo at 60ms stagger, +150% damage, −400ms cooldown, cluster always splits into 6 homing shards at 70% damage |
-| Black Hole | Supermassive | Arcane Reach | 3 | All zone radii ×2, core pull ×2.5, mid/outer pull ×2, duration ×2, tick damage ×2 |
+| Homing Rockets | Swarm Barrage | Power Core | 3 | ×3 damage, every rocket splits into 2 homing shards on impact |
+| Black Hole | Binary Collapse | Arcane Reach | 3 | Each cast spawns two black holes that slowly drift toward each other; on contact they detonate in a massive blast |
 | Cryo Shards | Glacial Volley | Multishot | 2 | 8 shards per volley, ×2 slow duration, shards fracture into 2 child shards on hit |
 | Spectral Scythes | Death Coil | Arcane Reach | 3 | Adds a counter-rotating outer ring at ×1.6 radius, +2 inner blades, life steal always on |
 | Shotgun | Thunder Hail | Multishot | 2 | Wider cone (+30°), +40% range, each pellet chains a bolt to nearest enemy within 120px at 60% damage |
 | Machine Gun | Flak Cannon | Power Core | 3 | Every bullet detonates in a 40px AoE, +80% damage, −30% fire rate |
 | Laser Beam | Prism Array | Multishot | 2 | Fires 4 independent beams in a + pattern each pulse |
-| Orbital Strike | Meteor Shower | Multishot | 2 | 5 strikes spread across 450px, telegraph shortened to 0.6s |
+| Orbital Strike | Meteor Shower | Multishot | 2 | Strikes ×0.5 radius and ×0.4 telegraph, fires roughly 3× as often |
 | Sentry Turret | Mortar Squad | Power Core | 3 | Turrets fire homing mortar shells with 40px AoE; ×3 damage, ×0.5 fire rate |
 | Sniper | Crit Cascade | Arcane Reach | 3 | Shot ricochets up to 6 times between enemies within 240px at full damage (pierce replaced) |
 | Shock Aura | Thunderdome | Arcane Reach | 3 | ×2 radius, ×2 pulse rate, each hit chains a bolt to nearest neighbor at +50% damage |

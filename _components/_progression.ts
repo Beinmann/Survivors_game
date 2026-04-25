@@ -102,7 +102,7 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: '+70% damage  ·  −200ms cooldown',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 0.7; scene.flatWeaponShootRateReductions['rocket'] = (scene.flatWeaponShootRateReductions['rocket'] ?? 0) + 200; scene.recalculateStats() } },
       { desc: '+60% damage  ·  −150ms cooldown',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 0.6; scene.flatWeaponShootRateReductions['rocket'] = (scene.flatWeaponShootRateReductions['rocket'] ?? 0) + 150; scene.recalculateStats() } },
       { desc: '+100% damage  ·  +30px radius',             icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 1.0; scene.rocketRadius += 30; scene.recalculateStats() } },
-      { desc: 'Cluster impact — rockets split on hit',     icon: 'ico_split', apply: () => { scene.rocketSplit = true } },
+      { desc: 'Heavy warhead — +80% damage  ·  +40px radius', icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 0.8; scene.rocketRadius += 40; scene.recalculateStats() } },
     ],
     laser: [
       { desc: '+40% damage  ·  +40px range',               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['laser'] = (scene.bonusWeaponDmg['laser'] ?? 0) + 0.4; scene.laserRange += 40; scene.recalculateStats() } },

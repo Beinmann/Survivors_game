@@ -91,7 +91,6 @@ export function createGameScene(Phaser: any) {
     public boomerangPierce = false
     public rocketDmg = 0
     public rocketRadius = 0
-    public rocketSplit = false
     public laserDmg = 0
     public laserRange = 0
     public laserWidth = 0
@@ -346,12 +345,12 @@ export function createGameScene(Phaser: any) {
       this.paused = false; this.showBaseStats = false; this.pauseUI = []
       this.extraBullets = 0; this.pierceCount = 2; this.bonusProjectiles = 0
       this.magnetRadius = 145; this.orbMultiplier = 1.0
-      this.auraRadius = 44; this.shotgunRange = 220
+      this.auraRadius = 52; this.shotgunRange = 220
       this.machineGunBullets = 1; this.machineGunCritChance = 0; this.mgGhostSide = 1
       this.scythesCount = 0; this.scythesRadius = 100; this.scythesLifeSteal = false
       this.teslaJumps = 2; this.teslaStun = false; this.teslaArcBack = false
       this.boomerangCount = 1; this.boomerangDist = 250; this.boomerangPierce = false
-      this.rocketRadius = 40; this.rocketSplit = false
+      this.rocketRadius = 40
       this.laserRange = 340; this.laserWidth = 10; this.laserPierce = 3; this.laserPatternAngle = 0
       this.turretDuration = 8000; this.turretFireRate = 400; this.turretMax = 2
       this.turretTetherTickTimer = 0
@@ -1006,7 +1005,8 @@ export function createGameScene(Phaser: any) {
     }
 
     public effectiveShootRate(wt: WeaponType) {
-      const base = this.weaponShootRates[wt] ?? WEAPON_BASE[wt].shootRate
+      let base = this.weaponShootRates[wt] ?? WEAPON_BASE[wt].shootRate
+      if (wt === 'orbital' && this.weaponEvolutions['orbital']) base *= 0.35
       return this.frenzyTimer > 0 ? base / 2 : base
     }
 

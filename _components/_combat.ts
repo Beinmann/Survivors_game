@@ -374,13 +374,13 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
       }
       const evolvedRocket = !!b.getData('evolved')
       const splitDepth = b.getData('splitDepth') ?? 0
-      const canSplit = (evolvedRocket || scene.rocketSplit) && splitDepth < 1
+      const canSplit = evolvedRocket && splitDepth < 1
       if (canSplit) {
-        const childCount = evolvedRocket ? 2 : 3
-        const childDmgRatio = evolvedRocket ? 1.0 : 0.5
-        const childSpd = evolvedRocket ? 550 : 400
-        const childTex = evolvedRocket ? 'rocket_evolved' : 'rocket'
-        const childScale = evolvedRocket ? 0.7 : 0.5
+        const childCount = 2
+        const childDmgRatio = 1.0
+        const childSpd = 550
+        const childTex = 'rocket_evolved'
+        const childScale = 0.7
         for (let i = 0; i < childCount; i++) {
           const m = scene.bullets.create(b.x, b.y, childTex) as any
           m.setScale(childScale)
@@ -388,8 +388,8 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
             .setData('wt', 'rocket')
             .setData('homing', true)
             .setData('splitDepth', splitDepth + 1)
+            .setData('evolved', true)
             .setDepth(4)
-          if (evolvedRocket) m.setData('evolved', true)
           const ma = Math.random() * Math.PI * 2
           m.setVelocity(Math.cos(ma) * childSpd, Math.sin(ma) * childSpd)
         }
@@ -703,35 +703,10 @@ export function fireOrbital(scene: IGameScene) {
   const target = enemies[idx]
 
   const baseRadius = scene.orbitalRadius * (1 + scene.bonusArea)
-  const telegraph = evolved ? 600 : 1000
+  const radius = evolved ? baseRadius * 0.5 : baseRadius
+  const telegraph = evolved ? 400 : 1000
 
-  if (evolved && Math.random() < 0.2) {
-    const patternRadius = baseRadius * 0.7
-    const ringDist = baseRadius * 1.4
-    const choice = Math.floor(Math.random() * 3)
-    if (choice === 0) {
-      // Triangle around the target
-      for (let i = 0; i < 3; i++) {
-        const ang = (i * 2 * Math.PI) / 3 + Math.random() * 0.4
-        scheduleStrike(scene, null, target.x + Math.cos(ang) * ringDist, target.y + Math.sin(ang) * ringDist, patternRadius, telegraph)
-      }
-    } else if (choice === 1) {
-      // Cross
-      const offs = [[1, 0], [-1, 0], [0, 1], [0, -1]]
-      for (const [ox, oy] of offs) {
-        scheduleStrike(scene, null, target.x + ox * ringDist, target.y + oy * ringDist, patternRadius, telegraph)
-      }
-    } else {
-      // Line through the target
-      const ang = Math.random() * Math.PI * 2
-      for (let i = -1; i <= 1; i++) {
-        scheduleStrike(scene, i === 0 ? target : null, target.x + Math.cos(ang) * ringDist * i, target.y + Math.sin(ang) * ringDist * i, patternRadius, telegraph)
-      }
-    }
-    return
-  }
-
-  scheduleStrike(scene, target, target.x, target.y, baseRadius, telegraph)
+  scheduleStrike(scene, target, target.x, target.y, radius, telegraph)
 }
 
 function scheduleStrike(scene: IGameScene, target: any, x: number, y: number, radius: number, telegraph: number) {
@@ -799,8 +774,9 @@ export function fireBlackhole(scene: IGameScene, angle: number, wt: WeaponType) 
   if (evolved) {
     const off = (15 * Math.PI) / 180
     const a1 = angle - off, a2 = angle + off
-    const bh1 = spawnBlackhole(scene, ex, ey, Math.cos(a1) * spd, Math.sin(a1) * spd, true)
-    const bh2 = spawnBlackhole(scene, ex, ey, Math.cos(a2) * spd, Math.sin(a2) * spd, true)
+    const pairDuration = scene.blackholeDuration + 6000
+    const bh1 = spawnBlackhole(scene, ex, ey, Math.cos(a1) * spd, Math.sin(a1) * spd, true, { duration: pairDuration })
+    const bh2 = spawnBlackhole(scene, ex, ey, Math.cos(a2) * spd, Math.sin(a2) * spd, true, { duration: pairDuration })
     bh1.binaryPair = bh2
     bh2.binaryPair = bh1
     return
@@ -1304,34 +1280,34 @@ function updateBlackholes(scene: IGameScene, delta: number) {
       const px = bh.binaryPair.sprite.x - bh.sprite.x
       const py = bh.binaryPair.sprite.y - bh.sprite.y
       const d = Math.hypot(px, py) || 1
-      const driftSpd = 30
+      const closeness = Math.max(0, Math.min(1, 1 - d / 400))
+      const driftSpd = 18 + closeness * closeness * 90
       bh.sprite.x += (px / d) * driftSpd * delta / 1000
       bh.sprite.y += (py / d) * driftSpd * delta / 1000
-      const mergeDist = bh.coreRadius + bh.binaryPair.coreRadius
-      if (d <= mergeDist && bh.binaryPair) {
+      const touchDist = bh.coreRadius + bh.binaryPair.coreRadius
+      if (d <= touchDist && bh.binaryPair) {
         const other = bh.binaryPair
         const mx = (bh.sprite.x + other.sprite.x) / 2
         const my = (bh.sprite.y + other.sprite.y) / 2
-        const remainDur = Math.max(bh.duration, other.duration) + 1500
-        const merged = spawnBlackhole(scene, mx, my, 0, 0, true, {
-          phase: 'landed',
-          flightLeft: 0,
-          coreRadius: bh.coreRadius + other.coreRadius,
-          midRadius: Math.max(bh.midRadius, other.midRadius) * 1.2,
-          outerRadius: Math.max(bh.outerRadius, other.outerRadius) * 1.2,
-          corePull: bh.corePull + other.corePull,
-          midPull: bh.midPull + other.midPull,
-          outerPull: bh.outerPull + other.outerPull,
-          duration: remainDur,
-          dmg: bh.dmg + other.dmg,
-        })
-        merged.halo  = scene.add.graphics().setDepth(2)
-        merged.rings = scene.add.graphics().setDepth(3)
-        merged.arms  = scene.add.graphics().setDepth(3)
+        const blastRadius = (bh.outerRadius + other.outerRadius) * 1.6
+        const blastDmg = (bh.dmg + other.dmg) * 6
+
+        const flash = scene.acquireGfx(6)
+        flash.fillStyle(0xfde68a, 0.55).fillCircle(mx, my, blastRadius)
+        flash.fillStyle(0xfffbe6, 0.85).fillCircle(mx, my, blastRadius * 0.45)
+        flash.lineStyle(4, 0xfde68a, 0.95).strokeCircle(mx, my, blastRadius)
+        scene.tweens.add({ targets: flash, alpha: 0, duration: 520, onComplete: () => scene.releaseGfx(flash) })
         const ring = scene.acquireGfx(4)
-        ring.lineStyle(4, 0xfde68a, 0.95).strokeCircle(mx, my, merged.outerRadius)
-        scene.tweens.add({ targets: ring, alpha: 0, duration: 500, onComplete: () => scene.releaseGfx(ring) })
-        scene.cameras.main.shake(140, 0.005)
+        ring.lineStyle(3, 0xc084fc, 0.9).strokeCircle(mx, my, blastRadius * 0.7)
+        scene.tweens.add({ targets: ring, alpha: 0, duration: 600, onComplete: () => scene.releaseGfx(ring) })
+        scene.cameras.main.shake(220, 0.012)
+
+        const r2 = blastRadius * blastRadius
+        for (const e of scene.enemies.getChildren() as any[]) {
+          if (!e.active) continue
+          if ((mx - e.x) ** 2 + (my - e.y) ** 2 < r2) scene.damageEnemy(e, blastDmg)
+        }
+
         destroyBlackholeVisuals(bh)
         destroyBlackholeVisuals(other)
         bh.sprite.destroy()
@@ -1343,22 +1319,6 @@ function updateBlackholes(scene: IGameScene, delta: number) {
         i = scene.blackholes.length
         continue
       }
-    }
-
-    if (bh.binaryPair && bh.binaryPair.sprite?.active) {
-      if (!bh.binaryFilament || !bh.binaryFilament.active) {
-        bh.binaryFilament = scene.add.graphics().setDepth(3)
-      }
-      const fg = bh.binaryFilament
-      fg.clear()
-      const ox = bh.binaryPair.sprite.x, oy = bh.binaryPair.sprite.y
-      const dx = ox - bh.sprite.x, dy = oy - bh.sprite.y
-      const d = Math.hypot(dx, dy) || 1
-      const closeness = Math.max(0, Math.min(1, 1 - d / 600))
-      fg.lineStyle(2, 0xfde68a, 0.4 + closeness * 0.5)
-      fg.lineBetween(bh.sprite.x, bh.sprite.y, ox, oy)
-    } else if (bh.binaryFilament?.active) {
-      bh.binaryFilament.clear()
     }
 
     if (bh.phase === 'flying') {

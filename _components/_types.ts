@@ -78,8 +78,8 @@ export const WEAPON_EVOLUTIONS: Partial<Record<WeaponType, EvolutionDef>> = {
     linkedPassiveMinLevel: 3,
   },
   blackhole: {
-    name: 'Binary System',
-    desc: 'Two blackholes spawn in a fan · drift toward each other and merge',
+    name: 'Binary Collapse',
+    desc: 'Two blackholes spawn in a fan · drift together and detonate in a massive blast on contact',
     icon: 'wico_blackhole_evolved',
     linkedPassive: 'area',
     linkedPassiveMinLevel: 3,
@@ -121,7 +121,7 @@ export const WEAPON_EVOLUTIONS: Partial<Record<WeaponType, EvolutionDef>> = {
   },
   orbital: {
     name: 'Pinpoint Barrage',
-    desc: 'Much faster cooldown · always targets enemies · sometimes calls down patterns',
+    desc: 'Much faster cooldown · tighter strike radius · shorter telegraph',
     icon: 'wico_orbital_evolved',
     linkedPassive: 'projectiles',
     linkedPassiveMinLevel: 2,
