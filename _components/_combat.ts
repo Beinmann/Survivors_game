@@ -1669,27 +1669,24 @@ function updateDrones(scene: IGameScene, delta: number) {
   const tickDmg = Math.max(1, Math.floor(scene.droneDmg * 0.4))
   const enemies = scene.enemies.getChildren() as any[]
   const beamPulse = 0.85 + 0.15 * Math.sin(scene.gameTime * 0.012)
-  for (let i = 0; i < scene.drones.length; i++) {
-    const a = scene.drones[i].sprite
-    if (!a?.active) continue
-    for (let j = i + 1; j < scene.drones.length; j++) {
-      const b = scene.drones[j].sprite
-      if (!b?.active) continue
-      const x1 = a.x, y1 = a.y, x2 = b.x, y2 = b.y
-      g.lineStyle(3, 0x60a5fa, 0.7 * beamPulse).lineBetween(x1, y1, x2, y2)
-      g.lineStyle(1, 0xffffff, 0.95).lineBetween(x1, y1, x2, y2)
-      if (doTick) {
-        const dx = x2 - x1, dy = y2 - y1
-        const segLen2 = dx * dx + dy * dy || 1
-        const tol = 16
-        const tol2 = tol * tol
-        for (const e of enemies) {
-          if (!e.active) continue
-          const t = Math.max(0, Math.min(1, ((e.x - x1) * dx + (e.y - y1) * dy) / segLen2))
-          const ex = x1 + dx * t, ey = y1 + dy * t
-          if ((e.x - ex) ** 2 + (e.y - ey) ** 2 <= tol2) {
-            scene.damageEnemy(e, tickDmg, false)
-          }
+  const activeDrones = scene.drones.filter((d) => d.sprite?.active)
+  for (let i = 0; i + 1 < activeDrones.length; i += 2) {
+    const a = activeDrones[i].sprite
+    const b = activeDrones[i + 1].sprite
+    const x1 = a.x, y1 = a.y, x2 = b.x, y2 = b.y
+    g.lineStyle(3, 0x60a5fa, 0.7 * beamPulse).lineBetween(x1, y1, x2, y2)
+    g.lineStyle(1, 0xffffff, 0.95).lineBetween(x1, y1, x2, y2)
+    if (doTick) {
+      const dx = x2 - x1, dy = y2 - y1
+      const segLen2 = dx * dx + dy * dy || 1
+      const tol = 16
+      const tol2 = tol * tol
+      for (const e of enemies) {
+        if (!e.active) continue
+        const t = Math.max(0, Math.min(1, ((e.x - x1) * dx + (e.y - y1) * dy) / segLen2))
+        const ex = x1 + dx * t, ey = y1 + dy * t
+        if ((e.x - ex) ** 2 + (e.y - ey) ** 2 <= tol2) {
+          scene.damageEnemy(e, tickDmg, false)
         }
       }
     }
