@@ -177,11 +177,19 @@ export function buildTextures(scene: IGameScene) {
   }, 36, 36)
 
   make('cryoshard', g => {
-    g.fillStyle(0x22d3ee); g.fillTriangle(6, 0, 12, 6, 6, 12)
-    g.fillTriangle(6, 0, 0, 6, 6, 12)
-    g.lineStyle(1, 0xa5f3fc); g.strokeTriangle(6, 0, 12, 6, 6, 12)
-    g.strokeTriangle(6, 0, 0, 6, 6, 12)
-  }, 12, 12)
+    // Elongated icicle: forward tip on the right, tail on the left.
+    // Travel direction = +x, so spikes splay out perpendicular to motion.
+    g.fillStyle(0x22d3ee)
+    g.fillTriangle(28, 5, 0, 2, 0, 8)               // main body, sharp forward tip
+    g.fillTriangle(8, 5, 12, 0, 16, 5)              // top dorsal spike
+    g.fillTriangle(8, 5, 12, 10, 16, 5)             // bottom ventral spike
+    g.fillTriangle(2, 5, 5, 1, 7, 5)                // small back-top spike
+    g.fillTriangle(2, 5, 5, 9, 7, 5)                // small back-bottom spike
+    g.lineStyle(1, 0xa5f3fc, 1)
+    g.strokeTriangle(28, 5, 0, 2, 0, 8)
+    g.lineStyle(1, 0xecfeff, 0.9)
+    g.lineBetween(2, 5, 26, 5)                      // bright crystal seam
+  }, 28, 10)
 
   make('drone', g => {
     g.fillStyle(0xd1d5db); g.fillRect(2, 4, 10, 4)
