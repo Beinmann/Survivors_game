@@ -764,8 +764,11 @@ export function fireBlackhole(scene: IGameScene, angle: number, wt: WeaponType) 
   const flightDist = 280
   const evolved = !!scene.weaponEvolutions['blackhole']
   const radiusMult = evolved ? 2 : 1
-  const pullMult = evolved ? 3 : 1
+  const corePullMult = evolved ? 2.5 : 1
+  const midPullMult = evolved ? 2 : 1
+  const outerPullMult = evolved ? 2 : 1
   const durationMult = evolved ? 2 : 1
+  const areaScale = 1 + scene.bonusArea
   const s = scene.add.sprite(playerEmitX(scene), playerEmitY(scene), evolved ? 'blackhole_evolved' : 'blackhole').setDepth(4)
   scene.blackholes.push({
     sprite: s,
@@ -774,11 +777,21 @@ export function fireBlackhole(scene: IGameScene, angle: number, wt: WeaponType) 
     phase: 'flying',
     flightLeft: (flightDist / spd) * 1000,
     duration: scene.blackholeDuration * durationMult,
-    radius: scene.blackholeRadius * (1 + scene.bonusArea) * radiusMult,
-    pull: scene.blackholePull * pullMult,
+    coreRadius:  scene.blackholeCoreRadius  * areaScale * radiusMult,
+    midRadius:   scene.blackholeMidRadius   * areaScale * radiusMult,
+    outerRadius: scene.blackholeOuterRadius * areaScale * radiusMult,
+    corePull:    scene.blackholeCorePull  * corePullMult,
+    midPull:     scene.blackholeMidPull   * midPullMult,
+    outerPull:   scene.blackholeOuterPull * outerPullMult,
     dmg: scene.blackholeDmg,
     tickTimer: 0,
     pulse: 0,
+    evolved,
+    halo: null as any,
+    rings: null as any,
+    arms: null as any,
+    streaks: [] as any[],
+    streakSpawnTimer: 0,
   })
 }
 
@@ -1029,49 +1042,193 @@ function updateTurrets(scene: IGameScene, delta: number) {
   }
 }
 
+function destroyBlackholeVisuals(bh: any) {
+  if (bh.halo)  { bh.halo.destroy();  bh.halo = null }
+  if (bh.rings) { bh.rings.destroy(); bh.rings = null }
+  if (bh.arms)  { bh.arms.destroy();  bh.arms = null }
+  if (bh.streaks) {
+    for (const st of bh.streaks) if (st?.gfx?.active) st.gfx.destroy()
+    bh.streaks.length = 0
+  }
+}
+
+function drawBlackholeArms(scene: IGameScene, bh: any) {
+  const g = bh.arms
+  if (!g) return
+  const cx = bh.sprite.x, cy = bh.sprite.y
+  const inner = bh.coreRadius * 0.6
+  const outer = bh.midRadius
+  const phase = bh.pulse * 0.012
+  const armColor = bh.evolved ? 0xfde68a : 0xc4b5fd
+  const armAlpha = bh.evolved ? 0.7 : 0.55
+  g.clear()
+  g.lineStyle(2, armColor, armAlpha)
+  const armCount = bh.evolved ? 4 : 3
+  for (let a = 0; a < armCount; a++) {
+    const baseAngle = phase + (a * Math.PI * 2) / armCount
+    const steps = 14
+    g.beginPath()
+    for (let s = 0; s <= steps; s++) {
+      const t = s / steps
+      const r = inner + (outer - inner) * t
+      const ang = baseAngle + t * 1.6
+      const x = cx + Math.cos(ang) * r
+      const y = cy + Math.sin(ang) * r
+      if (s === 0) g.moveTo(x, y)
+      else g.lineTo(x, y)
+    }
+    g.strokePath()
+  }
+}
+
+function drawBlackholeRings(scene: IGameScene, bh: any) {
+  const g = bh.rings
+  if (!g) return
+  const cx = bh.sprite.x, cy = bh.sprite.y
+  const t = bh.pulse / 1000
+  const pulse = (off: number) => 0.85 + 0.15 * Math.sin(t * 2 + off)
+  g.clear()
+  g.lineStyle(1.5, 0xc4b5fd, 0.22 * pulse(0))
+  g.strokeCircle(cx, cy, bh.coreRadius)
+  g.lineStyle(1, 0xa78bfa, 0.16 * pulse(1.3))
+  g.strokeCircle(cx, cy, bh.midRadius)
+  g.lineStyle(1, 0x8b5cf6, 0.11 * pulse(2.6))
+  g.strokeCircle(cx, cy, bh.outerRadius)
+}
+
+function drawBlackholeHalo(scene: IGameScene, bh: any) {
+  const g = bh.halo
+  if (!g) return
+  const cx = bh.sprite.x, cy = bh.sprite.y
+  const t = bh.pulse / 1000
+  const wobble = 1 + 0.04 * Math.sin(t * 1.7)
+  const color = bh.evolved ? 0xfde68a : 0xfb923c
+  const alpha = bh.evolved ? 0.13 : 0.10
+  g.clear()
+  g.fillStyle(color, alpha * 0.5)
+  g.fillCircle(cx, cy, bh.outerRadius * wobble)
+  g.fillStyle(color, alpha)
+  g.fillCircle(cx, cy, bh.midRadius * wobble)
+}
+
+function spawnBlackholeStreak(scene: IGameScene, bh: any) {
+  const ang = Math.random() * Math.PI * 2
+  const startR = bh.outerRadius * (0.85 + Math.random() * 0.15)
+  const sx = bh.sprite.x + Math.cos(ang) * startR
+  const sy = bh.sprite.y + Math.sin(ang) * startR
+  const ex = bh.sprite.x + Math.cos(ang) * (bh.coreRadius * 0.4)
+  const ey = bh.sprite.y + Math.sin(ang) * (bh.coreRadius * 0.4)
+  const len = 6 + Math.random() * 8
+  const color = bh.evolved ? 0xfde68a : 0xc4b5fd
+  const gfx = scene.add.graphics().setDepth(3)
+  const draw = (x: number, y: number, dx: number, dy: number) => {
+    const m = Math.hypot(dx, dy) || 1
+    const ux = dx / m, uy = dy / m
+    gfx.clear()
+    gfx.lineStyle(1.5, color, 0.85)
+    gfx.beginPath()
+    gfx.moveTo(x - ux * len * 0.5, y - uy * len * 0.5)
+    gfx.lineTo(x + ux * len * 0.5, y + uy * len * 0.5)
+    gfx.strokePath()
+  }
+  const state: any = { x: sx, y: sy, dx: ex - sx, dy: ey - sy, alpha: 1, gfx, alive: true }
+  draw(state.x, state.y, state.dx, state.dy)
+  state.tween = scene.tweens.add({
+    targets: state,
+    x: ex,
+    y: ey,
+    alpha: 0,
+    duration: 600 + Math.random() * 300,
+    ease: 'Cubic.easeIn',
+    onUpdate: () => {
+      if (!state.alive || !gfx.active) return
+      gfx.alpha = state.alpha
+      draw(state.x, state.y, state.dx, state.dy)
+    },
+    onComplete: () => {
+      state.alive = false
+      if (gfx.active) gfx.destroy()
+      const idx = bh.streaks.indexOf(state)
+      if (idx >= 0) bh.streaks.splice(idx, 1)
+    },
+  })
+  bh.streaks.push(state)
+}
+
 function updateBlackholes(scene: IGameScene, delta: number) {
   for (let i = scene.blackholes.length - 1; i >= 0; i--) {
     const bh = scene.blackholes[i]
-    if (!bh.sprite?.active) { scene.blackholes.splice(i, 1); continue }
+    if (!bh.sprite?.active) {
+      destroyBlackholeVisuals(bh)
+      scene.blackholes.splice(i, 1)
+      continue
+    }
     bh.pulse += delta
     bh.sprite.setRotation(bh.pulse * 0.005)
+
     if (bh.phase === 'flying') {
       bh.sprite.x += bh.vx * delta / 1000
       bh.sprite.y += bh.vy * delta / 1000
       bh.flightLeft -= delta
       if (bh.flightLeft <= 0) {
         bh.phase = 'landed'
-        const ring = scene.acquireGfx(3)
-        ring.lineStyle(3, 0xa78bfa, 0.9).strokeCircle(bh.sprite.x, bh.sprite.y, bh.radius)
+        bh.halo  = scene.add.graphics().setDepth(2)
+        bh.rings = scene.add.graphics().setDepth(3)
+        bh.arms  = scene.add.graphics().setDepth(3)
+        const ring = scene.acquireGfx(4)
+        ring.lineStyle(3, 0xa78bfa, 0.9).strokeCircle(bh.sprite.x, bh.sprite.y, bh.outerRadius)
         scene.tweens.add({ targets: ring, alpha: 0, duration: 400, onComplete: () => scene.releaseGfx(ring) })
+        scene.cameras.main.shake(100, 0.003)
       }
     } else {
       bh.duration -= delta
       bh.tickTimer += delta
-      const r = bh.radius
-      const r2 = r * r
+      bh.streakSpawnTimer += delta
+
+      const cr = bh.coreRadius,  cr2 = cr * cr
+      const mr = bh.midRadius,   mr2 = mr * mr
+      const orR = bh.outerRadius, or2 = orR * orR
       const doTick = bh.tickTimer >= 250
       if (doTick) bh.tickTimer = 0
+
       for (const e of scene.enemies.getChildren() as any[]) {
         if (!e.active) continue
         const dx = bh.sprite.x - e.x, dy = bh.sprite.y - e.y
         const d2 = dx * dx + dy * dy
-        if (d2 > r2) continue
+        if (d2 > or2) continue
         const d = Math.sqrt(d2) || 1
-        const pullSpd = bh.pull * (1 - Math.min(1, d / r) * 0.3)
+        let pullBase: number
+        let zoneR: number
+        if (d2 <= cr2)      { pullBase = bh.corePull;  zoneR = cr }
+        else if (d2 <= mr2) { pullBase = bh.midPull;   zoneR = mr }
+        else                { pullBase = bh.outerPull; zoneR = orR }
+        const pullSpd = pullBase * (1 - Math.min(1, d / zoneR) * 0.3)
         e.setVelocity((dx / d) * pullSpd, (dy / d) * pullSpd)
-        if (doTick) scene.damageEnemy(e, bh.dmg, false)
+        if (doTick && d2 <= cr2) scene.damageEnemy(e, bh.dmg, false)
       }
+
+      drawBlackholeHalo(scene, bh)
+      drawBlackholeRings(scene, bh)
+      drawBlackholeArms(scene, bh)
+
+      while (bh.streakSpawnTimer >= 80) {
+        bh.streakSpawnTimer -= 80
+        const burst = 1 + (Math.random() < 0.4 ? 1 : 0) + (bh.evolved && Math.random() < 0.5 ? 1 : 0)
+        for (let k = 0; k < burst; k++) spawnBlackholeStreak(scene, bh)
+      }
+
       if (bh.duration <= 0) {
         const finalExp = scene.acquireGfx(5)
-        finalExp.fillStyle(0xa78bfa, 0.6).fillCircle(bh.sprite.x, bh.sprite.y, r * 1.1)
+        finalExp.fillStyle(0xa78bfa, 0.6).fillCircle(bh.sprite.x, bh.sprite.y, cr * 1.15)
         scene.tweens.add({ targets: finalExp, alpha: 0, duration: 300, onComplete: () => scene.releaseGfx(finalExp) })
+        scene.cameras.main.shake(110, 0.0035)
         for (const e of scene.enemies.getChildren() as any[]) {
           if (!e.active) continue
-          if ((bh.sprite.x - e.x) ** 2 + (bh.sprite.y - e.y) ** 2 < r2) {
+          if ((bh.sprite.x - e.x) ** 2 + (bh.sprite.y - e.y) ** 2 < cr2) {
             scene.damageEnemy(e, bh.dmg * 4)
           }
         }
+        destroyBlackholeVisuals(bh)
         bh.sprite.destroy()
         scene.blackholes.splice(i, 1)
       }

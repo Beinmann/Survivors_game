@@ -42,7 +42,7 @@ Pick one starting weapon; up to two more can be unlocked through the level-up me
 | **Laser Beam** | Pierces 3 · 250ms pulse · 340px range | Pierce, range, beam width, damage |
 | **Sentry Turret** | 8s duration · 400ms fire rate · 2 max | Duration, fire rate, max turrets, damage |
 | **Orbital Strike** | 1 strike · 110px radius · 1s telegraph | Strike count, radius, cooldown, damage |
-| **Black Hole** | 150px pull · 2.5s duration · tick damage | Radius, duration, pull strength, damage |
+| **Black Hole** | 3 pull zones (85/170/260px) · core pull 320 · 9.5s cooldown · 3s duration · damage ticks in core only · core implosion on expiry | Reach, core size, pull, damage |
 | **Cryo Shards** | 3 shards · 1.5s slow · 900ms cooldown | Shards, slow duration, damage |
 | **Plasma Lance** | 1.5s charge · 900ms sustained beam · pierces all · ticks every 150ms | Charge time, beam width, damage |
 | **Swarm Drones** | 1 drone · 8s target lock · homes onto a target and zooms past on contact; pass-through damages any enemy en route | Drone count, damage, respawn cooldown |
@@ -57,7 +57,7 @@ Once a weapon reaches **level 9** and you hold the right **passive at a required
 | Base weapon | Evolution | Linked passive | Required level | What changes |
 |---|---|---|---|---|
 | Homing Rockets | Swarm Barrage | Power Core | 3 | 5-rocket salvo at 60ms stagger, +150% damage, −400ms cooldown, cluster always splits into 6 homing shards at 70% damage |
-| Black Hole | Supermassive | Arcane Reach | 3 | Radius ×2, pull ×3, duration ×2, tick damage ×2 |
+| Black Hole | Supermassive | Arcane Reach | 3 | All zone radii ×2, core pull ×2.5, mid/outer pull ×2, duration ×2, tick damage ×2 |
 | Cryo Shards | Glacial Volley | Multishot | 2 | 8 shards per volley, ×2 slow duration, shards fracture into 2 child shards on hit |
 | Spectral Scythes | Death Coil | Arcane Reach | 3 | Adds a counter-rotating outer ring at ×1.6 radius, +2 inner blades, life steal always on |
 | Shotgun | Thunder Hail | Multishot | 2 | Wider cone (+30°), +40% range, each pellet chains a bolt to nearest enemy within 120px at 60% damage |

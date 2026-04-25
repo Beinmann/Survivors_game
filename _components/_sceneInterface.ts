@@ -87,9 +87,13 @@ export interface IGameScene {
   orbitalRadius: number
   orbitalCount: number
   blackholeDmg: number
-  blackholeRadius: number
+  blackholeCoreRadius: number
+  blackholeMidRadius: number
+  blackholeOuterRadius: number
+  blackholeCorePull: number
+  blackholeMidPull: number
+  blackholeOuterPull: number
   blackholeDuration: number
-  blackholePull: number
   cryoDmg: number
   cryoShardCount: number
   cryoSlowDuration: number

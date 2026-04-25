@@ -42,7 +42,7 @@ export const WEAPON_BASE: Record<WeaponType, { shootRate: number; bulletSpd: num
   laser:      { shootRate: 250,  bulletSpd: 0,   damage: 12 },
   turret:     { shootRate: 6000, bulletSpd: 460, damage: 18 },
   orbital:    { shootRate: 3500, bulletSpd: 0,   damage: 90 },
-  blackhole:  { shootRate: 7000, bulletSpd: 420, damage: 6 },
+  blackhole:  { shootRate: 9500, bulletSpd: 420, damage: 6 },
   cryo:       { shootRate: 900,  bulletSpd: 360, damage: 14 },
   railgun:    { shootRate: 4500, bulletSpd: 0,   damage: 35 },
   drones:     { shootRate: 1800, bulletSpd: 400, damage: 30 },
@@ -79,7 +79,7 @@ export const WEAPON_EVOLUTIONS: Partial<Record<WeaponType, EvolutionDef>> = {
   },
   blackhole: {
     name: 'Supermassive',
-    desc: '×2 radius · ×3 pull · ×2 duration · ×2 tick damage',
+    desc: '×2 radius (all zones) · ×2.5 core pull · ×2 mid/outer pull · ×2 duration · ×2 tick damage',
     icon: 'wico_blackhole_evolved',
     linkedPassive: 'area',
     linkedPassiveMinLevel: 3,

@@ -129,11 +129,12 @@ export function buildStatLines(scene: IGameScene) {
         { label: 'Damage',  value: String(dmgValue),           icon: 'ico_damage' },
       )
     } else if (wt === 'blackhole') {
+      const areaScale = 1 + scene.bonusArea
       lines.push(
-        { label: 'Radius',   value: String(Math.round(scene.blackholeRadius * (1 + scene.bonusArea))), icon: 'ico_radius' },
-        { label: 'Duration', value: `${(scene.blackholeDuration / 1000).toFixed(1)}s`, icon: 'ico_cooldown' },
-        { label: 'Pull',     value: String(scene.blackholePull), icon: 'wico_blackhole' },
-        { label: 'Damage',   value: String(dmgValue),            icon: 'ico_damage' },
+        { label: 'Reach',  value: String(Math.round(scene.blackholeOuterRadius * areaScale)), icon: 'ico_radius' },
+        { label: 'Core',   value: String(Math.round(scene.blackholeCoreRadius  * areaScale)), icon: 'wico_blackhole' },
+        { label: 'Pull',   value: String(scene.blackholeCorePull), icon: 'ico_area' },
+        { label: 'Damage', value: String(dmgValue),                icon: 'ico_damage' },
       )
     } else if (wt === 'cryo') {
       lines.push(

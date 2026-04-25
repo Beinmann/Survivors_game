@@ -104,9 +104,13 @@ export function createGameScene(Phaser: any) {
     public orbitalRadius = 0
     public orbitalCount = 0
     public blackholeDmg = 0
-    public blackholeRadius = 0
+    public blackholeCoreRadius = 0
+    public blackholeMidRadius = 0
+    public blackholeOuterRadius = 0
+    public blackholeCorePull = 0
+    public blackholeMidPull = 0
+    public blackholeOuterPull = 0
     public blackholeDuration = 0
-    public blackholePull = 0
     public cryoDmg = 0
     public cryoShardCount = 0
     public cryoSlowDuration = 0
@@ -345,7 +349,9 @@ export function createGameScene(Phaser: any) {
       this.laserRange = 340; this.laserWidth = 10; this.laserPierce = 3
       this.turretDuration = 8000; this.turretFireRate = 400; this.turretMax = 2
       this.orbitalRadius = 110; this.orbitalCount = 1
-      this.blackholeRadius = 150; this.blackholeDuration = 2500; this.blackholePull = 160
+      this.blackholeCoreRadius = 85; this.blackholeMidRadius = 170; this.blackholeOuterRadius = 260
+      this.blackholeCorePull = 320; this.blackholeMidPull = 130; this.blackholeOuterPull = 55
+      this.blackholeDuration = 3000
       this.cryoShardCount = 3; this.cryoSlowDuration = 1500
       this.railgunChargeTime = 1500; this.railgunWidth = 6
       this.droneCount = 1
@@ -385,6 +391,13 @@ export function createGameScene(Phaser: any) {
         if (o.reticle?.active) o.reticle.destroy()
         if (o.gfx?.active) o.gfx.destroy()
         if (o.label?.active) o.label.destroy()
+        if (o.halo?.active) o.halo.destroy()
+        if (o.rings?.active) o.rings.destroy()
+        if (o.arms?.active) o.arms.destroy()
+        if (Array.isArray(o.streaks)) {
+          for (const st of o.streaks) if (st?.gfx?.active) st.gfx.destroy()
+          o.streaks.length = 0
+        }
       })
       destroyAll(this.turrets); this.turrets = []
       destroyAll(this.blackholes); this.blackholes = []
