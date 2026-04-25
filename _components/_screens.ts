@@ -310,9 +310,9 @@ export function showMapSelection(scene: IGameScene) {
   })
 }
 
-export function showWeaponSelection(scene: IGameScene) {
+export function showWeaponSelection(scene: IGameScene, page = 0) {
   const { width: w, height: h } = scene.cameras.main
-  const unlocked = ALL_WEAPONS.filter(w => isWeaponUnlocked(w.type))
+  const unlocked = ALL_WEAPONS.filter(wm => isWeaponUnlocked(wm.type))
   const pool: WeaponMeta[] = unlocked.length > 0 ? unlocked : ALL_WEAPONS
 
   const overlay = scene.add.graphics().setScrollFactor(0).setDepth(50)
@@ -326,6 +326,7 @@ export function showWeaponSelection(scene: IGameScene) {
     scene.showMapSelection()
   }
   scene.input.keyboard?.on('keydown-ESC', goBack)
+
   const backBtn = scene.add.text(20, 28, '[ BACK ]', {
     fontSize: '18px', color: '#4ade80', stroke: '#000', strokeThickness: 3,
   }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
@@ -334,7 +335,7 @@ export function showWeaponSelection(scene: IGameScene) {
   backBtn.on('pointerdown', goBack)
   allUI.push(backBtn)
 
-  const pick = (weapon: typeof ALL_WEAPONS[0]) => {
+  const pick = (weapon: WeaponMeta) => {
     scene.input.keyboard?.off('keydown-ESC', goBack)
     scene.unlockWeapon(weapon.type)
     allUI.forEach(o => o.destroy())
@@ -342,31 +343,26 @@ export function showWeaponSelection(scene: IGameScene) {
   }
 
   if (scene.oneWeaponMode) {
-    allUI.push(scene.add.text(w / 2, 32, 'One Weapon Mode — Choose your weapon', {
+    allUI.push(scene.add.text(w / 2, 28, 'One Weapon Mode — Choose your weapon', {
       fontSize: '22px', color: '#f97316', stroke: '#000', strokeThickness: 3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
 
     const cols = 4
-    const cardW = 140, cardH = 100
-    const colGap = 160, rowGap = 110
-    const startX = w / 2 - colGap * (cols - 1) / 2
-    const viewportTop = 62
-    const viewportBottom = h - 8
-    const viewportH = viewportBottom - viewportTop
-    const startY = viewportTop + cardH / 2 + 6
+    const cardW = 155, cardH = 118
+    const colGap = 168, rowGap = 130
+    const perPage = cols * 4
+    const totalPages = Math.ceil(pool.length / perPage)
+    const pagePool = pool.slice(page * perPage, (page + 1) * perPage)
 
-    const container = (scene.add as any).container(0, 0).setScrollFactor(0).setDepth(51)
-    allUI.push(container)
+    const totalW = colGap * (cols - 1)
+    const startX = w / 2 - totalW / 2
+    const startY = 66 + cardH / 2
 
-    const zones: any[] = []
-    const cardCys: number[] = []
-
-    pool.forEach((weapon, i) => {
+    pagePool.forEach((weapon, i) => {
       const cx = startX + (i % cols) * colGap
       const cy = startY + Math.floor(i / cols) * rowGap
-      cardCys.push(cy)
 
-      const bg = scene.add.graphics()
+      const bg = scene.add.graphics().setScrollFactor(0).setDepth(51)
       const draw = (hover: boolean) => {
         bg.clear()
         bg.fillStyle(hover ? 0x1e1e30 : 0x111118)
@@ -375,82 +371,64 @@ export function showWeaponSelection(scene: IGameScene) {
         bg.strokeRoundedRect(cx - cardW / 2, cy - cardH / 2, cardW, cardH, 10)
       }
       draw(false)
+      allUI.push(bg)
 
-      const nameText = scene.add.text(cx, cy - 28, weapon.name, {
-        fontSize: '14px', color: '#ffffff', stroke: '#000', strokeThickness: 2,
-        fontStyle: 'bold',
-      }).setOrigin(0.5, 0.5)
+      allUI.push(scene.add.image(cx, cy - 22, `wico_${weapon.type}`)
+        .setScrollFactor(0).setDepth(52).setDisplaySize(38, 38))
 
-      const icon = scene.add.image(cx, cy + 18, `wico_${weapon.type}`)
-        .setDisplaySize(40, 40)
+      allUI.push(scene.add.text(cx, cy + 14, weapon.name, {
+        fontSize: '13px', color: '#ffffff', stroke: '#000', strokeThickness: 2,
+        fontStyle: 'bold', align: 'center', wordWrap: { width: cardW - 16 },
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(52))
+
+      allUI.push(scene.add.text(cx, cy + 40, weapon.stats, {
+        fontSize: '10px',
+        color: `#${weapon.accent.toString(16).padStart(6, '0')}`,
+        align: 'center', wordWrap: { width: cardW - 16 },
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(52))
 
       const zone = scene.add.zone(cx, cy, cardW, cardH)
-        .setInteractive({ useHandCursor: true })
-
+        .setScrollFactor(0).setDepth(53).setInteractive({ useHandCursor: true })
       zone.on('pointerover', () => draw(true))
       zone.on('pointerout', () => draw(false))
       zone.on('pointerdown', () => pick(weapon))
-
-      container.add([bg, nameText, icon, zone])
-      zones.push(zone)
+      allUI.push(zone)
     })
 
-    const maskG = scene.make.graphics({ x: 0, y: 0 })
-    maskG.fillStyle(0xffffff).fillRect(0, viewportTop, w, viewportH)
-    container.setMask(maskG.createGeometryMask())
-    allUI.push(maskG)
+    if (totalPages > 1) {
+      const navY = h - 26
+      allUI.push(scene.add.text(w / 2, navY, `${page + 1} / ${totalPages}`, {
+        fontSize: '16px', color: '#9ca3af', stroke: '#000', strokeThickness: 2,
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(51))
 
-    const rows = Math.ceil(pool.length / cols)
-    const contentBottom = startY + (rows - 1) * rowGap + cardH / 2 + 6
-    const maxScroll = Math.max(0, contentBottom - viewportBottom)
-    let scrollY = 0
+      if (page > 0) {
+        const prevBtn = scene.add.text(w / 2 - 80, navY, '< PREV', {
+          fontSize: '16px', color: '#4ade80', stroke: '#000', strokeThickness: 2,
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
+        prevBtn.on('pointerover', () => prevBtn.setColor('#86efac'))
+        prevBtn.on('pointerout',  () => prevBtn.setColor('#4ade80'))
+        prevBtn.on('pointerdown', () => {
+          scene.input.keyboard?.off('keydown-ESC', goBack)
+          allUI.forEach(o => o.destroy())
+          showWeaponSelection(scene, page - 1)
+        })
+        allUI.push(prevBtn)
+      }
 
-    const refreshZoneVisibility = () => {
-      for (let i = 0; i < zones.length; i++) {
-        const worldCy = cardCys[i] - scrollY
-        const visible = worldCy + cardH / 2 > viewportTop && worldCy - cardH / 2 < viewportBottom
-        if (zones[i].input) zones[i].input.enabled = visible
+      if (page < totalPages - 1) {
+        const nextBtn = scene.add.text(w / 2 + 80, navY, 'NEXT >', {
+          fontSize: '16px', color: '#4ade80', stroke: '#000', strokeThickness: 2,
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
+        nextBtn.on('pointerover', () => nextBtn.setColor('#86efac'))
+        nextBtn.on('pointerout',  () => nextBtn.setColor('#4ade80'))
+        nextBtn.on('pointerdown', () => {
+          scene.input.keyboard?.off('keydown-ESC', goBack)
+          allUI.forEach(o => o.destroy())
+          showWeaponSelection(scene, page + 1)
+        })
+        allUI.push(nextBtn)
       }
     }
-
-    const setScroll = (v: number) => {
-      scrollY = Math.max(0, Math.min(maxScroll, v))
-      container.y = -scrollY
-      refreshZoneVisibility()
-    }
-
-    if (maxScroll > 0) {
-      const hint = scene.add.text(w - 12, viewportTop + 4, '▲▼ scroll', {
-        fontSize: '11px', color: '#6b7280',
-      }).setOrigin(1, 0).setScrollFactor(0).setDepth(52)
-      allUI.push(hint)
-
-      const wheelHandler = (_p: any, _objs: any, _dx: number, dy: number) => {
-        setScroll(scrollY + dy * 0.5)
-      }
-      scene.input.on('wheel', wheelHandler)
-
-      const kbd = scene.input.keyboard
-      const onUp = () => setScroll(scrollY - rowGap)
-      const onDown = () => setScroll(scrollY + rowGap)
-      const onPgUp = () => setScroll(scrollY - viewportH)
-      const onPgDown = () => setScroll(scrollY + viewportH)
-      kbd?.on('keydown-UP', onUp)
-      kbd?.on('keydown-DOWN', onDown)
-      kbd?.on('keydown-PAGE_UP', onPgUp)
-      kbd?.on('keydown-PAGE_DOWN', onPgDown)
-
-      const cleanup = { destroy: () => {
-        scene.input.off('wheel', wheelHandler)
-        kbd?.off('keydown-UP', onUp)
-        kbd?.off('keydown-DOWN', onDown)
-        kbd?.off('keydown-PAGE_UP', onPgUp)
-        kbd?.off('keydown-PAGE_DOWN', onPgDown)
-      } }
-      allUI.push(cleanup)
-    }
-
-    refreshZoneVisibility()
   } else {
     const shuffled = [...pool].sort(() => 0.5 - Math.random())
     const selected = shuffled.slice(0, Math.min(3, shuffled.length))
