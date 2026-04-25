@@ -10,20 +10,33 @@ export const PU_TYPES = [
   { key: 'pu_orbs',   label: 'Orb Shower',  color: 0xfbbf24, stroke: 0xfde68a },
 ]
 
-export function spawnPowerUp(scene: IGameScene) {
-  const type = PU_TYPES[Math.floor(Math.random() * PU_TYPES.length)]
-  const angle = Math.random() * Math.PI * 2
-  const dist = 350 + Math.random() * 350
-  const x = Math.max(80, Math.min(WORLD - 80, scene.player.x + Math.cos(angle) * dist))
-  const y = Math.max(80, Math.min(WORLD - 80, scene.player.y + Math.sin(angle) * dist))
+export function spawnPowerUp(scene: IGameScene, x?: number, y?: number, typeKey?: string) {
+  const type = typeKey
+    ? PU_TYPES.find(t => t.key === typeKey) ?? PU_TYPES[Math.floor(Math.random() * PU_TYPES.length)]
+    : PU_TYPES[Math.floor(Math.random() * PU_TYPES.length)]
 
-  const pu = scene.powerUps.create(x, y, type.key)
+  let px: number, py: number
+  if (x !== undefined && y !== undefined) {
+    px = Math.max(80, Math.min(WORLD - 80, x))
+    py = Math.max(80, Math.min(WORLD - 80, y))
+  } else {
+    const angle = Math.random() * Math.PI * 2
+    const dist = 350 + Math.random() * 350
+    px = Math.max(80, Math.min(WORLD - 80, scene.player.x + Math.cos(angle) * dist))
+    py = Math.max(80, Math.min(WORLD - 80, scene.player.y + Math.sin(angle) * dist))
+  }
+
+  const pu = scene.powerUps.create(px, py, type.key)
   pu.setDepth(6).setData('type', type.key)
 
   scene.tweens.add({
     targets: pu, scaleX: 1.18, scaleY: 1.18,
     duration: 550, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
   })
+}
+
+export function dropMinibossReward(scene: IGameScene, x: number, y: number) {
+  spawnPowerUp(scene, x, y)
 }
 
 export function onCollectPowerUp(scene: IGameScene, _p: any, powerUp: any) {

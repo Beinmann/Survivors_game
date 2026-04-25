@@ -176,6 +176,29 @@ export function spawnBossWave(scene: IGameScene) {
   })
 }
 
+export function spawnMiniBoss(scene: IGameScene) {
+  const gameTimeSecs = scene.gameTime / 1000
+  const candidates = ENEMY_TYPES.filter(
+    t => t.key.startsWith('enemy_miniboss_') && t.unlockSecs <= gameTimeSecs,
+  )
+  if (candidates.length === 0) return
+
+  const type = candidates[Math.floor(Math.random() * candidates.length)]
+  const angle = Math.random() * Math.PI * 2
+  const bx = clamp(scene.player.x + Math.cos(angle) * 620, 10, WORLD - 10)
+  const by = clamp(scene.player.y + Math.sin(angle) * 620, 10, WORLD - 10)
+  const e = scene.enemies.create(bx, by, type.key)
+  e.setDepth(3)
+    .setData('hp', type.hp)
+    .setData('maxHp', type.hp)
+    .setData('speed', type.speed)
+    .setData('orbBonus', type.orbBonus)
+    .setData('isMiniboss', true)
+  if (type.key === 'enemy_miniboss_warden') {
+    e.setData('knockback', true)
+  }
+}
+
 export function spawnObstacles(scene: IGameScene) {
   const cx = WORLD / 2, cy = WORLD / 2
   const safeR = 700

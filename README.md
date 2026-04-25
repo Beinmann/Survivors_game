@@ -105,6 +105,9 @@ Enemies spawn in waves off-screen (550–800px from the player). New types unloc
 | Scavenger | Amber | 45 | 130 | 50s | — | 0 | **ruins** | Targets the nearest XP orb instead of the player; destroys orbs on reach |
 | Ambusher | Stone grey | 55 | 120 | 70s | — | +1 | **ruins** | Spawns dormant (rubble); wakes up after 3s, when player gets within 120px, or when damaged |
 | Boss | Red | 1500 | 54 | every 180s | — | +18 | all | Spawned separately; see Boss Waves |
+| Mini-boss: Brute | Deep purple | 450 | 50 | 60s | — | +8 | all | Spawned separately; see Mini-Bosses. Drops a power-up on death |
+| Mini-boss: Alpha | Hot magenta | 280 | 130 | 90s | — | +6 | all | Spawned separately; see Mini-Bosses. Drops a power-up on death |
+| Mini-boss: Warden | Steel blue | 380 | 60 | 150s | — | +7 | all | Spawned separately; see Mini-Bosses. Knocks player back on contact; drops a power-up on death |
 
 Weight controls selection probability within the available pool. Lower weight = rarer. Map-exclusive enemies have no base weight — they spawn only on the maps that explicitly opt them in.
 
@@ -115,6 +118,10 @@ Charger cycles through three states: **idle** (drifts slowly toward player) → 
 ### Boss Waves
 
 Every 180 seconds a "⚠ BOSS INCOMING" warning appears, then a single Boss enemy spawns 620px from the player. Bosses are not part of the normal spawn pool — they arrive on top of regular waves.
+
+### Mini-Bosses
+
+Every 50–60 seconds a single mini-boss spawns 620px from the player — silently, with no warning text. They're visibly larger than regular enemies and drop a random power-up at their death location. Three types unlock at 60s, 90s, and 150s respectively. Mini-bosses are not part of the normal wave spawn pool.
 
 ---
 

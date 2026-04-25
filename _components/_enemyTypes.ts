@@ -23,4 +23,7 @@ export const ENEMY_TYPES = [
   { key: 'enemy_scavenger',    color: 0xa16207, stroke: 0xfcd34d, size: 18, radius: 3,  hp: 45,   speed: 130, unlockSecs: 50,      weight: 0,    orbBonus: 0 },
   { key: 'enemy_ambusher',     color: 0x44403c, stroke: 0xa8a29e, size: 22, radius: 3,  hp: 55,   speed: 120, unlockSecs: 70,      weight: 0,    orbBonus: 1 },
   { key: 'enemy_boss',         color: 0xff0000, stroke: 0xff8080, size: 52, radius: 8,  hp: 1500, speed: 54,  unlockSecs: 9999999, weight: 0.0,  orbBonus: 18 },
+  { key: 'enemy_miniboss_brute',  color: 0x6b21a8, stroke: 0xd8b4fe, size: 42, radius: 6, hp: 450, speed: 50,  unlockSecs: 60,  weight: 0, orbBonus: 8 },
+  { key: 'enemy_miniboss_alpha',  color: 0xdb2777, stroke: 0xfbcfe8, size: 38, radius: 5, hp: 280, speed: 130, unlockSecs: 90,  weight: 0, orbBonus: 6 },
+  { key: 'enemy_miniboss_warden', color: 0x1e3a8a, stroke: 0x93c5fd, size: 40, radius: 6, hp: 380, speed: 60,  unlockSecs: 150, weight: 0, orbBonus: 7 },
 ]

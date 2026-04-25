@@ -1,6 +1,7 @@
 import { IGameScene } from './_sceneInterface'
 import { MAX_ORBS, VISION_MARGIN, OFFSCREEN_MERGE_RADIUS } from './_constants'
 import { WeaponType, WEAPON_BASE } from './_types'
+import { dropMinibossReward } from './_powerups'
 
 // Phaser's arcade physics steps body.position during the scene's UPDATE
 // event, but only syncs body -> gameObject in POST_UPDATE — which runs
@@ -606,10 +607,13 @@ export function killEnemy(scene: IGameScene, e: any) {
       if (orbCount > 1) scene.tintConsolidatedOrb(orb, orbCount)
     }
   }
+  const isMiniboss = e.getData('isMiniboss')
+  const ex = e.x, ey = e.y
   e.destroy()
+  if (isMiniboss) dropMinibossReward(scene, ex, ey)
   scene.score++
   const orbBonusVal = e.getData('orbBonus') ?? 0
-  scene.runCoins += e.getData('boss') ? 20 : (orbBonusVal > 0 ? 3 : 1)
+  scene.runCoins += e.getData('boss') ? 20 : (isMiniboss ? 8 : (orbBonusVal > 0 ? 3 : 1))
   scene.scoreText.setText(`Score: ${scene.score}`)
 }
 

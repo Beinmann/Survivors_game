@@ -106,6 +106,7 @@ export interface IGameScene {
   powerUpSpawnTimer: number
   frenzyTimer: number
   freezeTimer: number
+  miniBossSpawnTimer: number
   gameTime: number
   globalSpeedMult: number
   currentWaveIndex: number
@@ -175,6 +176,7 @@ export interface IGameScene {
   togglePause(): void
   spawnWave(): void
   spawnBossWave(): void
+  spawnMiniBoss(): void
   spawnObstacles(): void
   spawnPowerUp(): void
   applyPowerUp(type: string): void

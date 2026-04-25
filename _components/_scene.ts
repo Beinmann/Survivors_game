@@ -8,7 +8,7 @@ import { buildTextures } from './_textures'
 import { showTitleScreen, showModeSelection, showMapSelection, showWeaponSelection, showGameOver, showShop } from './_screens'
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
-import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies, getActiveWave, showWaveBanner } from './_spawning'
+import { spawnWave, spawnBossWave, spawnMiniBoss, spawnObstacles, moveEnemies, getActiveWave, showWaveBanner } from './_spawning'
 import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireCryo, fireRailgun, fireDrones, fireCleave, updateSpecials, playerEmitX, playerEmitY } from './_combat'
 import { onCollectOrb, getWeaponUpgrades, getUpgrades, showUpgradeMenu, pullOrbs, unlockWeapon } from './_progression'
 import { openDebugMenu, closeDebugMenu, drawDebugOverlays } from './_debug'
@@ -136,6 +136,7 @@ export function createGameScene(Phaser: any) {
     public powerUpSpawnTimer = 0
     public frenzyTimer = 0
     public freezeTimer = 0
+    public miniBossSpawnTimer = 0
 
     // --- timer ---
     public gameTime = 0
@@ -351,6 +352,7 @@ export function createGameScene(Phaser: any) {
       this.cleaveCount = 1; this.cleaveRadius = 150; this.cleaveArc = (140 * Math.PI) / 180
       this.clearSpecials()
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
+      this.miniBossSpawnTimer = 50000
       this.gameTime = 0; this.globalSpeedMult = 1.0
       this.currentWaveIndex = 0; this.currentWaveEndSec = 0; this._lastWaveIndexApplied = -1
       this.hudDirty = true
@@ -461,6 +463,11 @@ export function createGameScene(Phaser: any) {
       if (this.powerUpSpawnTimer <= 0) {
         this.spawnPowerUp()
         this.powerUpSpawnTimer = 10000 + Math.random() * 40000
+      }
+      this.miniBossSpawnTimer -= delta
+      if (this.miniBossSpawnTimer <= 0) {
+        this.spawnMiniBoss()
+        this.miniBossSpawnTimer = 50000 + Math.random() * 10000
       }
       if (this.frenzyTimer > 0) this.frenzyTimer = Math.max(0, this.frenzyTimer - delta)
       if (this.freezeTimer > 0) this.freezeTimer = Math.max(0, this.freezeTimer - delta)
@@ -915,6 +922,10 @@ export function createGameScene(Phaser: any) {
 
     public spawnBossWave() {
       spawnBossWave(this)
+    }
+
+    public spawnMiniBoss() {
+      spawnMiniBoss(this)
     }
 
     public unlockWeapon(wt: WeaponType) {
