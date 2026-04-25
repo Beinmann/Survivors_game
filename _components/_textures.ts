@@ -150,12 +150,12 @@ export function buildTextures(scene: IGameScene) {
 
   make('orb', g => {
     g.fillStyle(0x38bdf8, 0.65)
-    g.fillTriangle(5, 1, 9, 5, 5, 9)
-    g.fillTriangle(5, 1, 1, 5, 5, 9)
-    g.lineStyle(1, 0xbae6fd, 0.5)
-    g.strokeTriangle(5, 1, 9, 5, 5, 9)
-    g.strokeTriangle(5, 1, 1, 5, 5, 9)
-  }, 10, 10)
+    g.fillTriangle(2.5, 0.5, 4.5, 2.5, 2.5, 4.5)
+    g.fillTriangle(2.5, 0.5, 0.5, 2.5, 2.5, 4.5)
+    g.lineStyle(0.8, 0xbae6fd, 0.5)
+    g.strokeTriangle(2.5, 0.5, 4.5, 2.5, 2.5, 4.5)
+    g.strokeTriangle(2.5, 0.5, 0.5, 2.5, 2.5, 4.5)
+  }, 5, 5)
 
   make('shock', g => {
     g.lineStyle(2.5, 0xc4b5fd)
