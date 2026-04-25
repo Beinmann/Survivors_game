@@ -305,6 +305,12 @@ export function createGameScene(Phaser: any) {
         fontSize: '13px', color: '#fb923c', stroke: '#000000', strokeThickness: 3,
       }).setScrollFactor(0).setDepth(20).setOrigin(0.5, 0)
 
+      this.scale.on('resize', () => {
+        const cw = this.cameras.main.width
+        this.timerText.x = cw / 2
+        this.effectText.x = cw / 2
+      })
+
       this._runJITWarmup()
       this.showTitleScreen()
     }

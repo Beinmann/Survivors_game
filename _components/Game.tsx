@@ -20,6 +20,8 @@ export default function Game() {
     const container = containerRef.current
     let phaserGame: { destroy: (removeCanvas: boolean) => void } | null = null
     let cancelled = false
+    const normalWidth = container.clientWidth || 800
+    const normalHeight = 520
 
     async function init() {
       // Phaser ESM build uses named exports only — no default export
@@ -31,8 +33,8 @@ export default function Game() {
 
       phaserGame = new Phaser.Game({
         type: Phaser.AUTO,
-        width: container.clientWidth || 800,
-        height: 520,
+        width: normalWidth,
+        height: normalHeight,
         backgroundColor: '#111111',
         parent: container,
         physics: { default: 'arcade', arcade: { debug: false, fixedStep: false } },
@@ -48,35 +50,14 @@ export default function Game() {
     }
     document.addEventListener('visibilitychange', handleVisibility)
 
-    const scaleCanvas = () => {
-      const canvas = container.querySelector('canvas')
-      if (!canvas) return
-      const sx = window.innerWidth / canvas.width
-      const sy = window.innerHeight / canvas.height
-      const s = Math.min(sx, sy)
-      const ox = (window.innerWidth - canvas.width * s) / 2
-      const oy = (window.innerHeight - canvas.height * s) / 2
-      canvas.style.transform = `scale(${s})`
-      canvas.style.transformOrigin = '0 0'
-      canvas.style.position = 'absolute'
-      canvas.style.left = `${ox}px`
-      canvas.style.top = `${oy}px`
-    }
-
-    const unscaleCanvas = () => {
-      const canvas = container.querySelector('canvas')
-      if (!canvas) return
-      canvas.style.transform = ''
-      canvas.style.transformOrigin = ''
-      canvas.style.position = ''
-      canvas.style.left = ''
-      canvas.style.top = ''
-    }
-
     const handleFullscreenChange = () => {
       const fs = !!document.fullscreenElement
       setIsFullscreen(fs)
-      if (fs) scaleCanvas(); else unscaleCanvas()
+      if (fs) {
+        ;(phaserGame as any)?.scale?.resize(window.innerWidth, window.innerHeight)
+      } else {
+        ;(phaserGame as any)?.scale?.resize(normalWidth, normalHeight)
+      }
     }
     document.addEventListener('fullscreenchange', handleFullscreenChange)
 
