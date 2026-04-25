@@ -151,7 +151,6 @@ function spawnDroneHitIcon(scene: IGameScene, x: number, y: number) {
 export function fireAura(scene: IGameScene) {
   const evolved = !!scene.weaponEvolutions['aura']
   const r = scene.auraRadius * (1 + scene.bonusArea)
-  const r2 = r * r
   const dmg = scene.auraDmg
   const px = playerEmitX(scene), py = playerEmitY(scene)
   const enemies = scene.enemies.getChildren() as any[]
@@ -159,7 +158,9 @@ export function fireAura(scene: IGameScene) {
   for (const e of enemies) {
     if (!e.active) continue
     const dx = px - e.x, dy = py - e.y
-    if (dx * dx + dy * dy < r2) {
+    const enemyRadius = (e.displayWidth ?? 0) * 0.5
+    const reach = r + enemyRadius
+    if (dx * dx + dy * dy < reach * reach) {
       scene.damageEnemy(e, dmg, false)
       spawnShockIcon(scene, e.x, e.y)
       inAura.push(e)
