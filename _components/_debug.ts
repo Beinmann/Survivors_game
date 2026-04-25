@@ -1,5 +1,5 @@
 import { IGameScene } from './_sceneInterface'
-import { ALL_WEAPON_TYPES, WEAPON_NAMES, WeaponType } from './_types'
+import { ALL_WEAPON_TYPES, ALL_PASSIVE_TYPES, WEAPON_NAMES, WeaponType, PassiveType, PASSIVE_DATA } from './_types'
 import { PU_TYPES } from './_powerups'
 import { ENEMY_TYPES } from './_enemyTypes'
 import { awardCoins } from './_persistence'
@@ -16,7 +16,7 @@ const HITBOX_COLOR = 0xff00ff
 const HP_BAR_BG = 0x000000
 const HP_BAR_FG = 0xf87171
 
-type MenuMode = 'main' | 'powerup'
+type MenuMode = 'main' | 'powerup' | 'grant_weapon' | 'grant_passive'
 
 type DebugEntry = {
   label: (s: IGameScene) => string
@@ -71,6 +71,14 @@ const mainEntries: DebugEntry[] = [
     run: (s) => openDebugMenu(s, 'powerup'),
   },
   {
+    label: () => 'Grant weapon…',
+    run: (s) => openDebugMenu(s, 'grant_weapon'),
+  },
+  {
+    label: () => 'Grant passive…',
+    run: (s) => openDebugMenu(s, 'grant_passive'),
+  },
+  {
     label: (s) => `Enemy HP bars: ${s.debugHpBars ? 'ON' : 'OFF'}`,
     run: (s) => { s.debugHpBars = !s.debugHpBars },
   },
@@ -91,8 +99,80 @@ const powerupEntries: DebugEntry[] = [
   },
 ]
 
+function grantWeapon(scene: IGameScene, wt: WeaponType) {
+  if (!scene.weapons.includes(wt)) {
+    scene.unlockWeapon(wt)
+  } else {
+    const lvl = scene.weaponLevels[wt] ?? 1
+    if (lvl >= 9) return
+    const list = scene.getWeaponUpgrades()
+    const target = WEAPON_NAMES[wt] + ' '
+    const entry = list.find((u: any) => typeof u.name === 'string' && u.name.startsWith(target))
+    if (entry) entry.apply()
+  }
+  scene.recalculateStats()
+  scene.hudDirty = true
+}
+
+function grantPassive(scene: IGameScene, pt: PassiveType) {
+  const data = PASSIVE_DATA[pt]
+  const maxLevel = data.maxLevel ?? 5
+  if (!scene.passives.includes(pt)) {
+    scene.unlockPassive(pt)
+  } else {
+    const lvl = scene.passiveLevels[pt] ?? 1
+    if (lvl >= maxLevel) return
+    scene.passiveLevels[pt] = lvl + 1
+    scene.applyPassiveBoost(pt)
+  }
+  scene.recalculateStats()
+  scene.hudDirty = true
+}
+
+function weaponEntryLabel(scene: IGameScene, wt: WeaponType): string {
+  const name = WEAPON_NAMES[wt]
+  if (!scene.weapons.includes(wt)) return `Add: ${name}`
+  const lvl = scene.weaponLevels[wt] ?? 1
+  if (lvl >= 9) return `${name} (Lv 9 MAX)`
+  return `Level up: ${name} (Lv ${lvl} → ${lvl + 1})`
+}
+
+function passiveEntryLabel(scene: IGameScene, pt: PassiveType): string {
+  const data = PASSIVE_DATA[pt]
+  const maxLevel = data.maxLevel ?? 5
+  if (!scene.passives.includes(pt)) return `Add: ${data.name}`
+  const lvl = scene.passiveLevels[pt] ?? 1
+  if (lvl >= maxLevel) return `${data.name} (Lv ${maxLevel} MAX)`
+  return `Level up: ${data.name} (Lv ${lvl} → ${lvl + 1})`
+}
+
+const grantWeaponEntries: DebugEntry[] = [
+  ...ALL_WEAPON_TYPES.map(wt => ({
+    label: (s: IGameScene) => weaponEntryLabel(s, wt),
+    run: (s: IGameScene) => { grantWeapon(s, wt); openDebugMenu(s, 'grant_weapon') },
+  })),
+  {
+    label: () => '← Back',
+    run: (s: IGameScene) => openDebugMenu(s, 'main'),
+  },
+]
+
+const grantPassiveEntries: DebugEntry[] = [
+  ...ALL_PASSIVE_TYPES.map(pt => ({
+    label: (s: IGameScene) => passiveEntryLabel(s, pt),
+    run: (s: IGameScene) => { grantPassive(s, pt); openDebugMenu(s, 'grant_passive') },
+  })),
+  {
+    label: () => '← Back',
+    run: (s: IGameScene) => openDebugMenu(s, 'main'),
+  },
+]
+
 function entriesFor(mode: MenuMode): DebugEntry[] {
-  return mode === 'powerup' ? powerupEntries : mainEntries
+  if (mode === 'powerup') return powerupEntries
+  if (mode === 'grant_weapon') return grantWeaponEntries
+  if (mode === 'grant_passive') return grantPassiveEntries
+  return mainEntries
 }
 
 export function openDebugMenu(scene: IGameScene, mode: MenuMode = 'main') {
@@ -109,9 +189,10 @@ export function openDebugMenu(scene: IGameScene, mode: MenuMode = 'main') {
 
   const { width: w, height: h } = scene.cameras.main
   const entries = entriesFor(mode)
-  const rowH = 28
-  const panelW = 420
-  const panelH = rowH * entries.length + 60
+  const rowH = entries.length > 14 ? 20 : 28
+  const fontSize = entries.length > 14 ? '12px' : '14px'
+  const panelW = 460
+  const panelH = Math.min(h - 20, rowH * entries.length + 60)
   const panelX = w / 2 - panelW / 2
   const panelY = h / 2 - panelH / 2
 
@@ -120,7 +201,12 @@ export function openDebugMenu(scene: IGameScene, mode: MenuMode = 'main') {
   overlay.fillStyle(0x1f2937, 0.95).fillRect(panelX, panelY, panelW, panelH)
   overlay.lineStyle(2, 0x22ff88, 0.8).strokeRect(panelX, panelY, panelW, panelH)
 
-  const title = scene.add.text(w / 2, panelY + 14, mode === 'powerup' ? 'DEBUG — Spawn power-up' : 'DEBUG MENU (U or ESC to close)', {
+  const titleText =
+    mode === 'powerup'       ? 'DEBUG — Spawn power-up' :
+    mode === 'grant_weapon'  ? 'DEBUG — Grant weapon' :
+    mode === 'grant_passive' ? 'DEBUG — Grant passive' :
+                               'DEBUG MENU (U or ESC to close)'
+  const title = scene.add.text(w / 2, panelY + 14, titleText, {
     fontSize: '14px', color: '#22ff88', stroke: '#000', strokeThickness: 3,
   }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(46)
 
@@ -141,7 +227,7 @@ export function openDebugMenu(scene: IGameScene, mode: MenuMode = 'main') {
   entries.forEach((e, i) => {
     const y = panelY + 44 + i * rowH
     const t = scene.add.text(panelX + 20, y, '', {
-      fontSize: '14px', color: '#ffffff', stroke: '#000', strokeThickness: 2,
+      fontSize, color: '#ffffff', stroke: '#000', strokeThickness: 2,
     }).setScrollFactor(0).setDepth(46).setInteractive({ useHandCursor: true })
     t.on('pointerover', () => { selected = i; redraw() })
     t.on('pointerdown', () => run(i))
