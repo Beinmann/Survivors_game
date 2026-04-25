@@ -500,7 +500,7 @@ export function showGameOver(scene: IGameScene) {
   btn.on('pointerdown', () => scene.scene.restart())
 }
 
-export function showShop(scene: IGameScene) {
+export function showShop(scene: IGameScene, page = 0) {
   const { width: w, height: h } = scene.cameras.main
   const ui: any[] = []
 
@@ -556,7 +556,7 @@ export function showShop(scene: IGameScene) {
 
   const redraw = () => {
     ui.forEach(o => o.destroy())
-    scene.showShop()
+    showShop(scene, page)
   }
 
   interface ShopEntry {
@@ -593,7 +593,11 @@ export function showShop(scene: IGameScene) {
   const startY = 76 + cardH / 2
   const balance = getCoins()
 
-  entries.forEach((entry, i) => {
+  const perPage = 15
+  const totalPages = Math.ceil(entries.length / perPage)
+  const pageEntries = entries.slice(page * perPage, (page + 1) * perPage)
+
+  pageEntries.forEach((entry, i) => {
     const cx = startX + (i % cols) * colGap
     const cy = startY + Math.floor(i / cols) * rowGap
     const owned = entry.isUnlocked()
@@ -665,4 +669,32 @@ export function showShop(scene: IGameScene) {
       ui.push(zone)
     }
   })
+
+  if (totalPages > 1) {
+    const navY = h - 26
+    const pageLabel = scene.add.text(w / 2, navY, `${page + 1} / ${totalPages}`, {
+      fontSize: '16px', color: '#9ca3af', stroke: '#000', strokeThickness: 2,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(51)
+    ui.push(pageLabel)
+
+    if (page > 0) {
+      const prevBtn = scene.add.text(w / 2 - 80, navY, '< PREV', {
+        fontSize: '16px', color: '#4ade80', stroke: '#000', strokeThickness: 2,
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
+      prevBtn.on('pointerover', () => prevBtn.setColor('#86efac'))
+      prevBtn.on('pointerout',  () => prevBtn.setColor('#4ade80'))
+      prevBtn.on('pointerdown', () => { ui.forEach(o => o.destroy()); showShop(scene, page - 1) })
+      ui.push(prevBtn)
+    }
+
+    if (page < totalPages - 1) {
+      const nextBtn = scene.add.text(w / 2 + 80, navY, 'NEXT >', {
+        fontSize: '16px', color: '#4ade80', stroke: '#000', strokeThickness: 2,
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
+      nextBtn.on('pointerover', () => nextBtn.setColor('#86efac'))
+      nextBtn.on('pointerout',  () => nextBtn.setColor('#4ade80'))
+      nextBtn.on('pointerdown', () => { ui.forEach(o => o.destroy()); showShop(scene, page + 1) })
+      ui.push(nextBtn)
+    }
+  }
 }
