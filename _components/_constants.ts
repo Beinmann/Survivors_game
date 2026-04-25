@@ -4,3 +4,4 @@ export const MAX_ORBS = 180
 export const DESPAWN_DIST = 2000
 export const VISION_MARGIN = 64
 export const OFFSCREEN_MERGE_RADIUS = 300
+export const BLACKHOLE_PLAYER_PULL_FRACTION = 0.22

@@ -155,8 +155,8 @@ export const WEAPON_EVOLUTIONS: Partial<Record<WeaponType, EvolutionDef>> = {
     linkedPassiveMinLevel: 3,
   },
   boomerang: {
-    name: 'Spiral Buzzsaw',
-    desc: 'Spirals outward then inward · pierces all enemies in its path',
+    name: 'Twin Helix',
+    desc: 'Throws paired boomerangs that braid around their axis · pierces all',
     icon: 'wico_boomerang_evolved',
     linkedPassive: 'projectiles',
     linkedPassiveMinLevel: 2,

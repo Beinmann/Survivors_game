@@ -1,4 +1,4 @@
-import { WORLD, SPAWN_INTERVAL_MS, MAX_ORBS, DESPAWN_DIST } from './_constants'
+import { WORLD, SPAWN_INTERVAL_MS, MAX_ORBS, DESPAWN_DIST, BLACKHOLE_PLAYER_PULL_FRACTION } from './_constants'
 import { MapKey, getMapDef, drawBackground } from './_maps'
 import { WeaponType, PassiveType, ALL_WEAPON_TYPES, WEAPON_NAMES, WEAPON_BASE, PASSIVE_DATA } from './_types'
 import { ENEMY_TYPES } from './_enemyTypes'
@@ -525,34 +525,20 @@ export function createGameScene(Phaser: any) {
         if (sx !== undefined) {
           const dist = Phaser.Math.Distance.Between(sx, sy, img.x, img.y)
           if (img.getData('wt') === 'boomerang') {
-            if (img.getData('spiral')) {
-              const spiralStart = img.getData('spiralStart')
-              const halfDur = img.getData('spiralHalfDur')
-              const elapsed = this.gameTime - spiralStart
-              const totalDur = halfDur * 2
-              if (elapsed >= totalDur) { img.destroy(); continue }
-              const startAng = img.getData('spiralAngle')
-              const dirSign = img.getData('spiralDir')
-              const maxR = img.getData('spiralR')
-              let r: number, ang: number
-              if (elapsed < halfDur) {
-                const t = elapsed / halfDur
-                r = maxR * t
-                ang = startAng + dirSign * t * Math.PI * 3
-              } else {
-                if (!img.getData('phaseFlipped')) {
-                  img.setData('phaseFlipped', true)
-                  img.setData('hitEnemies', new Set())
-                }
-                const t = (elapsed - halfDur) / halfDur
-                r = maxR * (1 - t)
-                ang = startAng + dirSign * (Math.PI * 3 + t * Math.PI * 3)
-              }
-              img.x = plx + Math.cos(ang) * r
-              img.y = ply + Math.sin(ang) * r
-              img.setRotation(this.gameTime * 0.04)
-              img.setVelocity(0, 0)
-              continue
+            if (img.getData('helix')) {
+              const helixStart = img.getData('helixStart')
+              const axis = img.getData('helixAxis')
+              const phase = img.getData('helixPhase')
+              const amp = img.getData('helixAmp')
+              const omega = img.getData('helixOmega')
+              const t = (this.gameTime - helixStart) / 1000
+              const lastOffset = img.getData('helixLastOffset') ?? 0
+              const offset = Math.sin(t * omega + phase) * amp
+              const dOffset = offset - lastOffset
+              const perpX = -Math.sin(axis), perpY = Math.cos(axis)
+              img.x += perpX * dOffset
+              img.y += perpY * dOffset
+              img.setData('helixLastOffset', offset)
             }
             if (!img.getData('returning')) {
               if (dist > img.getData('dist')) {
@@ -763,7 +749,24 @@ export function createGameScene(Phaser: any) {
       if (up) vy -= effSpeed
       if (down) vy += effSpeed
       if (vx !== 0 && vy !== 0) { vx *= 0.707; vy *= 0.707 }
-      this.player.setVelocity(vx, vy)
+
+      let pullX = 0, pullY = 0
+      for (const bh of this.blackholes) {
+        if (!bh.sprite?.active) continue
+        const dx = bh.sprite.x - this.player.x
+        const dy = bh.sprite.y - this.player.y
+        const d = Math.hypot(dx, dy)
+        if (d > bh.outerRadius || d < 0.01) continue
+        let zoneR: number, zonePull: number
+        if (d <= bh.coreRadius) { zoneR = bh.coreRadius; zonePull = bh.corePull }
+        else if (d <= bh.midRadius) { zoneR = bh.midRadius; zonePull = bh.midPull }
+        else { zoneR = bh.outerRadius; zonePull = bh.outerPull }
+        const proximity = 1 - d / zoneR
+        const pullSpd = zonePull * (1 + proximity * 0.9) * BLACKHOLE_PLAYER_PULL_FRACTION
+        pullX += (dx / d) * pullSpd
+        pullY += (dy / d) * pullSpd
+      }
+      this.player.setVelocity(vx + pullX, vy + pullY)
     }
 
     public autoShoot(time: number) {

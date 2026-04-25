@@ -284,27 +284,30 @@ export function fireBoomerang(scene: IGameScene, angle: number, wt: WeaponType) 
   const ex = playerEmitX(scene), ey = playerEmitY(scene)
 
   if (evolved) {
-    const count = 1
-    const dir = Math.random() < 0.5 ? 1 : -1
-    for (let i = 0; i < count; i++) {
-      const a = angle + (count > 1 ? (i / count) * Math.PI * 2 : 0)
-      const b = scene.bullets.create(ex, ey, 'boomerang') as any
-      b.setData('dmg', scene.boomerangDmg)
-      b.setData('sx', ex).setData('sy', ey)
-      b.setData('wt', 'boomerang')
-      b.setData('spiral', true)
-      b.setData('spiralStart', scene.gameTime)
-      b.setData('spiralHalfDur', 1000)
-      b.setData('spiralR', effectiveDist)
-      b.setData('spiralAngle', a)
-      b.setData('spiralDir', dir)
-      b.setData('phaseFlipped', false)
-      b.setData('pierceLeft', 999)
-      b.setData('hitEnemies', new Set())
-      b.setVelocity(0, 0)
-      b.setDepth(4)
-      const sc = bulletScale * 1.2
-      b.setScale(sc); b.refreshBody()
+    const pairs = 1 + scene.bonusProjectiles
+    const spread = Math.PI / 9
+    for (let p = 0; p < pairs; p++) {
+      const axisAngle = angle + (pairs > 1 ? (p - (pairs - 1) / 2) * spread : 0)
+      for (let m = 0; m < 2; m++) {
+        const b = scene.bullets.create(ex, ey, 'boomerang') as any
+        b.setVelocity(Math.cos(axisAngle) * spd, Math.sin(axisAngle) * spd)
+        b.setData('dmg', scene.boomerangDmg)
+        b.setData('dist', effectiveDist)
+        b.setData('sx', ex).setData('sy', ey)
+        b.setData('returning', false)
+        b.setData('wt', 'boomerang')
+        b.setData('helix', true)
+        b.setData('helixAxis', axisAngle)
+        b.setData('helixPhase', m === 0 ? 0 : Math.PI)
+        b.setData('helixAmp', 28)
+        b.setData('helixOmega', 6.5)
+        b.setData('helixStart', scene.gameTime)
+        b.setData('pierceLeft', 999)
+        b.setData('hitEnemies', new Set())
+        b.setDepth(4)
+        const sc = bulletScale * 1.05
+        b.setScale(sc); b.refreshBody()
+      }
     }
     return
   }

@@ -68,7 +68,7 @@ Once a weapon reaches **level 9** and you hold the right **passive at a required
 | Sniper | Crit Cascade | Arcane Reach | 3 | Shot ricochets up to 6 times between enemies within 240px at full damage (pierce replaced) |
 | Shock Aura | Thunderdome | Arcane Reach | 3 | ×2 radius, ×2 pulse rate, each hit chains a bolt to nearest neighbor at +50% damage |
 | Tesla Chain | Voltaic Lance | Power Core | 3 | 1s sustained beam player→target, ticks every 100ms on everything in the line |
-| Ricochet Boomerang | Star Fan | Multishot | 2 | 5 piercing blades in a star; return paths seek nearest enemy instead of player |
+| Ricochet Boomerang | Twin Helix | Multishot | 2 | Throws paired boomerangs that braid around their flight axis on the way out and back; both pierce; projectiles passive adds more pairs |
 | Plasma Lance | Starbreaker | Arcane Reach | 3 | During the 900ms sustain the beam sweeps 360° around the player (lighthouse) |
 | Swarm Drones | Hornet Swarm | Multishot | 2 | +4 drones, ×2 attack rate, each attack fires a homing micro-rocket with small AoE |
 
