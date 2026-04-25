@@ -121,7 +121,7 @@ export const WEAPON_EVOLUTIONS: Partial<Record<WeaponType, EvolutionDef>> = {
   },
   orbital: {
     name: 'Pinpoint Barrage',
-    desc: 'Tight 50px strikes · 2 per volley · much faster cooldown',
+    desc: 'Much faster cooldown · always targets enemies · sometimes calls down patterns',
     icon: 'wico_orbital_evolved',
     linkedPassive: 'projectiles',
     linkedPassiveMinLevel: 2,

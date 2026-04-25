@@ -707,44 +707,51 @@ export function fireOrbital(scene: IGameScene) {
   if (enemies.length === 0) return
   const evolved = !!scene.weaponEvolutions['orbital']
   const px = playerEmitX(scene), py = playerEmitY(scene)
-  const pool = enemies.map((e) => ({
-    e,
-    weight: 1 / (Math.hypot(e.x - px, e.y - py) + 100),
-  }))
-  const pickCount = evolved ? 1 : Math.min(scene.orbitalCount, enemies.length)
-  const picks: any[] = []
-  for (let i = 0; i < pickCount; i++) {
-    if (pool.length === 0) break
-    let total = 0
-    for (const c of pool) total += c.weight
-    let r = Math.random() * total
-    let idx = pool.length - 1
-    for (let j = 0; j < pool.length; j++) {
-      r -= pool[j].weight
-      if (r <= 0) { idx = j; break }
-    }
-    picks.push(pool[idx].e)
-    pool.splice(idx, 1)
+
+  let total = 0
+  const weights = enemies.map((e) => {
+    const w = 1 / (Math.hypot(e.x - px, e.y - py) + 100)
+    total += w
+    return w
+  })
+  let r = Math.random() * total
+  let idx = enemies.length - 1
+  for (let j = 0; j < enemies.length; j++) {
+    r -= weights[j]
+    if (r <= 0) { idx = j; break }
   }
+  const target = enemies[idx]
+
   const baseRadius = scene.orbitalRadius * (1 + scene.bonusArea)
   const telegraph = evolved ? 600 : 1000
 
-  if (evolved && picks.length > 0) {
-    const anchor = picks[0]
-    const SPREAD = 220
-    const evolvedRadius = 50 * (1 + scene.bonusArea)
-    const count = 2
-    for (let i = 0; i < count; i++) {
+  if (evolved && Math.random() < 0.2) {
+    const patternRadius = baseRadius * 0.7
+    const ringDist = baseRadius * 1.4
+    const choice = Math.floor(Math.random() * 3)
+    if (choice === 0) {
+      // Triangle around the target
+      for (let i = 0; i < 3; i++) {
+        const ang = (i * 2 * Math.PI) / 3 + Math.random() * 0.4
+        scheduleStrike(scene, null, target.x + Math.cos(ang) * ringDist, target.y + Math.sin(ang) * ringDist, patternRadius, telegraph)
+      }
+    } else if (choice === 1) {
+      // Cross
+      const offs = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+      for (const [ox, oy] of offs) {
+        scheduleStrike(scene, null, target.x + ox * ringDist, target.y + oy * ringDist, patternRadius, telegraph)
+      }
+    } else {
+      // Line through the target
       const ang = Math.random() * Math.PI * 2
-      const dist = Math.sqrt(Math.random()) * SPREAD
-      const sx = anchor.x + Math.cos(ang) * dist
-      const sy = anchor.y + Math.sin(ang) * dist
-      scheduleStrike(scene, null, sx, sy, evolvedRadius, telegraph)
+      for (let i = -1; i <= 1; i++) {
+        scheduleStrike(scene, i === 0 ? target : null, target.x + Math.cos(ang) * ringDist * i, target.y + Math.sin(ang) * ringDist * i, patternRadius, telegraph)
+      }
     }
     return
   }
 
-  for (const t of picks) scheduleStrike(scene, t, t.x, t.y, baseRadius, telegraph)
+  scheduleStrike(scene, target, target.x, target.y, baseRadius, telegraph)
 }
 
 function scheduleStrike(scene: IGameScene, target: any, x: number, y: number, radius: number, telegraph: number) {
