@@ -109,15 +109,14 @@ export function fireSniper(scene: IGameScene, angle: number, wt: WeaponType) {
 export function fireMachineGun(scene: IGameScene, angle: number, wt: WeaponType) {
   const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
   const evolved = !!scene.weaponEvolutions['machinegun']
-  const bulletScale = (1 + scene.bonusArea * 0.5) * (evolved ? 1.4 : 1)
+  const bulletScale = 1 + scene.bonusArea * 0.5
   const ex = playerEmitX(scene), ey = playerEmitY(scene)
-  const fire = (a: number) => {
-    const b = scene.bullets.create(ex, ey, evolved ? 'mgBullet_evolved' : 'mgBullet') as any
+  const fire = (a: number, ox: number, oy: number) => {
+    const b = scene.bullets.create(ex + ox, ey + oy, evolved ? 'mgBullet_evolved' : 'mgBullet') as any
     b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
     b.setRotation(a)
     const isCrit = scene.machineGunCritChance > 0 && Math.random() < scene.machineGunCritChance
     b.setData('dmg', isCrit ? scene.machineGunDmg * 3 : scene.machineGunDmg)
-    if (evolved) b.setData('wt', 'machinegun')
     const finalScale = isCrit ? bulletScale * 1.5 : bulletScale
     if (finalScale !== 1) { b.setScale(finalScale); b.refreshBody() }
     if (isCrit) b.setTint(0xfde047)
@@ -126,7 +125,15 @@ export function fireMachineGun(scene: IGameScene, angle: number, wt: WeaponType)
   const offset = 0.022
   const count = scene.machineGunBullets + scene.bonusProjectiles
   for (let i = 0; i < count; i++) {
-    fire(angle + (count > 1 ? (i - (count - 1) / 2) * offset : 0))
+    const a = angle + (count > 1 ? (i - (count - 1) / 2) * offset : 0)
+    fire(a, 0, 0)
+    if (evolved) {
+      const side = scene.mgGhostSide
+      const px = -Math.sin(a) * 10 * side
+      const py = Math.cos(a) * 10 * side
+      fire(a, px, py)
+      scene.mgGhostSide = -side as 1 | -1
+    }
   }
 }
 
@@ -143,42 +150,50 @@ function spawnDroneHitIcon(scene: IGameScene, x: number, y: number) {
 
 export function fireAura(scene: IGameScene) {
   const evolved = !!scene.weaponEvolutions['aura']
-  const radiusMult = evolved ? 2 : 1
-  const r = scene.auraRadius * (1 + scene.bonusArea) * radiusMult
+  const r = scene.auraRadius * (1 + scene.bonusArea)
   const r2 = r * r
   const dmg = scene.auraDmg
-  const chainDmg = Math.max(1, Math.floor(dmg * 1.5))
-  const CHAIN_RANGE = 110
-  const chainR2 = CHAIN_RANGE * CHAIN_RANGE
   const px = playerEmitX(scene), py = playerEmitY(scene)
   const enemies = scene.enemies.getChildren() as any[]
-  const hitByAura = new Set<any>()
+  const inAura: any[] = []
   for (const e of enemies) {
     if (!e.active) continue
     const dx = px - e.x, dy = py - e.y
     if (dx * dx + dy * dy < r2) {
       scene.damageEnemy(e, dmg, false)
       spawnShockIcon(scene, e.x, e.y)
-      hitByAura.add(e)
+      inAura.push(e)
     }
   }
-  if (!evolved) return
-  for (const e of hitByAura) {
-    let nearest: any = null
-    let bestD2 = chainR2
-    for (const other of enemies) {
-      if (!other.active || other === e || hitByAura.has(other)) continue
-      const dx = other.x - e.x, dy = other.y - e.y
-      const d2 = dx * dx + dy * dy
-      if (d2 < bestD2) { bestD2 = d2; nearest = other }
+  if (!evolved || inAura.length === 0) return
+  const boltCount = Math.min(3, inAura.length)
+  const picked = new Set<any>()
+  const boltDmg = Math.max(1, Math.floor(dmg * 1.5))
+  const BOLT_R = 40
+  const BOLT_R2 = BOLT_R * BOLT_R
+  for (let i = 0; i < boltCount; i++) {
+    let target: any = null
+    for (let attempt = 0; attempt < 8 && !target; attempt++) {
+      const cand = inAura[Math.floor(Math.random() * inAura.length)]
+      if (!picked.has(cand)) target = cand
     }
-    if (nearest) {
-      scene.damageEnemy(nearest, chainDmg, false)
-      spawnShockIcon(scene, nearest.x, nearest.y)
-      const line = scene.acquireGfx(15)
-      line.lineStyle(2, 0xbfdbfe, 0.85).lineBetween(e.x, e.y, nearest.x, nearest.y)
-      scene.tweens.add({ targets: line, alpha: 0, duration: 140, onComplete: () => scene.releaseGfx(line) })
-    }
+    if (!target) target = inAura[i]
+    picked.add(target)
+    spawnAuraBolt(scene, target.x, target.y, boltDmg, BOLT_R, BOLT_R2)
+  }
+}
+
+function spawnAuraBolt(scene: IGameScene, tx: number, ty: number, dmg: number, radius: number, r2: number) {
+  const bolt = scene.acquireGfx(7)
+  bolt.lineStyle(5, 0xbfdbfe, 0.85).lineBetween(tx, ty - 200, tx, ty)
+  bolt.lineStyle(2, 0xffffff, 1).lineBetween(tx, ty - 200, tx, ty)
+  bolt.fillStyle(0xfde047, 0.55).fillCircle(tx, ty, radius * 0.7)
+  bolt.lineStyle(2, 0xffffff, 0.95).strokeCircle(tx, ty, radius)
+  scene.tweens.add({ targets: bolt, alpha: 0, duration: 220, onComplete: () => scene.releaseGfx(bolt) })
+  for (const e of scene.enemies.getChildren() as any[]) {
+    if (!e.active) continue
+    const dx = e.x - tx, dy = e.y - ty
+    if (dx * dx + dy * dy <= r2) scene.damageEnemy(e, dmg, false)
   }
 }
 
@@ -207,9 +222,9 @@ export function fireTesla(scene: IGameScene, angle: number, wt: WeaponType) {
       current: currentTarget,
       lastX: currentTarget.x,
       lastY: currentTarget.y,
-      duration: 1000,
+      duration: 1500,
       age: 0,
-      jumpTimer: 110,
+      jumpTimer: 90,
       damage: scene.teslaDmg,
       segments: [] as { x1: number; y1: number; x2: number; y2: number; age: number }[],
     })
@@ -258,10 +273,37 @@ export function fireTesla(scene: IGameScene, angle: number, wt: WeaponType) {
 export function fireBoomerang(scene: IGameScene, angle: number, wt: WeaponType) {
   const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
   const evolved = !!scene.weaponEvolutions['boomerang']
-  const count = (evolved ? 5 : scene.boomerangCount) + scene.bonusProjectiles
   const bulletScale = 1 + scene.bonusArea * 0.5
   const effectiveDist = scene.boomerangDist * (1 + scene.bonusArea)
   const ex = playerEmitX(scene), ey = playerEmitY(scene)
+
+  if (evolved) {
+    const count = 1 + scene.bonusProjectiles
+    const dir = Math.random() < 0.5 ? 1 : -1
+    for (let i = 0; i < count; i++) {
+      const a = angle + (count > 1 ? (i / count) * Math.PI * 2 : 0)
+      const b = scene.bullets.create(ex, ey, 'boomerang') as any
+      b.setData('dmg', scene.boomerangDmg)
+      b.setData('sx', ex).setData('sy', ey)
+      b.setData('wt', 'boomerang')
+      b.setData('spiral', true)
+      b.setData('spiralStart', scene.gameTime)
+      b.setData('spiralHalfDur', 600)
+      b.setData('spiralR', effectiveDist)
+      b.setData('spiralAngle', a)
+      b.setData('spiralDir', dir)
+      b.setData('phaseFlipped', false)
+      b.setData('pierceLeft', 999)
+      b.setData('hitEnemies', new Set())
+      b.setVelocity(0, 0)
+      b.setDepth(4)
+      const sc = bulletScale * 1.2
+      b.setScale(sc); b.refreshBody()
+    }
+    return
+  }
+
+  const count = scene.boomerangCount + scene.bonusProjectiles
   for (let i = 0; i < count; i++) {
     const a = angle + (i * Math.PI * 2) / count
     const b = scene.bullets.create(ex, ey, 'boomerang') as any
@@ -271,11 +313,10 @@ export function fireBoomerang(scene: IGameScene, angle: number, wt: WeaponType) 
     b.setData('sx', ex).setData('sy', ey)
     b.setData('returning', false)
     b.setData('wt', 'boomerang')
-    if (evolved || scene.boomerangPierce) {
+    if (scene.boomerangPierce) {
       b.setData('pierceLeft', 999)
       b.setData('hitEnemies', new Set())
     }
-    if (evolved) b.setData('seekReturn', true)
     b.setDepth(4)
     if (bulletScale !== 1) { b.setScale(bulletScale); b.refreshBody() }
   }
@@ -284,23 +325,16 @@ export function fireBoomerang(scene: IGameScene, angle: number, wt: WeaponType) 
 export function fireRocket(scene: IGameScene, angle: number, wt: WeaponType) {
   const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
   const evolved = !!scene.weaponEvolutions['rocket']
-  const burst = (evolved ? 5 : scene.rocketBurst) + scene.bonusProjectiles
-  const stagger = evolved ? 60 : 100
   const tex = evolved ? 'rocket_evolved' : 'rocket'
-  for (let i = 0; i < burst; i++) {
-    scene.time.delayedCall(i * stagger, () => {
-      if (!scene.player.active) return
-      const b = scene.bullets.create(playerEmitX(scene), playerEmitY(scene), tex) as any
-      b.setVelocity(Math.cos(angle) * spd, Math.sin(angle) * spd)
-      b.setRotation(angle)
-      b.setData('dmg', scene.rocketDmg)
-      b.setData('wt', 'rocket')
-      b.setData('homing', true)
-      b.setData('splitDepth', 0)
-      if (evolved) b.setData('evolved', true)
-      b.setDepth(4)
-    })
-  }
+  const b = scene.bullets.create(playerEmitX(scene), playerEmitY(scene), tex) as any
+  b.setVelocity(Math.cos(angle) * spd, Math.sin(angle) * spd)
+  b.setRotation(angle)
+  b.setData('dmg', scene.rocketDmg)
+  b.setData('wt', 'rocket')
+  b.setData('homing', true)
+  b.setData('splitDepth', 0)
+  if (evolved) b.setData('evolved', true)
+  b.setDepth(4)
 }
 
 export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
@@ -314,7 +348,12 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
     const hitSet: Set<any> = b.getData('hitEnemies')
     if (hitSet.has(e)) return
     hitSet.add(e)
-    const dmg = b.getData('dmg') ?? (b.getData('wt') === 'boomerang' ? scene.boomerangDmg : scene.sniperDmg)
+    const wtPierce = b.getData('wt')
+    if (wtPierce === 'cryo') {
+      e.setData('slowed', scene.cryoSlowDuration)
+      if (b.getData('cascadeChild')) e.setData('_cryoCascadeChild', true)
+    }
+    const dmg = b.getData('dmg') ?? (wtPierce === 'boomerang' ? scene.boomerangDmg : scene.sniperDmg)
     scene.damageEnemy(e, dmg)
     const remaining = pierceLeft - 1
     if (remaining <= 0) b.destroy()
@@ -336,11 +375,11 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
       const splitDepth = b.getData('splitDepth') ?? 0
       const canSplit = (evolvedRocket || scene.rocketSplit) && splitDepth < 1
       if (canSplit) {
-        const childCount = evolvedRocket ? 6 : 3
-        const childDmgRatio = evolvedRocket ? 0.7 : 0.5
-        const childSpd = evolvedRocket ? 600 : 400
+        const childCount = evolvedRocket ? 3 : 3
+        const childDmgRatio = evolvedRocket ? 1.0 : 0.5
+        const childSpd = evolvedRocket ? 550 : 400
         const childTex = evolvedRocket ? 'rocket_evolved' : 'rocket'
-        const childScale = evolvedRocket ? 0.65 : 0.5
+        const childScale = evolvedRocket ? 0.8 : 0.5
         for (let i = 0; i < childCount; i++) {
           const m = scene.bullets.create(b.x, b.y, childTex) as any
           m.setScale(childScale)
@@ -383,85 +422,30 @@ export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {
       scene.tweens.add({ targets: trail, alpha: 0, duration: 140, onComplete: () => scene.releaseGfx(trail) })
       return
     }
-    if (wt === 'machinegun') {
-      const radius = 40 * (1 + scene.bonusArea)
-      const exp = scene.acquireGfx(15)
-      exp.fillStyle(0xfb923c, 0.45).fillCircle(b.x, b.y, radius)
-      exp.lineStyle(1.5, 0xfde68a, 0.85).strokeCircle(b.x, b.y, radius)
-      scene.tweens.add({ targets: exp, alpha: 0, duration: 180, onComplete: () => scene.releaseGfx(exp) })
-      const r2 = radius * radius
-      for (const other of scene.enemies.getChildren() as any[]) {
-        if (!other.active || other === e) continue
-        const dx = other.x - b.x, dy = other.y - b.y
-        if (dx * dx + dy * dy <= r2) scene.damageEnemy(other, dmg, false)
-      }
-    }
-    if (wt === 'drone_micro') {
-      const radius = 32
-      const exp = scene.acquireGfx(15)
-      exp.fillStyle(0xfb923c, 0.4).fillCircle(b.x, b.y, radius)
-      exp.lineStyle(1.5, 0xfde68a, 0.85).strokeCircle(b.x, b.y, radius)
-      scene.tweens.add({ targets: exp, alpha: 0, duration: 160, onComplete: () => scene.releaseGfx(exp) })
-      const r2 = radius * radius
-      for (const other of scene.enemies.getChildren() as any[]) {
-        if (!other.active || other === e) continue
-        const dx = other.x - b.x, dy = other.y - b.y
-        if (dx * dx + dy * dy <= r2) scene.damageEnemy(other, dmg, false)
-      }
-    }
-    if (wt === 'mortar') {
-      const radius = 40 * (1 + scene.bonusArea)
-      const exp = scene.acquireGfx(15)
-      exp.fillStyle(0xef4444, 0.45).fillCircle(b.x, b.y, radius)
-      exp.lineStyle(2, 0xfbbf24, 0.9).strokeCircle(b.x, b.y, radius)
-      scene.tweens.add({ targets: exp, alpha: 0, duration: 220, onComplete: () => scene.releaseGfx(exp) })
-      const r2 = radius * radius
-      for (const other of scene.enemies.getChildren() as any[]) {
-        if (!other.active || other === e) continue
-        const dx = other.x - b.x, dy = other.y - b.y
-        if (dx * dx + dy * dy <= r2) scene.damageEnemy(other, dmg, false)
-      }
-    }
     if (wt === 'shotgun') {
-      const CHAIN_RANGE = 120
-      let nearest: any = null
-      let bestD2 = CHAIN_RANGE * CHAIN_RANGE
-      for (const other of scene.enemies.getChildren() as any[]) {
-        if (!other.active || other === e) continue
-        const dx = other.x - e.x, dy = other.y - e.y
-        const d2 = dx * dx + dy * dy
-        if (d2 < bestD2) { bestD2 = d2; nearest = other }
-      }
-      if (nearest) {
-        const chainDmg = Math.max(1, Math.floor(dmg * 0.6))
-        scene.damageEnemy(nearest, chainDmg, true)
-        const line = scene.acquireGfx(15)
-        line.lineStyle(2, 0xbfdbfe, 0.9).lineBetween(e.x, e.y, nearest.x, nearest.y)
-        scene.tweens.add({ targets: line, alpha: 0, duration: 140, onComplete: () => scene.releaseGfx(line) })
-      }
-    }
-    if (wt === 'cryo') {
-      const evolvedCryo = !!scene.weaponEvolutions['cryo']
-      e.setData('slowed', scene.cryoSlowDuration * (evolvedCryo ? 2 : 1))
-      const fragmented = !!b.getData('fragmented')
-      if (evolvedCryo && !fragmented) {
-        const bulletScale = 1 + scene.bonusArea * 0.5
-        const childSpd = (scene.weaponBulletSpd['cryo'] ?? WEAPON_BASE['cryo'].bulletSpd) * 0.8
-        const childDmg = Math.max(1, Math.floor(dmg * 0.5))
-        for (let i = 0; i < 2; i++) {
-          const ang = Math.random() * Math.PI * 2
-          const m = scene.bullets.create(b.x, b.y, 'cryoshard') as any
-          m.setVelocity(Math.cos(ang) * childSpd, Math.sin(ang) * childSpd)
-          m.setRotation(ang)
-          m.setData('sx', b.x).setData('sy', b.y)
-          m.setData('maxRange', 180)
-          m.setData('dmg', childDmg)
-          m.setData('wt', 'cryo')
-          m.setData('fragmented', true)
-          m.setScale(bulletScale * 0.6)
-          m.refreshBody?.()
-          m.setDepth(4)
+      const CHAIN_RANGE = 160
+      const chainR2 = CHAIN_RANGE * CHAIN_RANGE
+      const ratios = [0.6, 0.4, 0.25]
+      const chainHit = new Set<any>([e])
+      let cur = e
+      for (const ratio of ratios) {
+        let nearest: any = null
+        let bestD2 = chainR2
+        for (const other of scene.enemies.getChildren() as any[]) {
+          if (!other.active || chainHit.has(other)) continue
+          const dx = other.x - cur.x, dy = other.y - cur.y
+          const d2 = dx * dx + dy * dy
+          if (d2 < bestD2) { bestD2 = d2; nearest = other }
         }
+        if (!nearest) break
+        const chainDmg = Math.max(1, Math.floor(dmg * ratio))
+        scene.damageEnemy(nearest, chainDmg, true)
+        chainHit.add(nearest)
+        const line = scene.acquireGfx(15)
+        line.lineStyle(4, 0xbfdbfe, 0.85).lineBetween(cur.x, cur.y, nearest.x, nearest.y)
+        line.lineStyle(1.5, 0xffffff, 1).lineBetween(cur.x, cur.y, nearest.x, nearest.y)
+        scene.tweens.add({ targets: line, alpha: 0, duration: 220, onComplete: () => scene.releaseGfx(line) })
+        cur = nearest
       }
     }
     b.destroy()
@@ -517,6 +501,30 @@ export function damageEnemy(scene: IGameScene, e: any, dmg: number, flash = true
 export function killEnemy(scene: IGameScene, e: any) {
   if (!e.active || e.getData('_dying')) return
   e.setData('_dying', true)
+
+  if (scene.weaponEvolutions['cryo'] && (e.getData('slowed') ?? 0) > 0 && !e.getData('_cryoCascadeChild')) {
+    const cx = e.x, cy = e.y
+    const childSpd = (scene.weaponBulletSpd['cryo'] ?? WEAPON_BASE['cryo'].bulletSpd) * 0.7
+    const childDmg = Math.max(1, Math.floor(scene.cryoDmg * 0.4))
+    const bulletScale = (1 + scene.bonusArea * 0.5) * 0.6
+    const baseAng = Math.random() * Math.PI * 2
+    for (let i = 0; i < 3; i++) {
+      const ang = baseAng + (i / 3) * Math.PI * 2 + (Math.random() - 0.5) * 0.3
+      const m = scene.bullets.create(cx, cy, 'cryoshard') as any
+      m.setVelocity(Math.cos(ang) * childSpd, Math.sin(ang) * childSpd)
+      m.setRotation(ang)
+      m.setData('sx', cx).setData('sy', cy)
+      m.setData('maxRange', 180)
+      m.setData('dmg', childDmg)
+      m.setData('wt', 'cryo')
+      m.setData('cascadeChild', true)
+      m.setData('pierceLeft', 999)
+      m.setData('hitEnemies', new Set())
+      m.setScale(bulletScale)
+      m.refreshBody?.()
+      m.setDepth(4)
+    }
+  }
 
   const doExplosion = (expRadius: number, color: number, ringColor: number, dmgToEnemies: number) => {
     const expFlash = scene.add.graphics().setDepth(8)
@@ -628,7 +636,14 @@ export function tintConsolidatedOrb(scene: IGameScene, orb: any, value: number) 
 export function fireLaser(scene: IGameScene, angle: number) {
   const evolved = !!scene.weaponEvolutions['laser']
   if (evolved) {
-    for (let i = 0; i < 4; i++) fireLaserBeam(scene, angle + (i * Math.PI) / 2)
+    scene.laserPatternAngle = (scene.laserPatternAngle + Math.PI / 9) % (Math.PI * 2)
+    const base = scene.laserPatternAngle
+    for (let i = 0; i < 4; i++) fireLaserBeam(scene, base + (i * Math.PI) / 2)
+    const sx = playerEmitX(scene), sy = playerEmitY(scene)
+    const glow = scene.acquireGfx(5)
+    glow.lineStyle(2, 0xfde047, 0.45).strokeCircle(sx, sy, 18)
+    glow.lineStyle(1, 0xffffff, 0.75).strokeCircle(sx, sy, 10)
+    scene.tweens.add({ targets: glow, alpha: 0, duration: 220, onComplete: () => scene.releaseGfx(glow) })
   } else {
     fireLaserBeam(scene, angle)
   }
@@ -643,7 +658,7 @@ function fireLaserBeam(scene: IGameScene, angle: number) {
 
   const line = scene.acquireGfx(6)
   line.lineStyle(width, 0xfde047, 0.55).lineBetween(sx, sy, ex, ey)
-  line.lineStyle(Math.max(2, width * 0.4), 0xffffff, 0.95).lineBetween(sx, sy, ex, ey)
+  line.lineStyle(Math.max(2, width * 0.5), 0xffffff, 0.95).lineBetween(sx, sy, ex, ey)
   scene.tweens.add({ targets: line, alpha: 0, duration: 150, onComplete: () => scene.releaseGfx(line) })
 
   const dx = ex - sx, dy = ey - sy
@@ -690,16 +705,13 @@ export function fireOrbital(scene: IGameScene) {
   const enemies = scene.enemies.getChildren().filter((e: any) => e.active) as any[]
   if (enemies.length === 0) return
   const evolved = !!scene.weaponEvolutions['orbital']
-  const count = evolved
-    ? 5 + scene.bonusProjectiles
-    : Math.min(scene.orbitalCount, enemies.length)
   const px = playerEmitX(scene), py = playerEmitY(scene)
   const pool = enemies.map((e) => ({
     e,
     weight: 1 / (Math.hypot(e.x - px, e.y - py) + 100),
   }))
+  const pickCount = evolved ? 1 : Math.min(scene.orbitalCount, enemies.length)
   const picks: any[] = []
-  const pickCount = evolved ? 1 : count
   for (let i = 0; i < pickCount; i++) {
     if (pool.length === 0) break
     let total = 0
@@ -713,23 +725,25 @@ export function fireOrbital(scene: IGameScene) {
     picks.push(pool[idx].e)
     pool.splice(idx, 1)
   }
-  const radius = scene.orbitalRadius * (1 + scene.bonusArea)
+  const baseRadius = scene.orbitalRadius * (1 + scene.bonusArea)
   const telegraph = evolved ? 600 : 1000
 
   if (evolved && picks.length > 0) {
     const anchor = picks[0]
-    const SPREAD = 450
+    const SPREAD = 220
+    const evolvedRadius = 50 * (1 + scene.bonusArea)
+    const count = 2
     for (let i = 0; i < count; i++) {
       const ang = Math.random() * Math.PI * 2
       const dist = Math.sqrt(Math.random()) * SPREAD
       const sx = anchor.x + Math.cos(ang) * dist
       const sy = anchor.y + Math.sin(ang) * dist
-      scheduleStrike(scene, null, sx, sy, radius, telegraph)
+      scheduleStrike(scene, null, sx, sy, evolvedRadius, telegraph)
     }
     return
   }
 
-  for (const t of picks) scheduleStrike(scene, t, t.x, t.y, radius, telegraph)
+  for (const t of picks) scheduleStrike(scene, t, t.x, t.y, baseRadius, telegraph)
 }
 
 function scheduleStrike(scene: IGameScene, target: any, x: number, y: number, radius: number, telegraph: number) {
@@ -759,31 +773,22 @@ function scheduleStrike(scene: IGameScene, target: any, x: number, y: number, ra
 
 // ── Black Hole ────────────────────────────────────────────────────────────
 
-export function fireBlackhole(scene: IGameScene, angle: number, wt: WeaponType) {
-  const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
-  const flightDist = 280
-  const evolved = !!scene.weaponEvolutions['blackhole']
-  const radiusMult = evolved ? 2 : 1
-  const corePullMult = evolved ? 2.5 : 1
-  const midPullMult = evolved ? 2 : 1
-  const outerPullMult = evolved ? 2 : 1
-  const durationMult = evolved ? 2 : 1
+function spawnBlackhole(scene: IGameScene, x: number, y: number, vx: number, vy: number, evolved: boolean, params?: Partial<{ coreRadius: number; midRadius: number; outerRadius: number; corePull: number; midPull: number; outerPull: number; duration: number; dmg: number; phase: 'flying' | 'landed'; flightLeft: number }>) {
   const areaScale = 1 + scene.bonusArea
-  const s = scene.add.sprite(playerEmitX(scene), playerEmitY(scene), evolved ? 'blackhole_evolved' : 'blackhole').setDepth(4)
-  scene.blackholes.push({
+  const s = scene.add.sprite(x, y, evolved ? 'blackhole_evolved' : 'blackhole').setDepth(4)
+  const bh: any = {
     sprite: s,
-    vx: Math.cos(angle) * spd,
-    vy: Math.sin(angle) * spd,
-    phase: 'flying',
-    flightLeft: (flightDist / spd) * 1000,
-    duration: scene.blackholeDuration * durationMult,
-    coreRadius:  scene.blackholeCoreRadius  * areaScale * radiusMult,
-    midRadius:   scene.blackholeMidRadius   * areaScale * radiusMult,
-    outerRadius: scene.blackholeOuterRadius * areaScale * radiusMult,
-    corePull:    scene.blackholeCorePull  * corePullMult,
-    midPull:     scene.blackholeMidPull   * midPullMult,
-    outerPull:   scene.blackholeOuterPull * outerPullMult,
-    dmg: scene.blackholeDmg,
+    vx, vy,
+    phase: params?.phase ?? 'flying',
+    flightLeft: params?.flightLeft ?? (280 / Math.max(1, Math.hypot(vx, vy))) * 1000,
+    duration: params?.duration ?? scene.blackholeDuration,
+    coreRadius:  params?.coreRadius  ?? scene.blackholeCoreRadius  * areaScale,
+    midRadius:   params?.midRadius   ?? scene.blackholeMidRadius   * areaScale,
+    outerRadius: params?.outerRadius ?? scene.blackholeOuterRadius * areaScale,
+    corePull:    params?.corePull    ?? scene.blackholeCorePull,
+    midPull:     params?.midPull     ?? scene.blackholeMidPull,
+    outerPull:   params?.outerPull   ?? scene.blackholeOuterPull,
+    dmg: params?.dmg ?? scene.blackholeDmg,
     tickTimer: 0,
     pulse: 0,
     evolved,
@@ -792,16 +797,35 @@ export function fireBlackhole(scene: IGameScene, angle: number, wt: WeaponType) 
     arms: null as any,
     streaks: [] as any[],
     streakSpawnTimer: 0,
-  })
+    binaryPair: null as any,
+    binaryFilament: null as any,
+  }
+  scene.blackholes.push(bh)
+  return bh
+}
+
+export function fireBlackhole(scene: IGameScene, angle: number, wt: WeaponType) {
+  const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
+  const evolved = !!scene.weaponEvolutions['blackhole']
+  const ex = playerEmitX(scene), ey = playerEmitY(scene)
+  if (evolved) {
+    const off = (15 * Math.PI) / 180
+    const a1 = angle - off, a2 = angle + off
+    const bh1 = spawnBlackhole(scene, ex, ey, Math.cos(a1) * spd, Math.sin(a1) * spd, true)
+    const bh2 = spawnBlackhole(scene, ex, ey, Math.cos(a2) * spd, Math.sin(a2) * spd, true)
+    bh1.binaryPair = bh2
+    bh2.binaryPair = bh1
+    return
+  }
+  spawnBlackhole(scene, ex, ey, Math.cos(angle) * spd, Math.sin(angle) * spd, false)
 }
 
 // ── Cryo Shards ───────────────────────────────────────────────────────────
 
 export function fireCryo(scene: IGameScene, angle: number, wt: WeaponType) {
   const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
-  const evolved = !!scene.weaponEvolutions['cryo']
-  const shards = (evolved ? 8 : scene.cryoShardCount) + scene.bonusProjectiles
-  const cone = evolved ? Math.PI / 3 : Math.PI / 6
+  const shards = scene.cryoShardCount + scene.bonusProjectiles
+  const cone = Math.PI / 6
   const step = shards > 1 ? cone / (shards - 1) : 0
   const bulletScale = 1 + scene.bonusArea * 0.5
   const ex = playerEmitX(scene), ey = playerEmitY(scene)
@@ -814,6 +838,8 @@ export function fireCryo(scene: IGameScene, angle: number, wt: WeaponType) {
     b.setData('maxRange', 380)
     b.setData('dmg', scene.cryoDmg)
     b.setData('wt', 'cryo')
+    b.setData('pierceLeft', 999)
+    b.setData('hitEnemies', new Set())
     b.setDepth(4)
     if (bulletScale !== 1) { b.setScale(bulletScale); b.refreshBody() }
   }
@@ -824,6 +850,7 @@ export function fireCryo(scene: IGameScene, angle: number, wt: WeaponType) {
 export function fireRailgun(scene: IGameScene, angle: number) {
   const chargeTime = scene.railgunChargeTime
   const gfx = scene.add.graphics().setDepth(5)
+  const sweep = !!scene.weaponEvolutions['railgun']
   scene.railgunCharges.push({
     angle,
     startAngle: angle,
@@ -831,7 +858,10 @@ export function fireRailgun(scene: IGameScene, angle: number) {
     timer: chargeTime,
     totalTimer: chargeTime,
     gfx,
-    sweep: !!scene.weaponEvolutions['railgun'],
+    sweep,
+    sweepDir: sweep ? (Math.random() < 0.5 ? 1 : -1) : 1,
+    focusing: false,
+    focusTimer: 0,
   })
 }
 
@@ -839,7 +869,7 @@ export function fireRailgun(scene: IGameScene, angle: number) {
 
 export function fireDrones(scene: IGameScene) {
   const evolved = !!scene.weaponEvolutions['drones']
-  const target = scene.droneCount + (evolved ? 4 : 0) + scene.bonusProjectiles
+  const target = scene.droneCount + (evolved ? 2 : 0) + scene.bonusProjectiles
   let active = 0
   for (const d of scene.drones) if (d.sprite?.active) active++
   for (let i = active; i < target; i++) {
@@ -937,12 +967,14 @@ function updateCleaveShockwaves(scene: IGameScene, delta: number) {
 }
 
 function updateTeslaStorms(scene: IGameScene, delta: number) {
-  const STORM_JUMP_MS = 110
+  const STORM_JUMP_MS = 90
   const STORM_HOP_RANGE = 160
   const STORM_HOP_RANGE2 = STORM_HOP_RANGE * STORM_HOP_RANGE
   const STORM_FALLBACK_RANGE = 320
   const STORM_FALLBACK_RANGE2 = STORM_FALLBACK_RANGE * STORM_FALLBACK_RANGE
   const SEGMENT_FADE_MS = 220
+  const STORM_SPLASH_R = 40
+  const STORM_SPLASH_R2 = STORM_SPLASH_R * STORM_SPLASH_R
 
   for (let i = scene.teslaStorms.length - 1; i >= 0; i--) {
     const s = scene.teslaStorms[i]
@@ -985,6 +1017,14 @@ function updateTeslaStorms(scene: IGameScene, delta: number) {
         scene.damageEnemy(next, s.damage, true)
         spawnShockIcon(scene, next.x, next.y)
         if (scene.teslaStun) next.setData('stunned', 500)
+        const splashDmg = Math.max(1, Math.floor(s.damage * 0.5))
+        for (const e2 of enemies) {
+          if (!e2.active || e2 === next) continue
+          const dx = e2.x - next.x, dy = e2.y - next.y
+          if (dx * dx + dy * dy <= STORM_SPLASH_R2) {
+            scene.damageEnemy(e2, splashDmg, false)
+          }
+        }
         s.segments.push({ x1: ax, y1: ay, x2: next.x, y2: next.y, age: 0 })
         s.current = next
         s.lastX = next.x
@@ -1030,15 +1070,68 @@ function updateTurrets(scene: IGameScene, delta: number) {
         const a = Math.atan2(nearest.y - tr.sprite.y, nearest.x - tr.sprite.x)
         tr.sprite.setRotation(a)
         const spd = WEAPON_BASE['turret'].bulletSpd * (1 + (scene.bonusWeaponBulletSpd['turret'] ?? 0))
-        const bul = scene.bullets.create(tr.sprite.x, tr.sprite.y, evolved ? 'mortarbullet' : 'turretbullet') as any
+        const bul = scene.bullets.create(tr.sprite.x, tr.sprite.y, 'turretbullet') as any
         bul.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
         bul.setRotation(a)
         bul.setData('dmg', scene.turretDmg)
-        bul.setData('wt', evolved ? 'mortar' : 'turretbullet')
+        bul.setData('wt', 'turretbullet')
         bul.setDepth(4)
-        tr.fireCd = scene.turretFireRate * (evolved ? 2 : 1)
+        tr.fireCd = scene.turretFireRate
       } else {
         tr.fireCd = 100
+      }
+    }
+  }
+
+  if (!evolved || scene.turrets.length < 2) {
+    if (scene.turretTetherGfx?.active) scene.turretTetherGfx.clear()
+    return
+  }
+  if (!scene.turretTetherGfx) {
+    scene.turretTetherGfx = scene.add.graphics().setDepth(4)
+  }
+  const g = scene.turretTetherGfx
+  g.clear()
+  scene.turretTetherTickTimer -= delta
+  const doTick = scene.turretTetherTickTimer <= 0
+  if (doTick) scene.turretTetherTickTimer += 200
+  const tickDmg = Math.max(1, Math.floor(scene.turretDmg * 0.6))
+  const enemies = scene.enemies.getChildren() as any[]
+  const wob = Math.sin(scene.gameTime * 0.018)
+  for (let i = 0; i < scene.turrets.length; i++) {
+    for (let j = i + 1; j < scene.turrets.length; j++) {
+      const a = scene.turrets[i].sprite, b = scene.turrets[j].sprite
+      if (!a?.active || !b?.active) continue
+      const x1 = a.x, y1 = a.y, x2 = b.x, y2 = b.y
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2
+      const dx = x2 - x1, dy = y2 - y1
+      const len = Math.hypot(dx, dy) || 1
+      const px = -dy / len, py = dx / len
+      const off = wob * 3
+      g.lineStyle(4, 0xc4b5fd, 0.8)
+      g.beginPath()
+      g.moveTo(x1, y1)
+      g.lineTo(mx + px * off, my + py * off)
+      g.lineTo(x2, y2)
+      g.strokePath()
+      g.lineStyle(1.5, 0xffffff, 1)
+      g.beginPath()
+      g.moveTo(x1, y1)
+      g.lineTo(mx + px * off, my + py * off)
+      g.lineTo(x2, y2)
+      g.strokePath()
+      if (doTick) {
+        const tol = 14
+        const tol2 = tol * tol
+        const segLen2 = dx * dx + dy * dy
+        for (const e of enemies) {
+          if (!e.active) continue
+          const t = Math.max(0, Math.min(1, ((e.x - x1) * dx + (e.y - y1) * dy) / segLen2))
+          const ex = x1 + dx * t, ey = y1 + dy * t
+          if ((e.x - ex) ** 2 + (e.y - ey) ** 2 <= tol2) {
+            scene.damageEnemy(e, tickDmg, false)
+          }
+        }
       }
     }
   }
@@ -1052,6 +1145,9 @@ function destroyBlackholeVisuals(bh: any) {
     for (const st of bh.streaks) if (st?.gfx?.active) st.gfx.destroy()
     bh.streaks.length = 0
   }
+  if (bh.binaryFilament?.active) { bh.binaryFilament.destroy(); bh.binaryFilament = null }
+  if (bh.binaryPair && bh.binaryPair.binaryPair === bh) bh.binaryPair.binaryPair = null
+  bh.binaryPair = null
 }
 
 function drawBlackholeArms(scene: IGameScene, bh: any) {
@@ -1168,6 +1264,69 @@ function updateBlackholes(scene: IGameScene, delta: number) {
     bh.pulse += delta
     bh.sprite.setRotation(bh.pulse * 0.005)
 
+    const partner = bh.binaryPair
+    if (partner && (!partner.sprite?.active)) bh.binaryPair = null
+    if (bh.binaryPair && bh.phase === 'landed' && bh.binaryPair.phase === 'landed') {
+      const px = bh.binaryPair.sprite.x - bh.sprite.x
+      const py = bh.binaryPair.sprite.y - bh.sprite.y
+      const d = Math.hypot(px, py) || 1
+      const driftSpd = 30
+      bh.sprite.x += (px / d) * driftSpd * delta / 1000
+      bh.sprite.y += (py / d) * driftSpd * delta / 1000
+      const mergeDist = bh.coreRadius + bh.binaryPair.coreRadius
+      if (d <= mergeDist && bh.binaryPair) {
+        const other = bh.binaryPair
+        const mx = (bh.sprite.x + other.sprite.x) / 2
+        const my = (bh.sprite.y + other.sprite.y) / 2
+        const remainDur = Math.max(bh.duration, other.duration) + 1500
+        const merged = spawnBlackhole(scene, mx, my, 0, 0, true, {
+          phase: 'landed',
+          flightLeft: 0,
+          coreRadius: bh.coreRadius + other.coreRadius,
+          midRadius: Math.max(bh.midRadius, other.midRadius) * 1.2,
+          outerRadius: Math.max(bh.outerRadius, other.outerRadius) * 1.2,
+          corePull: bh.corePull + other.corePull,
+          midPull: bh.midPull + other.midPull,
+          outerPull: bh.outerPull + other.outerPull,
+          duration: remainDur,
+          dmg: bh.dmg + other.dmg,
+        })
+        merged.halo  = scene.add.graphics().setDepth(2)
+        merged.rings = scene.add.graphics().setDepth(3)
+        merged.arms  = scene.add.graphics().setDepth(3)
+        const ring = scene.acquireGfx(4)
+        ring.lineStyle(4, 0xfde68a, 0.95).strokeCircle(mx, my, merged.outerRadius)
+        scene.tweens.add({ targets: ring, alpha: 0, duration: 500, onComplete: () => scene.releaseGfx(ring) })
+        scene.cameras.main.shake(140, 0.005)
+        destroyBlackholeVisuals(bh)
+        destroyBlackholeVisuals(other)
+        bh.sprite.destroy()
+        other.sprite.destroy()
+        const otherIdx = scene.blackholes.indexOf(other)
+        if (otherIdx >= 0) scene.blackholes.splice(otherIdx, 1)
+        const bhIdxNow = scene.blackholes.indexOf(bh)
+        if (bhIdxNow >= 0) scene.blackholes.splice(bhIdxNow, 1)
+        i = scene.blackholes.length
+        continue
+      }
+    }
+
+    if (bh.binaryPair && bh.binaryPair.sprite?.active) {
+      if (!bh.binaryFilament || !bh.binaryFilament.active) {
+        bh.binaryFilament = scene.add.graphics().setDepth(3)
+      }
+      const fg = bh.binaryFilament
+      fg.clear()
+      const ox = bh.binaryPair.sprite.x, oy = bh.binaryPair.sprite.y
+      const dx = ox - bh.sprite.x, dy = oy - bh.sprite.y
+      const d = Math.hypot(dx, dy) || 1
+      const closeness = Math.max(0, Math.min(1, 1 - d / 600))
+      fg.lineStyle(2, 0xfde68a, 0.4 + closeness * 0.5)
+      fg.lineBetween(bh.sprite.x, bh.sprite.y, ox, oy)
+    } else if (bh.binaryFilament?.active) {
+      bh.binaryFilament.clear()
+    }
+
     if (bh.phase === 'flying') {
       bh.sprite.x += bh.vx * delta / 1000
       bh.sprite.y += bh.vy * delta / 1000
@@ -1262,16 +1421,19 @@ function updateOrbitalStrikes(scene: IGameScene, delta: number) {
 }
 
 const RAILGUN_FIRE_DURATION = 900
+const RAILGUN_FOCUS_MS = 500
+const RAILGUN_SWEEP_DURATION = RAILGUN_FIRE_DURATION - RAILGUN_FOCUS_MS
 const RAILGUN_TICK_INTERVAL = 150
+const RAILGUN_FOCUS_TICK_INTERVAL = 80
 
 function updateRailgunCharges(scene: IGameScene, delta: number) {
   for (let i = scene.railgunCharges.length - 1; i >= 0; i--) {
     const c = scene.railgunCharges[i]
     const sx = playerEmitX(scene), sy = playerEmitY(scene)
     const range = 1600
-    if (c.firing && c.sweep) {
-      const t = 1 - c.firingTimer / RAILGUN_FIRE_DURATION
-      c.angle = c.startAngle + t * Math.PI * 2
+    if (c.firing && c.sweep && !c.focusing) {
+      const t = 1 - c.firingTimer / RAILGUN_SWEEP_DURATION
+      c.angle = c.startAngle + c.sweepDir * t * Math.PI * 2
     }
     const ex = sx + Math.cos(c.angle) * range
     const ey = sy + Math.sin(c.angle) * range
@@ -1280,18 +1442,20 @@ function updateRailgunCharges(scene: IGameScene, delta: number) {
     if (c.firing) {
       c.firingTimer -= delta
       c.tickTimer -= delta
-      const fade = 1 - c.firingTimer / RAILGUN_FIRE_DURATION
-      const alpha = Math.max(0, 0.9 - fade * 0.3)
-      const bw = scene.railgunWidth * 2.4 * (1 + scene.bonusArea * 0.5)
+      const inFocus = c.focusing
+      const totalDur = inFocus ? RAILGUN_FOCUS_MS : (c.sweep ? RAILGUN_SWEEP_DURATION : RAILGUN_FIRE_DURATION)
+      const fade = 1 - c.firingTimer / totalDur
+      const alpha = Math.max(0, (inFocus ? 1.0 : 0.9) - fade * 0.3)
+      const bw = scene.railgunWidth * 2.4 * (1 + scene.bonusArea * 0.5) * (inFocus ? 1.15 : 1)
       const flicker = 0.92 + Math.random() * 0.16
-      c.gfx.lineStyle(bw * flicker, 0x93c5fd, alpha).lineBetween(sx, sy, ex, ey)
+      c.gfx.lineStyle(bw * flicker, inFocus ? 0xfde68a : 0x93c5fd, alpha).lineBetween(sx, sy, ex, ey)
       c.gfx.lineStyle(Math.max(2, bw * 0.35) * flicker, 0xffffff, Math.min(1, alpha + 0.15)).lineBetween(sx, sy, ex, ey)
 
       if (c.tickTimer <= 0) {
-        c.tickTimer += RAILGUN_TICK_INTERVAL
+        c.tickTimer += inFocus ? RAILGUN_FOCUS_TICK_INTERVAL : RAILGUN_TICK_INTERVAL
         const dx = ex - sx, dy = ey - sy
         const len2 = dx * dx + dy * dy
-        const tol = bw * 0.55 + 18
+        const tol = bw * 0.55 + 24
         const tol2 = tol * tol
         for (const e of scene.enemies.getChildren() as any[]) {
           if (!e.active) continue
@@ -1304,8 +1468,14 @@ function updateRailgunCharges(scene: IGameScene, delta: number) {
       }
 
       if (c.firingTimer <= 0) {
-        c.gfx.destroy()
-        scene.railgunCharges.splice(i, 1)
+        if (c.focusing) {
+          c.focusing = false
+          c.firingTimer = RAILGUN_SWEEP_DURATION
+          c.tickTimer = 0
+        } else {
+          c.gfx.destroy()
+          scene.railgunCharges.splice(i, 1)
+        }
       }
       continue
     }
@@ -1318,7 +1488,12 @@ function updateRailgunCharges(scene: IGameScene, delta: number) {
     c.gfx.lineStyle(Math.max(1, w * 0.35), 0xffffff, alpha).lineBetween(sx, sy, ex, ey)
     if (c.timer <= 0) {
       c.firing = true
-      c.firingTimer = RAILGUN_FIRE_DURATION
+      if (c.sweep) {
+        c.focusing = true
+        c.firingTimer = RAILGUN_FOCUS_MS
+      } else {
+        c.firingTimer = RAILGUN_FIRE_DURATION
+      }
       c.tickTimer = 0
     }
   }
@@ -1407,8 +1582,6 @@ function updateDrones(scene: IGameScene, delta: number) {
       d.sprite.y += d.vy * dtSec
       d.sprite.setRotation(heading)
 
-      const dronesEvolved = !!scene.weaponEvolutions['drones']
-      const rehitMs = dronesEvolved ? DRONE_REHIT_MS / 2 : DRONE_REHIT_MS
       if (d.recentHits.length) {
         d.recentHits = d.recentHits.filter((h: { e: any; expiry: number }) => h.expiry > now && h.e?.active)
       }
@@ -1419,19 +1592,9 @@ function updateDrones(scene: IGameScene, delta: number) {
         if (d.recentHits.some((h: { e: any; expiry: number }) => h.e === e)) continue
         scene.damageEnemy(e, scene.droneDmg, true)
         spawnDroneHitIcon(scene, e.x, e.y)
-        d.recentHits.push({ e, expiry: now + rehitMs })
+        d.recentHits.push({ e, expiry: now + DRONE_REHIT_MS })
         if (e === d.target) {
           scene.tweens.add({ targets: d.sprite, scale: { from: 1.5, to: 1 }, duration: 180 })
-        }
-        if (dronesEvolved) {
-          const a = Math.atan2(e.y - d.sprite.y, e.x - d.sprite.x)
-          const m = scene.bullets.create(d.sprite.x, d.sprite.y, 'rocket') as any
-          m.setScale(0.55).setDepth(4)
-          m.setVelocity(Math.cos(a) * 340, Math.sin(a) * 340)
-          m.setRotation(a)
-          m.setData('dmg', Math.max(1, Math.floor(scene.droneDmg * 0.6)))
-          m.setData('wt', 'drone_micro')
-          m.setData('homing', true)
         }
       }
     } else {
@@ -1447,6 +1610,48 @@ function updateDrones(scene: IGameScene, delta: number) {
       d.vx = Math.cos(heading) * d.speed
       d.vy = Math.sin(heading) * d.speed
       d.sprite.setRotation(heading)
+    }
+  }
+
+  const dronesEvolved = !!scene.weaponEvolutions['drones']
+  if (!dronesEvolved || scene.drones.length < 2) {
+    if (scene.droneBeamGfx?.active) scene.droneBeamGfx.clear()
+    return
+  }
+  if (!scene.droneBeamGfx) {
+    scene.droneBeamGfx = scene.add.graphics().setDepth(4)
+  }
+  const g = scene.droneBeamGfx
+  g.clear()
+  scene.droneBeamTickTimer -= delta
+  const doTick = scene.droneBeamTickTimer <= 0
+  if (doTick) scene.droneBeamTickTimer += 150
+  const tickDmg = Math.max(1, Math.floor(scene.droneDmg * 0.4))
+  const enemies = scene.enemies.getChildren() as any[]
+  const beamPulse = 0.85 + 0.15 * Math.sin(scene.gameTime * 0.012)
+  for (let i = 0; i < scene.drones.length; i++) {
+    const a = scene.drones[i].sprite
+    if (!a?.active) continue
+    for (let j = i + 1; j < scene.drones.length; j++) {
+      const b = scene.drones[j].sprite
+      if (!b?.active) continue
+      const x1 = a.x, y1 = a.y, x2 = b.x, y2 = b.y
+      g.lineStyle(3, 0x60a5fa, 0.7 * beamPulse).lineBetween(x1, y1, x2, y2)
+      g.lineStyle(1, 0xffffff, 0.95).lineBetween(x1, y1, x2, y2)
+      if (doTick) {
+        const dx = x2 - x1, dy = y2 - y1
+        const segLen2 = dx * dx + dy * dy || 1
+        const tol = 16
+        const tol2 = tol * tol
+        for (const e of enemies) {
+          if (!e.active) continue
+          const t = Math.max(0, Math.min(1, ((e.x - x1) * dx + (e.y - y1) * dy) / segLen2))
+          const ex = x1 + dx * t, ey = y1 + dy * t
+          if ((e.x - ex) ** 2 + (e.y - ey) ** 2 <= tol2) {
+            scene.damageEnemy(e, tickDmg, false)
+          }
+        }
+      }
     }
   }
 }

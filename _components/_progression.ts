@@ -3,7 +3,7 @@ import { WeaponType, PassiveType, WEAPON_NAMES, ALL_WEAPON_TYPES, WEAPON_BASE, P
 import { isWeaponUnlocked } from './_persistence'
 
 const MULTISHOT_AFFECTS: ReadonlySet<WeaponType> = new Set<WeaponType>([
-  'shotgun', 'machinegun', 'boomerang', 'rocket', 'cryo', 'drones',
+  'shotgun', 'machinegun', 'boomerang', 'cryo', 'drones',
   'cleave', 'scythes', 'tesla', 'turret',
 ])
 
@@ -97,10 +97,10 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
     rocket: [
       { desc: '+20px explosion radius',                    icon: 'ico_radius', apply: () => { scene.rocketRadius += 20; scene.recalculateStats() } },
       { desc: '+50% damage  ·  −100ms cooldown',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 0.5; scene.flatWeaponShootRateReductions['rocket'] = (scene.flatWeaponShootRateReductions['rocket'] ?? 0) + 100; scene.recalculateStats() } },
-      { desc: 'Burst fire — 2 rockets per shot',           icon: 'ico_burst', apply: () => { scene.rocketBurst = 2 } },
+      { desc: '+50% damage  ·  +20px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 0.5; scene.rocketRadius += 20; scene.recalculateStats() } },
       { desc: '+30px explosion radius',                    icon: 'ico_radius', apply: () => { scene.rocketRadius += 30; scene.recalculateStats() } },
       { desc: '+70% damage  ·  −200ms cooldown',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 0.7; scene.flatWeaponShootRateReductions['rocket'] = (scene.flatWeaponShootRateReductions['rocket'] ?? 0) + 200; scene.recalculateStats() } },
-      { desc: 'Burst fire — 3 rockets per shot',           icon: 'ico_burst', apply: () => { scene.rocketBurst = 3 } },
+      { desc: '+60% damage  ·  −150ms cooldown',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 0.6; scene.flatWeaponShootRateReductions['rocket'] = (scene.flatWeaponShootRateReductions['rocket'] ?? 0) + 150; scene.recalculateStats() } },
       { desc: '+100% damage  ·  +30px radius',             icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 1.0; scene.rocketRadius += 30; scene.recalculateStats() } },
       { desc: 'Cluster impact — rockets split on hit',     icon: 'ico_split', apply: () => { scene.rocketSplit = true } },
     ],
@@ -127,12 +127,12 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
     orbital: [
       { desc: '+30% damage  ·  +15px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['orbital'] = (scene.bonusWeaponDmg['orbital'] ?? 0) + 0.3; scene.orbitalRadius += 15; scene.recalculateStats() } },
       { desc: '−400ms cooldown',                           icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['orbital'] = (scene.flatWeaponShootRateReductions['orbital'] ?? 0) + 400; scene.recalculateStats() } },
-      { desc: '+1 strike per volley',                      icon: 'wico_orbital', apply: () => { scene.orbitalCount++ } },
+      { desc: '+30% damage  ·  +15px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['orbital'] = (scene.bonusWeaponDmg['orbital'] ?? 0) + 0.3; scene.orbitalRadius += 15; scene.recalculateStats() } },
       { desc: '+40% damage  ·  +20px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['orbital'] = (scene.bonusWeaponDmg['orbital'] ?? 0) + 0.4; scene.orbitalRadius += 20; scene.recalculateStats() } },
       { desc: '−400ms cooldown  ·  +20px radius',          icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['orbital'] = (scene.flatWeaponShootRateReductions['orbital'] ?? 0) + 400; scene.orbitalRadius += 20; scene.recalculateStats() } },
-      { desc: '+1 strike  ·  +30% damage',                 icon: 'wico_orbital', apply: () => { scene.orbitalCount++; scene.bonusWeaponDmg['orbital'] = (scene.bonusWeaponDmg['orbital'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+50% damage  ·  −300ms cooldown',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['orbital'] = (scene.bonusWeaponDmg['orbital'] ?? 0) + 0.5; scene.flatWeaponShootRateReductions['orbital'] = (scene.flatWeaponShootRateReductions['orbital'] ?? 0) + 300; scene.recalculateStats() } },
       { desc: '+60% damage  ·  +30px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['orbital'] = (scene.bonusWeaponDmg['orbital'] ?? 0) + 0.6; scene.orbitalRadius += 30; scene.recalculateStats() } },
-      { desc: '+1 strike  ·  −500ms cooldown',             icon: 'wico_orbital', apply: () => { scene.orbitalCount++; scene.flatWeaponShootRateReductions['orbital'] = (scene.flatWeaponShootRateReductions['orbital'] ?? 0) + 500; scene.recalculateStats() } },
+      { desc: '+60% damage  ·  +20px radius  ·  −300ms',   icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['orbital'] = (scene.bonusWeaponDmg['orbital'] ?? 0) + 0.6; scene.orbitalRadius += 20; scene.flatWeaponShootRateReductions['orbital'] = (scene.flatWeaponShootRateReductions['orbital'] ?? 0) + 300; scene.recalculateStats() } },
     ],
     blackhole: [
       { desc: 'Tighten Core — +20px core  ·  +50 core pull',                  icon: 'wico_blackhole', apply: () => { scene.blackholeCoreRadius += 20; scene.blackholeCorePull += 50 } },
@@ -145,14 +145,14 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: 'Event Horizon — +25px core  ·  +80 core pull  ·  +100% damage', icon: 'ico_damage', apply: () => { scene.blackholeCoreRadius += 25; scene.blackholeCorePull += 80; scene.bonusWeaponDmg['blackhole'] = (scene.bonusWeaponDmg['blackhole'] ?? 0) + 1.0; scene.recalculateStats() } },
     ],
     cryo: [
-      { desc: '+1 shard  ·  +20% damage',                  icon: 'wico_cryo', apply: () => { scene.cryoShardCount++; scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.2; scene.recalculateStats() } },
-      { desc: '+500ms slow duration  ·  +30% damage',      icon: 'ico_slow', apply: () => { scene.cryoSlowDuration += 500; scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+30% damage  ·  +400ms slow',               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.3; scene.cryoSlowDuration += 400; scene.recalculateStats() } },
       { desc: '+1 shard  ·  −100ms cooldown',              icon: 'wico_cryo', apply: () => { scene.cryoShardCount++; scene.flatWeaponShootRateReductions['cryo'] = (scene.flatWeaponShootRateReductions['cryo'] ?? 0) + 100; scene.recalculateStats() } },
-      { desc: '+40% damage  ·  +500ms slow',               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.4; scene.cryoSlowDuration += 500; scene.recalculateStats() } },
-      { desc: '+2 shards',                                 icon: 'wico_cryo', apply: () => { scene.cryoShardCount += 2 } },
-      { desc: '+60% damage  ·  −100ms cooldown',           icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.6; scene.flatWeaponShootRateReductions['cryo'] = (scene.flatWeaponShootRateReductions['cryo'] ?? 0) + 100; scene.recalculateStats() } },
-      { desc: '+1 shard  ·  +1s slow duration',            icon: 'ico_slow', apply: () => { scene.cryoShardCount++; scene.cryoSlowDuration += 1000 } },
-      { desc: '+80% damage  ·  +1 shard  ·  −150ms',       icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.8; scene.cryoShardCount++; scene.flatWeaponShootRateReductions['cryo'] = (scene.flatWeaponShootRateReductions['cryo'] ?? 0) + 150; scene.recalculateStats() } },
+      { desc: '+40% damage  ·  +400ms slow',               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.4; scene.cryoSlowDuration += 400; scene.recalculateStats() } },
+      { desc: '+1 shard  ·  +30% bullet speed',            icon: 'wico_cryo', apply: () => { scene.cryoShardCount++; scene.bonusWeaponBulletSpd['cryo'] = (scene.bonusWeaponBulletSpd['cryo'] ?? 0) + 0.3; scene.recalculateStats() } },
+      { desc: '+50% damage  ·  +500ms slow',               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.5; scene.cryoSlowDuration += 500; scene.recalculateStats() } },
+      { desc: '+60% damage  ·  −100ms cooldown',           icon: 'ico_cooldown', apply: () => { scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.6; scene.flatWeaponShootRateReductions['cryo'] = (scene.flatWeaponShootRateReductions['cryo'] ?? 0) + 100; scene.recalculateStats() } },
+      { desc: '+80% damage  ·  +500ms slow',               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 0.8; scene.cryoSlowDuration += 500; scene.recalculateStats() } },
+      { desc: '+100% damage  ·  +1 shard  ·  −150ms',      icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cryo'] = (scene.bonusWeaponDmg['cryo'] ?? 0) + 1.0; scene.cryoShardCount++; scene.flatWeaponShootRateReductions['cryo'] = (scene.flatWeaponShootRateReductions['cryo'] ?? 0) + 150; scene.recalculateStats() } },
     ],
     railgun: [
       { desc: '−300ms charge time  ·  +20% damage',        icon: 'ico_charge', apply: () => { scene.railgunChargeTime = Math.max(200, scene.railgunChargeTime - 300); scene.bonusWeaponDmg['railgun'] = (scene.bonusWeaponDmg['railgun'] ?? 0) + 0.2; scene.recalculateStats() } },
@@ -563,7 +563,6 @@ export function unlockWeapon(scene: IGameScene, wt: WeaponType) {
   if (wt === 'scythes')  scene.scythesCount = 1
   if (wt === 'tesla')    scene.teslaJumps = 2
   if (wt === 'boomerang') scene.boomerangCount = 1
-  if (wt === 'rocket')   scene.rocketBurst = 1
   if (wt === 'drones')   scene.droneCount = 1
   if (wt === 'orbital')  scene.orbitalCount = 1
   if (wt === 'turret')   scene.turretMax = Math.max(scene.turretMax, 2)

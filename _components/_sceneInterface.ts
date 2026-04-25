@@ -59,6 +59,7 @@ export interface IGameScene {
   machineGunDmg: number
   machineGunBullets: number
   machineGunCritChance: number
+  mgGhostSide: 1 | -1
   scythesDmg: number
   scythesCount: number
   scythesRadius: number
@@ -73,16 +74,18 @@ export interface IGameScene {
   boomerangPierce: boolean
   rocketDmg: number
   rocketRadius: number
-  rocketBurst: number
   rocketSplit: boolean
   laserDmg: number
   laserRange: number
   laserWidth: number
   laserPierce: number
+  laserPatternAngle: number
   turretDmg: number
   turretDuration: number
   turretFireRate: number
   turretMax: number
+  turretTetherGfx: any
+  turretTetherTickTimer: number
   orbitalDmg: number
   orbitalRadius: number
   orbitalCount: number
@@ -102,6 +105,8 @@ export interface IGameScene {
   railgunWidth: number
   droneDmg: number
   droneCount: number
+  droneBeamGfx: any
+  droneBeamTickTimer: number
   cleaveDmg: number
   cleaveCount: number
   cleaveRadius: number

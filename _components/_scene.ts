@@ -76,6 +76,7 @@ export function createGameScene(Phaser: any) {
     public machineGunDmg = 0
     public machineGunBullets = 0
     public machineGunCritChance = 0
+    public mgGhostSide: 1 | -1 = 1
     public scythesDmg = 0
     public scythesCount = 0
     public scythesRadius = 0
@@ -90,16 +91,18 @@ export function createGameScene(Phaser: any) {
     public boomerangPierce = false
     public rocketDmg = 0
     public rocketRadius = 0
-    public rocketBurst = 0
     public rocketSplit = false
     public laserDmg = 0
     public laserRange = 0
     public laserWidth = 0
     public laserPierce = 0
+    public laserPatternAngle = 0
     public turretDmg = 0
     public turretDuration = 0
     public turretFireRate = 0
     public turretMax = 0
+    public turretTetherGfx: any = null
+    public turretTetherTickTimer = 0
     public orbitalDmg = 0
     public orbitalRadius = 0
     public orbitalCount = 0
@@ -119,6 +122,8 @@ export function createGameScene(Phaser: any) {
     public railgunWidth = 0
     public droneDmg = 0
     public droneCount = 0
+    public droneBeamGfx: any = null
+    public droneBeamTickTimer = 0
     public cleaveDmg = 0
     public cleaveCount = 0
     public cleaveRadius = 0
@@ -342,13 +347,16 @@ export function createGameScene(Phaser: any) {
       this.extraBullets = 0; this.pierceCount = 2; this.bonusProjectiles = 0
       this.magnetRadius = 145; this.orbMultiplier = 1.0
       this.auraRadius = 44; this.shotgunRange = 220
-      this.machineGunBullets = 1; this.machineGunCritChance = 0
+      this.machineGunBullets = 1; this.machineGunCritChance = 0; this.mgGhostSide = 1
       this.scythesCount = 0; this.scythesRadius = 100; this.scythesLifeSteal = false
       this.teslaJumps = 2; this.teslaStun = false; this.teslaArcBack = false
       this.boomerangCount = 1; this.boomerangDist = 250; this.boomerangPierce = false
-      this.rocketRadius = 40; this.rocketBurst = 1; this.rocketSplit = false
-      this.laserRange = 340; this.laserWidth = 10; this.laserPierce = 3
+      this.rocketRadius = 40; this.rocketSplit = false
+      this.laserRange = 340; this.laserWidth = 10; this.laserPierce = 3; this.laserPatternAngle = 0
       this.turretDuration = 8000; this.turretFireRate = 400; this.turretMax = 2
+      this.turretTetherTickTimer = 0
+      if (this.turretTetherGfx?.active) this.turretTetherGfx.destroy()
+      this.turretTetherGfx = null
       this.orbitalRadius = 110; this.orbitalCount = 1
       this.blackholeCoreRadius = 85; this.blackholeMidRadius = 170; this.blackholeOuterRadius = 260
       this.blackholeCorePull = 320; this.blackholeMidPull = 130; this.blackholeOuterPull = 55
@@ -356,6 +364,9 @@ export function createGameScene(Phaser: any) {
       this.cryoShardCount = 3; this.cryoSlowDuration = 1500
       this.railgunChargeTime = 1500; this.railgunWidth = 6
       this.droneCount = 1
+      this.droneBeamTickTimer = 0
+      if (this.droneBeamGfx?.active) this.droneBeamGfx.destroy()
+      this.droneBeamGfx = null
       this.cleaveCount = 1; this.cleaveRadius = 110; this.cleaveArc = (60 * Math.PI) / 180
       this.cleavePending = []
       this.clearSpecials()
@@ -396,6 +407,7 @@ export function createGameScene(Phaser: any) {
         if (o.halo?.active) o.halo.destroy()
         if (o.rings?.active) o.rings.destroy()
         if (o.arms?.active) o.arms.destroy()
+        if (o.binaryFilament?.active) o.binaryFilament.destroy()
         if (Array.isArray(o.streaks)) {
           for (const st of o.streaks) if (st?.gfx?.active) st.gfx.destroy()
           o.streaks.length = 0
@@ -514,31 +526,40 @@ export function createGameScene(Phaser: any) {
         if (sx !== undefined) {
           const dist = Phaser.Math.Distance.Between(sx, sy, img.x, img.y)
           if (img.getData('wt') === 'boomerang') {
+            if (img.getData('spiral')) {
+              const spiralStart = img.getData('spiralStart')
+              const halfDur = img.getData('spiralHalfDur')
+              const elapsed = this.gameTime - spiralStart
+              const totalDur = halfDur * 2
+              if (elapsed >= totalDur) { img.destroy(); continue }
+              const startAng = img.getData('spiralAngle')
+              const dirSign = img.getData('spiralDir')
+              const maxR = img.getData('spiralR')
+              let r: number, ang: number
+              if (elapsed < halfDur) {
+                const t = elapsed / halfDur
+                r = maxR * t
+                ang = startAng + dirSign * t * Math.PI * 3
+              } else {
+                if (!img.getData('phaseFlipped')) {
+                  img.setData('phaseFlipped', true)
+                  img.setData('hitEnemies', new Set())
+                }
+                const t = (elapsed - halfDur) / halfDur
+                r = maxR * (1 - t)
+                ang = startAng + dirSign * (Math.PI * 3 + t * Math.PI * 3)
+              }
+              img.x = plx + Math.cos(ang) * r
+              img.y = ply + Math.sin(ang) * r
+              img.setRotation(this.gameTime * 0.04)
+              img.setVelocity(0, 0)
+              continue
+            }
             if (!img.getData('returning')) {
               if (dist > img.getData('dist')) {
                 img.setData('returning', true)
                 if (!img.getData('hitEnemies')) img.setData('hitEnemies', new Set())
               }
-            } else if (img.getData('seekReturn')) {
-              let tx: number, ty: number
-              const hitSet: Set<any> = img.getData('hitEnemies')
-              let nearest: any = null
-              let bestD2 = Infinity
-              for (const en of enemyList) {
-                if (!en.active || hitSet.has(en)) continue
-                const dx = en.x - img.x, dy = en.y - img.y
-                const d2 = dx*dx + dy*dy
-                if (d2 < bestD2) { bestD2 = d2; nearest = en }
-              }
-              if (nearest) { tx = nearest.x; ty = nearest.y }
-              else { tx = plx; ty = ply }
-              const bdx = tx - img.x, bdy = ty - img.y
-              const bdist = Math.sqrt(bdx*bdx + bdy*bdy)
-              const angle = Math.atan2(bdy, bdx)
-              const spd = WEAPON_BASE['boomerang'].bulletSpd * 1.5
-              img.setVelocity(Math.cos(angle) * spd, Math.sin(angle) * spd)
-              img.setRotation(angle)
-              if (!nearest && bdist < 20) { img.destroy(); continue }
             } else {
               const bdx = plx - img.x, bdy = ply - img.y
               const bdist = Math.sqrt(bdx*bdx + bdy*bdy)
@@ -675,8 +696,7 @@ export function createGameScene(Phaser: any) {
       this.auraGfx.y = playerEmitY(this)
       this.auraGfx.setRotation(this.gameTime * 0.0006)
 
-      const evoMult = this.weaponEvolutions['aura'] ? 2 : 1
-      const effectiveAuraRadius = this.auraRadius * (1 + this.bonusArea) * evoMult
+      const effectiveAuraRadius = this.auraRadius * (1 + this.bonusArea)
       if (effectiveAuraRadius === this._lastAuraRadius) return
       this._lastAuraRadius = effectiveAuraRadius
 
@@ -887,10 +907,8 @@ export function createGameScene(Phaser: any) {
     public recalculateStats() {
       const evo = this.weaponEvolutions
       const weaponEvoDmgMult: Partial<Record<WeaponType, number>> = {
-        rocket:     evo['rocket']     ? 2.5 : 1,
-        blackhole:  evo['blackhole']  ? 2 : 1,
+        rocket:     evo['rocket']     ? 3.0 : 1,
         machinegun: evo['machinegun'] ? 1.8 : 1,
-        turret:     evo['turret']     ? 3 : 1,
       }
 
       this.moveSpeed = Math.round(200 * (1 + this.bonusMoveSpeed))
@@ -923,7 +941,7 @@ export function createGameScene(Phaser: any) {
         const minRate = wt === 'machinegun' ? 50 : (wt === 'sniper' ? 300 : 100)
         const evoRateMult =
           wt === 'machinegun' && evo['machinegun'] ? 1.43 :
-          wt === 'aura'       && evo['aura']       ? 0.5 :
+          wt === 'orbital'    && evo['orbital']    ? 0.4 :
           1
         this.weaponShootRates[wt] = Math.max(minRate, Math.round(baseRate * (1 - this.bonusCooldown) * evoRateMult) - flatRed)
       }
