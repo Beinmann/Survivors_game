@@ -279,7 +279,7 @@ export function fireBoomerang(scene: IGameScene, angle: number, wt: WeaponType) 
   const ex = playerEmitX(scene), ey = playerEmitY(scene)
 
   if (evolved) {
-    const count = 1 + scene.bonusProjectiles
+    const count = 1
     const dir = Math.random() < 0.5 ? 1 : -1
     for (let i = 0; i < count; i++) {
       const a = angle + (count > 1 ? (i / count) * Math.PI * 2 : 0)
@@ -289,7 +289,7 @@ export function fireBoomerang(scene: IGameScene, angle: number, wt: WeaponType) 
       b.setData('wt', 'boomerang')
       b.setData('spiral', true)
       b.setData('spiralStart', scene.gameTime)
-      b.setData('spiralHalfDur', 600)
+      b.setData('spiralHalfDur', 1000)
       b.setData('spiralR', effectiveDist)
       b.setData('spiralAngle', a)
       b.setData('spiralDir', dir)
@@ -772,11 +772,19 @@ export function fireBlackhole(scene: IGameScene, angle: number, wt: WeaponType) 
   const evolved = !!scene.weaponEvolutions['blackhole']
   const ex = playerEmitX(scene), ey = playerEmitY(scene)
   if (evolved) {
-    const off = (15 * Math.PI) / 180
+    const off = (40 * Math.PI) / 180
     const a1 = angle - off, a2 = angle + off
     const pairDuration = scene.blackholeDuration + 6000
-    const bh1 = spawnBlackhole(scene, ex, ey, Math.cos(a1) * spd, Math.sin(a1) * spd, true, { duration: pairDuration })
-    const bh2 = spawnBlackhole(scene, ex, ey, Math.cos(a2) * spd, Math.sin(a2) * spd, true, { duration: pairDuration })
+    const evolvedZoneScale = 0.7
+    const areaScale = 1 + scene.bonusArea
+    const sharedParams = {
+      duration: pairDuration,
+      coreRadius:  scene.blackholeCoreRadius  * evolvedZoneScale * areaScale,
+      midRadius:   scene.blackholeMidRadius   * evolvedZoneScale * areaScale,
+      outerRadius: scene.blackholeOuterRadius * evolvedZoneScale * areaScale,
+    }
+    const bh1 = spawnBlackhole(scene, ex, ey, Math.cos(a1) * spd, Math.sin(a1) * spd, true, sharedParams)
+    const bh2 = spawnBlackhole(scene, ex, ey, Math.cos(a2) * spd, Math.sin(a2) * spd, true, sharedParams)
     bh1.binaryPair = bh2
     bh2.binaryPair = bh1
     return
@@ -1284,12 +1292,14 @@ function updateBlackholes(scene: IGameScene, delta: number) {
       const driftSpd = 18 + closeness * closeness * 90
       bh.sprite.x += (px / d) * driftSpd * delta / 1000
       bh.sprite.y += (py / d) * driftSpd * delta / 1000
-      const touchDist = bh.coreRadius + bh.binaryPair.coreRadius
+      // Detonate when the visual sprite cores touch (the projectile thrown out),
+      // not when the much larger gravity zones overlap.
+      const touchDist = 26
       if (d <= touchDist && bh.binaryPair) {
         const other = bh.binaryPair
         const mx = (bh.sprite.x + other.sprite.x) / 2
         const my = (bh.sprite.y + other.sprite.y) / 2
-        const blastRadius = (bh.outerRadius + other.outerRadius) * 1.6
+        const blastRadius = (bh.outerRadius + other.outerRadius) * 2.3
         const blastDmg = (bh.dmg + other.dmg) * 6
 
         const flash = scene.acquireGfx(6)
