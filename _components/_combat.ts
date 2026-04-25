@@ -199,12 +199,19 @@ export function fireTesla(scene: IGameScene, angle: number, wt: WeaponType) {
 
   if (scene.weaponEvolutions['tesla']) {
     const gfx = scene.add.graphics().setDepth(6)
-    scene.voltaicBeams.push({
+    scene.damageEnemy(currentTarget, scene.teslaDmg, true)
+    spawnShockIcon(scene, currentTarget.x, currentTarget.y)
+    if (scene.teslaStun) currentTarget.setData('stunned', 500)
+    scene.teslaStorms.push({
       gfx,
-      target: currentTarget,
+      current: currentTarget,
+      lastX: currentTarget.x,
+      lastY: currentTarget.y,
       duration: 1000,
       age: 0,
-      tickTimer: 0,
+      jumpTimer: 110,
+      damage: scene.teslaDmg,
+      segments: [] as { x1: number; y1: number; x2: number; y2: number; age: number }[],
     })
     return
   }
@@ -850,47 +857,75 @@ export function updateSpecials(scene: IGameScene, delta: number) {
   updateOrbitalStrikes(scene, delta)
   updateRailgunCharges(scene, delta)
   updateDrones(scene, delta)
-  updateVoltaicBeams(scene, delta)
+  updateTeslaStorms(scene, delta)
 }
 
-function updateVoltaicBeams(scene: IGameScene, delta: number) {
-  const VOLTAIC_TICK_MS = 100
-  const VOLTAIC_WIDTH = 14
-  for (let i = scene.voltaicBeams.length - 1; i >= 0; i--) {
-    const v = scene.voltaicBeams[i]
-    if (!v.gfx?.active) { scene.voltaicBeams.splice(i, 1); continue }
-    v.age += delta
-    if (v.age >= v.duration || !v.target?.active) {
-      v.gfx.destroy()
-      scene.voltaicBeams.splice(i, 1)
+function updateTeslaStorms(scene: IGameScene, delta: number) {
+  const STORM_JUMP_MS = 110
+  const STORM_HOP_RANGE = 160
+  const STORM_HOP_RANGE2 = STORM_HOP_RANGE * STORM_HOP_RANGE
+  const STORM_FALLBACK_RANGE = 320
+  const STORM_FALLBACK_RANGE2 = STORM_FALLBACK_RANGE * STORM_FALLBACK_RANGE
+  const SEGMENT_FADE_MS = 220
+
+  for (let i = scene.teslaStorms.length - 1; i >= 0; i--) {
+    const s = scene.teslaStorms[i]
+    if (!s.gfx?.active) { scene.teslaStorms.splice(i, 1); continue }
+    s.age += delta
+    if (s.age >= s.duration) {
+      s.gfx.destroy()
+      scene.teslaStorms.splice(i, 1)
       continue
     }
-    const sx = playerEmitX(scene), sy = playerEmitY(scene)
-    const ex = v.target.x, ey = v.target.y
-    const flicker = 0.85 + Math.random() * 0.25
-    const alpha = 0.9 - (v.age / v.duration) * 0.25
-    v.gfx.clear()
-    v.gfx.lineStyle(VOLTAIC_WIDTH * flicker, 0xbfdbfe, alpha * 0.55).lineBetween(sx, sy, ex, ey)
-    v.gfx.lineStyle(Math.max(2, VOLTAIC_WIDTH * 0.4) * flicker, 0xffffff, Math.min(1, alpha + 0.1)).lineBetween(sx, sy, ex, ey)
 
-    v.tickTimer -= delta
-    if (v.tickTimer <= 0) {
-      v.tickTimer += VOLTAIC_TICK_MS
-      const dx = ex - sx, dy = ey - sy
-      const len2 = dx * dx + dy * dy
-      if (len2 === 0) continue
-      const tol = VOLTAIC_WIDTH * 0.6 + 16
-      const tol2 = tol * tol
-      const tickDmg = Math.max(1, Math.floor(scene.teslaDmg * 0.9))
-      for (const e of scene.enemies.getChildren() as any[]) {
-        if (!e.active) continue
-        const t = Math.max(0, Math.min(1, ((e.x - sx) * dx + (e.y - sy) * dy) / len2))
-        const qx = sx + dx * t, qy = sy + dy * t
-        if ((e.x - qx) ** 2 + (e.y - qy) ** 2 < tol2) {
-          scene.damageEnemy(e, tickDmg, false)
-          if (scene.teslaStun) e.setData('stunned', 500)
+    if (s.current?.active) {
+      s.lastX = s.current.x
+      s.lastY = s.current.y
+    } else {
+      s.current = null
+    }
+
+    s.jumpTimer -= delta
+    if (s.jumpTimer <= 0) {
+      s.jumpTimer += STORM_JUMP_MS
+      const enemies = scene.enemies.getChildren() as any[]
+      const ax = s.lastX, ay = s.lastY
+      let next: any = null
+      let bestD2 = STORM_HOP_RANGE2
+      for (const e of enemies) {
+        if (!e.active || e === s.current) continue
+        const d2 = (e.x - ax) ** 2 + (e.y - ay) ** 2
+        if (d2 < bestD2) { bestD2 = d2; next = e }
+      }
+      if (!next) {
+        bestD2 = STORM_FALLBACK_RANGE2
+        for (const e of enemies) {
+          if (!e.active || e === s.current) continue
+          const d2 = (e.x - ax) ** 2 + (e.y - ay) ** 2
+          if (d2 < bestD2) { bestD2 = d2; next = e }
         }
       }
+      if (next) {
+        scene.damageEnemy(next, s.damage, true)
+        spawnShockIcon(scene, next.x, next.y)
+        if (scene.teslaStun) next.setData('stunned', 500)
+        s.segments.push({ x1: ax, y1: ay, x2: next.x, y2: next.y, age: 0 })
+        s.current = next
+        s.lastX = next.x
+        s.lastY = next.y
+      }
+    }
+
+    s.gfx.clear()
+    for (let j = s.segments.length - 1; j >= 0; j--) {
+      const seg = s.segments[j]
+      seg.age += delta
+      if (seg.age >= SEGMENT_FADE_MS) { s.segments.splice(j, 1); continue }
+      const t = seg.age / SEGMENT_FADE_MS
+      const flicker = 0.8 + Math.random() * 0.3
+      const alpha = 1 - t
+      s.gfx.lineStyle(8 * flicker, 0xbfdbfe, alpha * 0.55).lineBetween(seg.x1, seg.y1, seg.x2, seg.y2)
+      s.gfx.lineStyle(2.5 * flicker, 0xffffff, Math.min(1, alpha + 0.1)).lineBetween(seg.x1, seg.y1, seg.x2, seg.y2)
     }
   }
 }

@@ -127,7 +127,7 @@ export function createGameScene(Phaser: any) {
     public orbitalStrikes: any[] = []
     public railgunCharges: any[] = []
     public drones: any[] = []
-    public voltaicBeams: any[] = []
+    public teslaStorms: any[] = []
     public plaguePools: any[] = []
     public lockdownSlow = 0
 
@@ -388,7 +388,7 @@ export function createGameScene(Phaser: any) {
       destroyAll(this.orbitalStrikes); this.orbitalStrikes = []
       destroyAll(this.railgunCharges); this.railgunCharges = []
       destroyAll(this.drones); this.drones = []
-      destroyAll(this.voltaicBeams); this.voltaicBeams = []
+      destroyAll(this.teslaStorms); this.teslaStorms = []
       destroyAll(this.plaguePools); this.plaguePools = []
       this.lockdownSlow = 0
     }

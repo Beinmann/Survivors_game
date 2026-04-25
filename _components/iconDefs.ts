@@ -276,10 +276,23 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
     draw: (g: G) => {
       const cx = 14, cy = 14
       g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
-      g.lineStyle(3, 0xfde68a, 0.85).lineBetween(cx - 10, cy, cx + 10, cy)
-      g.lineStyle(1.5, 0xffffff, 0.95).lineBetween(cx - 10, cy, cx + 10, cy)
-      g.fillStyle(0xbfdbfe).fillCircle(cx - 10, cy, 2)
-      g.fillStyle(0xfde68a).fillCircle(cx + 10, cy, 2)
+      const nodes: [number, number][] = [
+        [cx - 8, cy - 6],
+        [cx + 2, cy - 8],
+        [cx + 8, cy + 2],
+        [cx - 2, cy + 8],
+        [cx - 8, cy + 2],
+      ]
+      g.lineStyle(2.5, 0xfde68a, 0.85)
+      for (let i = 0; i < nodes.length - 1; i++) {
+        g.lineBetween(nodes[i][0], nodes[i][1], nodes[i + 1][0], nodes[i + 1][1])
+      }
+      g.lineStyle(1.2, 0xffffff, 0.95)
+      for (let i = 0; i < nodes.length - 1; i++) {
+        g.lineBetween(nodes[i][0], nodes[i][1], nodes[i + 1][0], nodes[i + 1][1])
+      }
+      g.fillStyle(0xbfdbfe)
+      for (const [x, y] of nodes) g.fillCircle(x, y, 1.6)
     },
   },
   {

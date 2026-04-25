@@ -148,8 +148,8 @@ export const WEAPON_EVOLUTIONS: Partial<Record<WeaponType, EvolutionDef>> = {
     linkedPassiveMinLevel: 3,
   },
   tesla: {
-    name: 'Voltaic Lance',
-    desc: '1s sustained beam — ticks every 100ms on everything in the line',
+    name: 'Storm Surge',
+    desc: 'Bolt detaches and roams — chains enemy-to-enemy on its own for ~1s',
     icon: 'wico_tesla_evolved',
     linkedPassive: 'damage',
     linkedPassiveMinLevel: 3,
