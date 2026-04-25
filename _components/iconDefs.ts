@@ -100,16 +100,6 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
     },
   },
   {
-    key: 'wico_trail', w: 28, h: 28,
-    draw: (g: G) => {
-      const cx = 14, cy = 14
-      g.fillStyle(0xf97316, 0.8).fillCircle(cx, cy, 10)
-      g.fillStyle(0xfacc15, 0.6).fillCircle(cx, cy, 6)
-      g.lineStyle(1.5, 0xfb923c)
-      g.strokeCircle(cx, cy, 12)
-    },
-  },
-  {
     key: 'wico_laser', w: 28, h: 28,
     draw: (g: G) => {
       const cx = 14, cy = 14
@@ -388,23 +378,6 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
     },
   },
   {
-    key: 'ico_burn', w: 24, h: 24,
-    draw: (g: G) => {
-      g.fillStyle(0xf97316)
-      g.fillPoints([
-        { x: 12, y: 2 },
-        { x: 15, y: 7 },
-        { x: 16, y: 12 },
-        { x: 15, y: 17 },
-        { x: 12, y: 22 },
-        { x: 9,  y: 17 },
-        { x: 8,  y: 12 },
-        { x: 9,  y: 7 },
-      ], true)
-      g.fillStyle(0xef4444).fillCircle(12, 15, 3)
-    },
-  },
-  {
     key: 'ico_split', w: 24, h: 24,
     draw: (g: G) => {
       const cx = 12, cy = 12
@@ -415,17 +388,6 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
         g.lineBetween(cx + Math.cos(a) * 5, cy + Math.sin(a) * 5, cx + Math.cos(a) * 11, cy + Math.sin(a) * 11)
         g.fillStyle(0xef4444).fillCircle(cx + Math.cos(a) * 11, cy + Math.sin(a) * 11, 2)
       }
-    },
-  },
-  {
-    key: 'ico_spark', w: 24, h: 24,
-    draw: (g: G) => {
-      g.lineStyle(2, 0xfacc15)
-      for (let i = 0; i < 4; i++) {
-        const a = (i / 4) * Math.PI * 2
-        g.lineBetween(12, 12, 12 + Math.cos(a) * 9, 12 + Math.sin(a) * 9)
-      }
-      g.fillStyle(0xffffff).fillCircle(12, 12, 2)
     },
   },
 

@@ -23,8 +23,6 @@ export function autoShoot(scene: IGameScene, time: number) {
       scene.fireAura()
     } else if (wt === 'scythes') {
       scene.fireScythes()
-    } else if (wt === 'trail') {
-      scene.fireTrail()
     } else if (wt === 'turret') {
       scene.fireTurret()
     } else if (wt === 'orbital') {
@@ -208,87 +206,6 @@ export function fireRocket(scene: IGameScene, angle: number, wt: WeaponType) {
       b.setDepth(4)
     })
   }
-}
-
-function spawnTrailSprite(scene: IGameScene, x: number, y: number) {
-  const effectiveTrailSize = scene.trailSize * (1 + scene.bonusArea)
-  const f = scene.add.sprite(x, y, 'fire').setDepth(3).setScale(effectiveTrailSize / 16)
-  f.setData('isTrail', true)
-  f.setData('expiry', scene.gameTime + scene.trailDuration)
-  scene.trailSprites.push(f)
-}
-
-export function updateTrailSprites(scene: IGameScene, delta: number) {
-  if (scene.trailSprites.length === 0) return
-
-  const now = scene.gameTime
-  for (let i = scene.trailSprites.length - 1; i >= 0; i--) {
-    const f = scene.trailSprites[i]
-    if (!f.active) { scene.trailSprites.splice(i, 1); continue }
-    if (now >= f.getData('expiry')) {
-      if (scene.trailExplode) {
-        const exp = scene.acquireGfx(4)
-        exp.fillStyle(0xf97316, 0.6).fillCircle(f.x, f.y, 40)
-        scene.tweens.add({ targets: exp, alpha: 0, duration: 300, onComplete: () => scene.releaseGfx(exp) })
-        const r2 = 1600
-        for (const e of scene.enemies.getChildren() as any[]) {
-          if (!e.active) continue
-          const dx = f.x - e.x, dy = f.y - e.y
-          if (dx*dx + dy*dy < r2) scene.damageEnemy(e, scene.trailDmg * 2)
-        }
-      }
-      f.destroy()
-      scene.trailSprites.splice(i, 1)
-    }
-  }
-
-  scene._trailCheckTimer += delta
-  if (scene._trailCheckTimer < 250) return
-  scene._trailCheckTimer = 0
-
-  if (scene.trailSprites.length === 0) return
-  const enemies = scene.enemies.getChildren() as any[]
-  if (enemies.length === 0) return
-  const effectiveTrailSize = scene.trailSize * (1 + scene.bonusArea)
-  const hitR2 = (effectiveTrailSize * 0.8) * (effectiveTrailSize * 0.8)
-  for (const f of scene.trailSprites) {
-    if (!f.active) continue
-    for (const e of enemies) {
-      if (!e.active) continue
-      const dx = f.x - e.x, dy = f.y - e.y
-      if (dx*dx + dy*dy < hitR2) {
-        scene.damageEnemy(e, scene.trailDmg, false)
-        if (scene.trailBurn) e.setData('burnTicks', 5)
-      }
-    }
-  }
-}
-
-export function fireTrail(scene: IGameScene) {
-  const cx = scene.player.x
-  const cy = scene.player.y
-  const lx = scene.trailLastX
-  const ly = scene.trailLastY
-  const spacing = scene.trailSize * (1 + scene.bonusArea) * 0.6
-
-  if (lx === 0 && ly === 0) {
-    spawnTrailSprite(scene, cx, cy)
-  } else {
-    const dx = cx - lx
-    const dy = cy - ly
-    const dist = Math.sqrt(dx * dx + dy * dy)
-    if (dist < spacing) {
-      spawnTrailSprite(scene, cx, cy)
-    } else {
-      const steps = Math.ceil(dist / spacing)
-      for (let i = 1; i <= steps; i++) {
-        spawnTrailSprite(scene, lx + dx * (i / steps), ly + dy * (i / steps))
-      }
-    }
-  }
-
-  scene.trailLastX = cx
-  scene.trailLastY = cy
 }
 
 export function onBulletHitEnemy(scene: IGameScene, bullet: any, enemy: any) {

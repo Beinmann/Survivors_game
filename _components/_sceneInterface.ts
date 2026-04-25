@@ -74,13 +74,6 @@ export interface IGameScene {
   rocketRadius: number
   rocketBurst: number
   rocketSplit: boolean
-  trailDmg: number
-  trailDuration: number
-  trailSize: number
-  trailBurn: boolean
-  trailExplode: boolean
-  trailLastX: number
-  trailLastY: number
   laserDmg: number
   laserRange: number
   laserWidth: number
@@ -214,10 +207,7 @@ export interface IGameScene {
   effectiveShootRate(wt: WeaponType): number
   acquireGfx(depth?: number): any
   releaseGfx(gfx: any): void
-  trailSprites: any[]
-  _trailCheckTimer: number
   _lastAuraRadius: number
-  updateTrailSprites(delta: number): void
   updateSpecials(delta: number): void
   updatePlaguePools(delta: number): void
   updateLockdownAura(): void
@@ -229,7 +219,6 @@ export interface IGameScene {
   fireTesla(angle: number, wt: WeaponType): void
   fireBoomerang(angle: number, wt: WeaponType): void
   fireRocket(angle: number, wt: WeaponType): void
-  fireTrail(): void
   fireLaser(angle: number): void
   fireTurret(): void
   fireOrbital(): void

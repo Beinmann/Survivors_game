@@ -32,7 +32,6 @@ export const WEAPON_COSTS: Record<WeaponType, number> = {
   tesla: TIER_MID,
   boomerang: TIER_MID,
   rocket: TIER_MID,
-  trail: TIER_MID,
   cryo: TIER_MID,
   cleave: TIER_MID,
   laser: TIER_ADVANCED,

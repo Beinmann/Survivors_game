@@ -115,11 +115,6 @@ export function buildTextures(scene: IGameScene) {
     g.fillStyle(0xef4444); g.fillRect(0, 3, 3, 4)
   }, 16, 10)
 
-  make('fire', g => {
-    g.fillStyle(0xf97316, 0.8); g.fillCircle(8, 8, 8)
-    g.fillStyle(0xfacc15, 0.5); g.fillCircle(8, 8, 5)
-  }, 16, 16)
-
   make('turret', g => {
     g.fillStyle(0x1f2937); g.fillCircle(14, 14, 11)
     g.lineStyle(2, 0xfbbf24); g.strokeCircle(14, 14, 11)

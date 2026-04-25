@@ -89,7 +89,7 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: '+1 boomerang  ·  −150ms cooldown',          icon: 'wico_boomerang', apply: () => { scene.boomerangCount++; scene.flatWeaponShootRateReductions['boomerang'] = (scene.flatWeaponShootRateReductions['boomerang'] ?? 0) + 150; scene.recalculateStats() } },
       { desc: '+60% damage  ·  +30% bullet speed',         icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['boomerang'] = (scene.bonusWeaponDmg['boomerang'] ?? 0) + 0.6; scene.bonusWeaponBulletSpd['boomerang'] = (scene.bonusWeaponBulletSpd['boomerang'] ?? 0) + 0.3; scene.recalculateStats() } },
       { desc: '+80% damage  ·  +1 boomerang',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['boomerang'] = (scene.bonusWeaponDmg['boomerang'] ?? 0) + 0.8; scene.boomerangCount++; scene.recalculateStats() } },
-      { desc: 'Spark trail — leaves damaging sparks',      icon: 'ico_spark', apply: () => { scene.trailDmg += 5; scene.trailBurn = true } },
+      { desc: '+100% damage  ·  −150ms cooldown',          icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['boomerang'] = (scene.bonusWeaponDmg['boomerang'] ?? 0) + 1.0; scene.flatWeaponShootRateReductions['boomerang'] = (scene.flatWeaponShootRateReductions['boomerang'] ?? 0) + 150; scene.recalculateStats() } },
     ],
     rocket: [
       { desc: '+20px explosion radius',                    icon: 'ico_radius', apply: () => { scene.rocketRadius += 20; scene.recalculateStats() } },
@@ -100,16 +100,6 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: 'Burst fire — 3 rockets per shot',           icon: 'ico_burst', apply: () => { scene.rocketBurst = 3 } },
       { desc: '+100% damage  ·  +30px radius',             icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 1.0; scene.rocketRadius += 30; scene.recalculateStats() } },
       { desc: 'Cluster impact — rockets split on hit',     icon: 'ico_split', apply: () => { scene.rocketSplit = true } },
-    ],
-    trail: [
-      { desc: '+1s duration  ·  +10px size',               icon: 'ico_cooldown', apply: () => { scene.trailDuration += 1000; scene.trailSize += 10; scene.recalculateStats() } },
-      { desc: '+40% damage  ·  −50ms cooldown',            icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['trail'] = (scene.bonusWeaponDmg['trail'] ?? 0) + 0.4; scene.flatWeaponShootRateReductions['trail'] = (scene.flatWeaponShootRateReductions['trail'] ?? 0) + 50; scene.recalculateStats() } },
-      { desc: '+2s duration  ·  +15px size',               icon: 'ico_cooldown', apply: () => { scene.trailDuration += 2000; scene.trailSize += 15; scene.recalculateStats() } },
-      { desc: 'Burn effect — enemies keep taking damage',  icon: 'ico_burn', apply: () => { scene.trailBurn = true } },
-      { desc: '+60% damage  ·  −50ms cooldown',            icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['trail'] = (scene.bonusWeaponDmg['trail'] ?? 0) + 0.6; scene.flatWeaponShootRateReductions['trail'] = (scene.flatWeaponShootRateReductions['trail'] ?? 0) + 50; scene.recalculateStats() } },
-      { desc: '+80% damage  ·  +2s duration',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['trail'] = (scene.bonusWeaponDmg['trail'] ?? 0) + 0.8; scene.trailDuration += 2000; scene.recalculateStats() } },
-      { desc: '−100ms cooldown  ·  +20px size',            icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['trail'] = (scene.flatWeaponShootRateReductions['trail'] ?? 0) + 100; scene.trailSize += 20; scene.recalculateStats() } },
-      { desc: 'Volatile fire — patches explode on expiry', icon: 'ico_split', apply: () => { scene.trailExplode = true } },
     ],
     laser: [
       { desc: '+40% damage  ·  +40px range',               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['laser'] = (scene.bonusWeaponDmg['laser'] ?? 0) + 0.4; scene.laserRange += 40; scene.recalculateStats() } },
@@ -284,7 +274,6 @@ function weaponUnlockDesc(wt: WeaponType): string {
     tesla:      'Chain lightning · jumps between targets',
     boomerang:  'Returning blade · hits enemies twice',
     rocket:     'Seeking missiles · explosive impact',
-    trail:      'Fire walk · leaves damaging path',
     laser:      'Beam of light · pierces several enemies',
     turret:     'Deploys a sentry · fires for 8 seconds',
     orbital:    'Marks a target · strikes from above',
@@ -549,7 +538,6 @@ export function unlockWeapon(scene: IGameScene, wt: WeaponType) {
   if (wt === 'tesla')    scene.teslaJumps = 2
   if (wt === 'boomerang') scene.boomerangCount = 1
   if (wt === 'rocket')   scene.rocketBurst = 1
-  if (wt === 'trail')    scene.trailSize = 20
   if (wt === 'drones')   scene.droneCount = 1
   if (wt === 'orbital')  scene.orbitalCount = 1
   if (wt === 'turret')   scene.turretMax = Math.max(scene.turretMax, 2)

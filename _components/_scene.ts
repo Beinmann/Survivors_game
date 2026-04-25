@@ -9,7 +9,7 @@ import { showTitleScreen, showModeSelection, showMapSelection, showWeaponSelecti
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
 import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies, getActiveWave, showWaveBanner } from './_spawning'
-import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireTrail, updateTrailSprites, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireCryo, fireRailgun, fireDrones, fireCleave, updateSpecials } from './_combat'
+import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireCryo, fireRailgun, fireDrones, fireCleave, updateSpecials } from './_combat'
 import { onCollectOrb, getWeaponUpgrades, getUpgrades, showUpgradeMenu, pullOrbs, unlockWeapon } from './_progression'
 import { openDebugMenu, closeDebugMenu, drawDebugOverlays } from './_debug'
 
@@ -91,13 +91,6 @@ export function createGameScene(Phaser: any) {
     public rocketRadius = 0
     public rocketBurst = 0
     public rocketSplit = false
-    public trailDmg = 0
-    public trailDuration = 0
-    public trailSize = 0
-    public trailBurn = false
-    public trailExplode = false
-    public trailLastX = 0
-    public trailLastY = 0
     public laserDmg = 0
     public laserRange = 0
     public laserWidth = 0
@@ -167,8 +160,6 @@ export function createGameScene(Phaser: any) {
     public _lastTimerSecs = -1
     public _lastEffectStr = ''
     public _lastAuraRadius = 0
-    public trailSprites: any[] = []
-    public _trailCheckTimer = 0
     public hudDirty = false
     public _lastHp = 0
     public _lastMaxHp = 0
@@ -340,8 +331,6 @@ export function createGameScene(Phaser: any) {
       this.teslaJumps = 2; this.teslaStun = false; this.teslaArcBack = false
       this.boomerangCount = 1; this.boomerangDist = 250; this.boomerangPierce = false
       this.rocketRadius = 40; this.rocketBurst = 1; this.rocketSplit = false
-      this.trailDuration = 3000; this.trailSize = 20; this.trailBurn = false; this.trailExplode = false
-      this.trailLastX = 0; this.trailLastY = 0
       this.laserRange = 340; this.laserWidth = 10; this.laserPierce = 3
       this.turretDuration = 8000; this.turretFireRate = 400; this.turretMax = 2
       this.orbitalRadius = 110; this.orbitalCount = 1
@@ -357,8 +346,7 @@ export function createGameScene(Phaser: any) {
       this.hudDirty = true
       this._lastHp = -1; this._lastMaxHp = -1; this._lastXp = -1; this._lastXpNeeded = -1
       this.gfxPoolFree = []; this._lastTimerSecs = -1; this._lastEffectStr = ''
-      if (this.trailSprites) { this.trailSprites.forEach((f: any) => { if (f?.active) f.destroy() }) }
-      this.trailSprites = []; this._trailCheckTimer = 0; this._lastAuraRadius = -1
+      this._lastAuraRadius = -1
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
 
       this.debugInvuln = false
@@ -534,7 +522,6 @@ export function createGameScene(Phaser: any) {
       this.drawUI()
       this.updateAura()
       this.updateScythes(delta)
-      this.updateTrailSprites(delta)
       this.updateSpecials(delta)
       this.updatePlaguePools(delta)
       this.updateLockdownAura()
@@ -650,10 +637,6 @@ export function createGameScene(Phaser: any) {
       this.auraGfx.strokePath()
     }
 
-    public updateTrailSprites(delta: number) {
-      updateTrailSprites(this, delta)
-    }
-
     private _runJITWarmup() {
       const temps: any[] = []
       for (let i = 0; i < 15; i++) {
@@ -674,7 +657,6 @@ export function createGameScene(Phaser: any) {
       for (let i = 0; i < 100; i++) {
         this.moveEnemies(16)
         this.pullOrbs()
-        this.updateTrailSprites(16)
         this.autoShoot(i * 100)
       }
       this.drawUI()
@@ -737,10 +719,6 @@ export function createGameScene(Phaser: any) {
 
     public fireRocket(angle: number, wt: WeaponType) {
       fireRocket(this, angle, wt)
-    }
-
-    public fireTrail() {
-      fireTrail(this)
     }
 
     public fireLaser(angle: number) {
@@ -851,7 +829,6 @@ export function createGameScene(Phaser: any) {
       this.teslaDmg = Math.round(WEAPON_BASE['tesla'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['tesla'] ?? 0)))
       this.boomerangDmg = Math.round(WEAPON_BASE['boomerang'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['boomerang'] ?? 0)))
       this.rocketDmg = Math.round(WEAPON_BASE['rocket'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['rocket'] ?? 0)))
-      this.trailDmg = Math.round(WEAPON_BASE['trail'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['trail'] ?? 0)))
       this.laserDmg = Math.round(WEAPON_BASE['laser'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['laser'] ?? 0)))
       this.turretDmg = Math.round(WEAPON_BASE['turret'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['turret'] ?? 0)))
       this.orbitalDmg = Math.round(WEAPON_BASE['orbital'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['orbital'] ?? 0)))
