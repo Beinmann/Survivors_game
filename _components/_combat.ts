@@ -860,6 +860,7 @@ export function fireDrones(scene: IGameScene) {
       speed,
       turnRate: 5.2,
       orbitAngle: ang,
+      returning: false,
       recentHits: [] as { e: any; expiry: number }[],
     })
   }
@@ -1326,6 +1327,8 @@ const DRONE_TARGET_LOCK_MS = 8000
 const DRONE_HIT_RANGE = 18
 const DRONE_REHIT_MS = 300
 const DRONE_IDLE_RADIUS = 110
+const DRONE_RETURN_SPEED_MULT = 1.5
+const DRONE_RETURN_ARRIVE_RADIUS2 = DRONE_IDLE_RADIUS * DRONE_IDLE_RADIUS
 
 function updateDrones(scene: IGameScene, delta: number) {
   const dtSec = delta / 1000
@@ -1343,11 +1346,33 @@ function updateDrones(scene: IGameScene, delta: number) {
 
     const px = playerEmitX(scene), py = playerEmitY(scene)
     const pdx = d.sprite.x - px, pdy = d.sprite.y - py
-    if (pdx * pdx + pdy * pdy > recallDist2) {
-      d.sprite.x = px + Math.cos(d.orbitAngle) * 60
-      d.sprite.y = py + Math.sin(d.orbitAngle) * 60
+    if (!d.returning && pdx * pdx + pdy * pdy > recallDist2) {
+      d.returning = true
       d.target = null
       d.targetTimer = 0
+    }
+
+    if (d.returning) {
+      const dist2 = pdx * pdx + pdy * pdy
+      const returnSpeed = d.speed * DRONE_RETURN_SPEED_MULT
+      const desired = Math.atan2(py - d.sprite.y, px - d.sprite.x)
+      const current = Math.atan2(d.vy, d.vx)
+      let diff = desired - current
+      while (diff > Math.PI) diff -= Math.PI * 2
+      while (diff < -Math.PI) diff += Math.PI * 2
+      const maxStep = d.turnRate * dtSec
+      const step = diff > maxStep ? maxStep : diff < -maxStep ? -maxStep : diff
+      const heading = current + step
+      d.vx = Math.cos(heading) * returnSpeed
+      d.vy = Math.sin(heading) * returnSpeed
+      d.sprite.x += d.vx * dtSec
+      d.sprite.y += d.vy * dtSec
+      d.sprite.setRotation(heading)
+      if (dist2 <= DRONE_RETURN_ARRIVE_RADIUS2) {
+        d.returning = false
+        d.orbitAngle = Math.atan2(d.sprite.y - py, d.sprite.x - px)
+      }
+      continue
     }
 
     if (!d.target?.active || d.targetTimer <= 0) {
