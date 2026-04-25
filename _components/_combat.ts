@@ -858,6 +858,64 @@ export function updateSpecials(scene: IGameScene, delta: number) {
   updateRailgunCharges(scene, delta)
   updateDrones(scene, delta)
   updateTeslaStorms(scene, delta)
+  updateCleaveShockwaves(scene, delta)
+}
+
+function updateCleaveShockwaves(scene: IGameScene, delta: number) {
+  const BAND = 18
+  for (let i = scene.cleaveShockwaves.length - 1; i >= 0; i--) {
+    const s = scene.cleaveShockwaves[i]
+    if (!s.gfx?.active) { scene.cleaveShockwaves.splice(i, 1); continue }
+    s.age += delta
+    if (s.age >= s.duration) {
+      s.gfx.destroy()
+      scene.cleaveShockwaves.splice(i, 1)
+      continue
+    }
+    const t = s.age / s.duration
+    const r = s.startR + (s.endR - s.startR) * t
+    const rIn = r - BAND, rOut = r + BAND
+    const rIn2 = rIn * rIn, rOut2 = rOut * rOut
+
+    for (const e of scene.enemies.getChildren() as any[]) {
+      if (!e.active || s.hitSet.has(e)) continue
+      const dx = e.x - s.x, dy = e.y - s.y
+      const d2 = dx * dx + dy * dy
+      if (d2 < rIn2 || d2 > rOut2) continue
+      let diff = Math.atan2(dy, dx) - s.centerAngle
+      while (diff > Math.PI) diff -= Math.PI * 2
+      while (diff < -Math.PI) diff += Math.PI * 2
+      if (Math.abs(diff) > s.halfArc) continue
+      scene.damageEnemy(e, s.damage, true)
+      s.hitSet.add(e)
+    }
+
+    const alpha = 1 - t
+    const steps = 22
+    const startA = s.centerAngle - s.halfArc
+    const endA = s.centerAngle + s.halfArc
+    s.gfx.clear()
+    s.gfx.lineStyle(4, 0xfca5a5, alpha * 0.55)
+    s.gfx.beginPath()
+    for (let k = 0; k <= steps; k++) {
+      const a = startA + (endA - startA) * (k / steps)
+      const x = s.x + Math.cos(a) * r
+      const y = s.y + Math.sin(a) * r
+      if (k === 0) s.gfx.moveTo(x, y)
+      else s.gfx.lineTo(x, y)
+    }
+    s.gfx.strokePath()
+    s.gfx.lineStyle(1.5, 0xffffff, Math.min(1, alpha + 0.05))
+    s.gfx.beginPath()
+    for (let k = 0; k <= steps; k++) {
+      const a = startA + (endA - startA) * (k / steps)
+      const x = s.x + Math.cos(a) * r
+      const y = s.y + Math.sin(a) * r
+      if (k === 0) s.gfx.moveTo(x, y)
+      else s.gfx.lineTo(x, y)
+    }
+    s.gfx.strokePath()
+  }
 }
 
 function updateTeslaStorms(scene: IGameScene, delta: number) {
@@ -1221,6 +1279,7 @@ export function fireCleave(scene: IGameScene, angle: number) {
   const px = playerEmitX(scene), py = playerEmitY(scene)
   const outerR2 = outerR * outerR
   const innerR2 = innerR * innerR
+  const evolved = !!scene.weaponEvolutions['cleave']
 
   for (let i = 0; i < count; i++) {
     const centerAngle = count > 1 ? angle + (i * Math.PI * 2) / count : angle
@@ -1236,6 +1295,22 @@ export function fireCleave(scene: IGameScene, angle: number) {
       scene.damageEnemy(e, dmg, true)
     }
     spawnCleaveVisual(scene, px, py, centerAngle, innerR, outerR, halfArc)
+
+    if (evolved) {
+      scene.cleaveShockwaves.push({
+        x: px,
+        y: py,
+        centerAngle,
+        halfArc,
+        startR: outerR,
+        endR: outerR * 2.2,
+        age: 0,
+        duration: 350,
+        damage: Math.max(1, Math.floor(dmg * 0.6)),
+        hitSet: new Set<any>(),
+        gfx: scene.add.graphics().setDepth(6),
+      })
+    }
   }
 }
 

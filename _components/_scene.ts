@@ -128,6 +128,7 @@ export function createGameScene(Phaser: any) {
     public railgunCharges: any[] = []
     public drones: any[] = []
     public teslaStorms: any[] = []
+    public cleaveShockwaves: any[] = []
     public plaguePools: any[] = []
     public lockdownSlow = 0
 
@@ -389,6 +390,7 @@ export function createGameScene(Phaser: any) {
       destroyAll(this.railgunCharges); this.railgunCharges = []
       destroyAll(this.drones); this.drones = []
       destroyAll(this.teslaStorms); this.teslaStorms = []
+      destroyAll(this.cleaveShockwaves); this.cleaveShockwaves = []
       destroyAll(this.plaguePools); this.plaguePools = []
       this.lockdownSlow = 0
     }

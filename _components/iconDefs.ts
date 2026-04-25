@@ -457,6 +457,31 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
     },
   },
   {
+    key: 'wico_cleave_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      const startA = -Math.PI * 0.7
+      const endA = Math.PI * 0.7
+      const steps = 16
+      const drawArc = (radius: number, color: number, alpha: number, width: number) => {
+        g.lineStyle(width, color, alpha)
+        g.beginPath()
+        for (let i = 0; i <= steps; i++) {
+          const a = startA + (endA - startA) * (i / steps)
+          const x = cx + Math.cos(a) * radius
+          const y = cy + Math.sin(a) * radius
+          if (i === 0) g.moveTo(x, y)
+          else g.lineTo(x, y)
+        }
+        g.strokePath()
+      }
+      drawArc(7, 0xffffff, 0.95, 2)
+      drawArc(10, 0xfca5a5, 0.65, 1.6)
+      g.fillStyle(0xef4444).fillCircle(cx, cy, 1.8)
+    },
+  },
+  {
     key: 'ico_projectiles', w: 24, h: 24,
     draw: (g: G) => {
       g.fillStyle(0xfbbf24)

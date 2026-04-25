@@ -175,4 +175,11 @@ export const WEAPON_EVOLUTIONS: Partial<Record<WeaponType, EvolutionDef>> = {
     linkedPassive: 'projectiles',
     linkedPassiveMinLevel: 2,
   },
+  cleave: {
+    name: 'Sundering Edge',
+    desc: 'Each slash launches an outgoing shockwave — pierces, ~2.2× range',
+    icon: 'wico_cleave_evolved',
+    linkedPassive: 'projectiles',
+    linkedPassiveMinLevel: 2,
+  },
 }
