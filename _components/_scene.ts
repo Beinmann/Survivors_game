@@ -1,16 +1,17 @@
-import { WORLD, SPAWN_INTERVAL_MS, MAX_ORBS, DESPAWN_DIST, CONSOLIDATE_NEARBY_RADIUS, CONSOLIDATE_THRESHOLD, CONSOLIDATE_EDGE_MIN, CONSOLIDATE_EDGE_MAX } from './_constants'
+import { WORLD, SPAWN_INTERVAL_MS, MAX_ORBS, DESPAWN_DIST } from './_constants'
 import { MapKey, getMapDef, drawBackground } from './_maps'
 import { WeaponType, PassiveType, ALL_WEAPON_TYPES, WEAPON_NAMES, WEAPON_BASE, PASSIVE_DATA } from './_types'
 import { ENEMY_TYPES } from './_enemyTypes'
 import { ICON_DEFS } from './iconDefs'
 import { IGameScene } from './_sceneInterface'
 import { buildTextures } from './_textures'
-import { showTitleScreen, showModeSelection, showMapSelection, showWeaponSelection, showGameOver } from './_screens'
+import { showTitleScreen, showModeSelection, showMapSelection, showWeaponSelection, showGameOver, showShop } from './_screens'
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
-import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies } from './_spawning'
-import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireTrail, updateTrailSprites, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireCryo, fireRailgun, fireDrones, updateSpecials } from './_combat'
+import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies, getActiveWave, showWaveBanner } from './_spawning'
+import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireCryo, fireRailgun, fireDrones, fireCleave, updateSpecials, playerEmitX, playerEmitY } from './_combat'
 import { onCollectOrb, getWeaponUpgrades, getUpgrades, showUpgradeMenu, pullOrbs, unlockWeapon } from './_progression'
+import { openDebugMenu, closeDebugMenu, drawDebugOverlays } from './_debug'
 
 export function createGameScene(Phaser: any) {
   return class GameScene extends Phaser.Scene implements IGameScene {
@@ -53,6 +54,7 @@ export function createGameScene(Phaser: any) {
     public xpNeeded = 0
     public level = 0
     public score = 0
+    public runCoins = 0
     public spawnTimer = 0
     public spawnRate = 0
     public iframes = 0
@@ -90,13 +92,6 @@ export function createGameScene(Phaser: any) {
     public rocketRadius = 0
     public rocketBurst = 0
     public rocketSplit = false
-    public trailDmg = 0
-    public trailDuration = 0
-    public trailSize = 0
-    public trailBurn = false
-    public trailExplode = false
-    public trailLastX = 0
-    public trailLastY = 0
     public laserDmg = 0
     public laserRange = 0
     public laserWidth = 0
@@ -120,6 +115,10 @@ export function createGameScene(Phaser: any) {
     public railgunWidth = 0
     public droneDmg = 0
     public droneCount = 0
+    public cleaveDmg = 0
+    public cleaveCount = 0
+    public cleaveRadius = 0
+    public cleaveArc = 0
     public bonusProjectiles = 0
 
     // --- specials (long-lived, manually updated) ---
@@ -128,6 +127,8 @@ export function createGameScene(Phaser: any) {
     public orbitalStrikes: any[] = []
     public railgunCharges: any[] = []
     public drones: any[] = []
+    public plaguePools: any[] = []
+    public lockdownSlow = 0
 
     // --- power-up state ---
     public powerUpSpawnTimer = 0
@@ -137,7 +138,9 @@ export function createGameScene(Phaser: any) {
     // --- timer ---
     public gameTime = 0
     public globalSpeedMult = 0
-    public nextBossWave = 0
+    public currentWaveIndex = 0
+    public currentWaveEndSec = 0
+    public _lastWaveIndexApplied = 0
 
     // --- bonus tracking ---
     public bonusMoveSpeed = 0
@@ -158,8 +161,6 @@ export function createGameScene(Phaser: any) {
     public _lastTimerSecs = -1
     public _lastEffectStr = ''
     public _lastAuraRadius = 0
-    public trailSprites: any[] = []
-    public _trailCheckTimer = 0
     public hudDirty = false
     public _lastHp = 0
     public _lastMaxHp = 0
@@ -182,6 +183,19 @@ export function createGameScene(Phaser: any) {
     public paused = false
     public showBaseStats = false
     public pauseUI: { destroy(): void }[] = []
+
+    // --- debug ---
+    public debugInvuln = false
+    public debugRadiusOverlay = false
+    public debugHpBars = false
+    public debugHitboxes = false
+    public debugMenuOpen = false
+    public debugLevelQueue = 0
+    public debugRadiusGfx!: any
+    public debugHpBarGfx!: any
+    public debugHitboxGfx!: any
+    public debugRadiusLabels: any[] = []
+    public debugMenuUI: any[] = []
 
     constructor() {
       super('GameScene')
@@ -237,6 +251,12 @@ export function createGameScene(Phaser: any) {
           this.gameTime += 10000
         }
       })
+      this.input.keyboard?.on('keydown-U', () => {
+        if (this.debugMenuOpen) return
+        if (!this.dead && !this.levelUpPending && !this.paused && this.weapons.length > 0) {
+          this.openDebugMenu()
+        }
+      })
 
       this.physics.add.collider(this.enemies, this.enemies)
       this.physics.add.collider(this.player, this.obstacles)
@@ -270,6 +290,9 @@ export function createGameScene(Phaser: any) {
       this.xpBar = this.add.graphics().setScrollFactor(0).setDepth(20)
       this.weaponHUDGfx = this.add.graphics().setScrollFactor(0).setDepth(20)
       this.auraGfx = this.add.graphics().setDepth(4)
+      this.debugRadiusGfx = this.add.graphics().setDepth(4)
+      this.debugHpBarGfx = this.add.graphics().setDepth(19)
+      this.debugHitboxGfx = this.add.graphics().setDepth(19)
       this.levelText = this.add.text(12, 12, 'Level 1', {
         fontSize: '14px', color: '#ffffff', stroke: '#000000', strokeThickness: 3,
       }).setScrollFactor(0).setDepth(20)
@@ -282,6 +305,12 @@ export function createGameScene(Phaser: any) {
       this.effectText = this.add.text(this.cameras.main.width / 2, 34, '', {
         fontSize: '13px', color: '#fb923c', stroke: '#000000', strokeThickness: 3,
       }).setScrollFactor(0).setDepth(20).setOrigin(0.5, 0)
+
+      this.scale.on('resize', () => {
+        const cw = this.cameras.main.width
+        this.timerText.x = cw / 2
+        this.effectText.x = cw / 2
+      })
 
       this._runJITWarmup()
       this.showTitleScreen()
@@ -297,7 +326,7 @@ export function createGameScene(Phaser: any) {
 
       this.hp = 100; this.maxHp = 100; this.hpRegen = 0; this._hpRegenAccum = 0
       this.xp = 0; this.xpNeeded = 10
-      this.level = 1; this.score = 0
+      this.level = 1; this.score = 0; this.runCoins = 0
       this.spawnTimer = 0; this.spawnRate = SPAWN_INTERVAL_MS
       this.iframes = 0; this.dead = false; this.levelUpPending = false; this.maxLevelShown = false
       this.paused = false; this.showBaseStats = false; this.pauseUI = []
@@ -309,8 +338,6 @@ export function createGameScene(Phaser: any) {
       this.teslaJumps = 2; this.teslaStun = false; this.teslaArcBack = false
       this.boomerangCount = 1; this.boomerangDist = 250; this.boomerangPierce = false
       this.rocketRadius = 40; this.rocketBurst = 1; this.rocketSplit = false
-      this.trailDuration = 3000; this.trailSize = 20; this.trailBurn = false; this.trailExplode = false
-      this.trailLastX = 0; this.trailLastY = 0
       this.laserRange = 340; this.laserWidth = 10; this.laserPierce = 3
       this.turretDuration = 8000; this.turretFireRate = 400; this.turretMax = 2
       this.orbitalRadius = 110; this.orbitalCount = 1
@@ -318,15 +345,30 @@ export function createGameScene(Phaser: any) {
       this.cryoShardCount = 3; this.cryoSlowDuration = 1500
       this.railgunChargeTime = 1500; this.railgunWidth = 6
       this.droneCount = 1
+      this.cleaveCount = 1; this.cleaveRadius = 150; this.cleaveArc = (140 * Math.PI) / 180
       this.clearSpecials()
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
-      this.gameTime = 0; this.globalSpeedMult = 1.0; this.nextBossWave = 180
+      this.gameTime = 0; this.globalSpeedMult = 1.0
+      this.currentWaveIndex = 0; this.currentWaveEndSec = 0; this._lastWaveIndexApplied = -1
       this.hudDirty = true
       this._lastHp = -1; this._lastMaxHp = -1; this._lastXp = -1; this._lastXpNeeded = -1
       this.gfxPoolFree = []; this._lastTimerSecs = -1; this._lastEffectStr = ''
-      if (this.trailSprites) { this.trailSprites.forEach((f: any) => { if (f?.active) f.destroy() }) }
-      this.trailSprites = []; this._trailCheckTimer = 0; this._lastAuraRadius = -1
+      this._lastAuraRadius = -1
       if (this.auraGfx) { this.auraGfx.clear(); this.auraGfx.setVisible(false) }
+
+      this.debugInvuln = false
+      this.debugRadiusOverlay = false
+      this.debugHpBars = false
+      this.debugHitboxes = false
+      this.debugMenuOpen = false
+      this.debugLevelQueue = 0
+      if (this.debugRadiusLabels) { this.debugRadiusLabels.forEach((l: any) => { try { l.destroy() } catch { /* noop */ } }) }
+      this.debugRadiusLabels = []
+      if (this.debugMenuUI) { this.debugMenuUI.forEach((o: any) => { try { o.destroy() } catch { /* noop */ } }) }
+      this.debugMenuUI = []
+      if (this.debugRadiusGfx) this.debugRadiusGfx.clear()
+      if (this.debugHpBarGfx) this.debugHpBarGfx.clear()
+      if (this.debugHitboxGfx) this.debugHitboxGfx.clear()
     }
 
     public clearSpecials() {
@@ -344,10 +386,12 @@ export function createGameScene(Phaser: any) {
       destroyAll(this.orbitalStrikes); this.orbitalStrikes = []
       destroyAll(this.railgunCharges); this.railgunCharges = []
       destroyAll(this.drones); this.drones = []
+      destroyAll(this.plaguePools); this.plaguePools = []
+      this.lockdownSlow = 0
     }
 
     public togglePause() {
-      if (this.dead || this.levelUpPending || this.weapons.length === 0) return
+      if (this.dead || this.levelUpPending || this.weapons.length === 0 || this.debugMenuOpen) return
       this.paused = !this.paused
       if (this.paused) {
         this.physics.world.pause()
@@ -375,7 +419,7 @@ export function createGameScene(Phaser: any) {
     }
 
     update(time: number, delta: number) {
-      if (this.dead || this.levelUpPending || this.weapons.length === 0 || this.paused) return
+      if (this.dead || this.levelUpPending || this.weapons.length === 0 || this.paused || this.debugMenuOpen) return
 
       this.gameTime += delta
       const totalSecs = Math.floor(this.gameTime / 1000)
@@ -384,9 +428,23 @@ export function createGameScene(Phaser: any) {
         this._lastTimerSecs = totalSecs
       }
       this.globalSpeedMult = 1.0
-      if (totalSecs >= this.nextBossWave) {
-        this.spawnBossWave()
-        this.nextBossWave += 180
+
+      const waves = getMapDef(this.selectedMap).waves
+      const active = getActiveWave(waves, totalSecs)
+      const idx = active ? active.index : waves.length
+      if (idx !== this._lastWaveIndexApplied) {
+        this._lastWaveIndexApplied = idx
+        this.currentWaveIndex = idx
+        this.currentWaveEndSec = active ? active.endSec : -1
+        if (active) {
+          const w = active.wave.weights
+          const keys = Object.keys(w).filter(k => (w[k] ?? 0) > 0)
+          showWaveBanner(this, `Wave ${idx + 1}: ${active.wave.name}`, keys)
+          if (active.wave.isBoss) this.spawnBossWave()
+        } else {
+          const keys = ENEMY_TYPES.filter(t => t.weight > 0).map(t => t.key)
+          showWaveBanner(this, 'ENDLESS — all enemies unleashed', keys)
+        }
       }
 
       this.move()
@@ -401,10 +459,6 @@ export function createGameScene(Phaser: any) {
       }
       if (this.frenzyTimer > 0) this.frenzyTimer = Math.max(0, this.frenzyTimer - delta)
       if (this.freezeTimer > 0) this.freezeTimer = Math.max(0, this.freezeTimer - delta)
-      for (const p of this.powerUps.getChildren() as any[]) {
-        const lbl = p.getData('label')
-        if (lbl) lbl.setPosition(p.x, p.y - 26)
-      }
 
       if (this.iframes > 0) {
         this.iframes -= delta
@@ -475,8 +529,53 @@ export function createGameScene(Phaser: any) {
       this.drawUI()
       this.updateAura()
       this.updateScythes(delta)
-      this.updateTrailSprites(delta)
       this.updateSpecials(delta)
+      this.updatePlaguePools(delta)
+      this.updateLockdownAura()
+      this.drawDebugOverlays()
+    }
+
+    public updatePlaguePools(delta: number) {
+      if (this.plaguePools.length === 0) return
+      const px = this.player.x, py = this.player.y
+      for (let i = this.plaguePools.length - 1; i >= 0; i--) {
+        const p = this.plaguePools[i]
+        p.age += delta
+        if (p.age >= p.duration) {
+          if (p.gfx?.active) p.gfx.destroy()
+          this.plaguePools.splice(i, 1)
+          continue
+        }
+        const lifeT = 1 - p.age / p.duration
+        p.gfx.clear()
+        p.gfx.fillStyle(0x65a30d, 0.35 * lifeT + 0.15).fillCircle(p.x, p.y, p.radius)
+        p.gfx.lineStyle(2, 0xa3e635, 0.6 * lifeT).strokeCircle(p.x, p.y, p.radius)
+
+        const dx = px - p.x, dy = py - p.y
+        if (dx*dx + dy*dy <= p.radius * p.radius && this.iframes <= 0 && !this.debugInvuln) {
+          p.tickAccum = (p.tickAccum ?? 0) + delta
+          if (p.tickAccum >= 500) {
+            p.tickAccum -= 500
+            this.hp = Math.max(0, this.hp - 4)
+            if (this.hp <= 0) this.showGameOver()
+          }
+        } else {
+          p.tickAccum = 0
+        }
+      }
+    }
+
+    public updateLockdownAura() {
+      let slow = 0
+      const px = this.player.x, py = this.player.y
+      const r = 200
+      const r2 = r * r
+      for (const e of this.enemies.getChildren() as any[]) {
+        if (!e.active || !e.getData('lockdown')) continue
+        const dx = px - e.x, dy = py - e.y
+        if (dx*dx + dy*dy <= r2) { slow = 0.4; break }
+      }
+      this.lockdownSlow = slow
     }
 
     public updateScythes(delta: number) {
@@ -484,12 +583,13 @@ export function createGameScene(Phaser: any) {
         this.scythes.clear(true, true)
         return
       }
-      const count = this.scythesCount
+      const count = this.scythesCount + this.bonusProjectiles
       const children = this.scythes.getChildren()
+      const cx = playerEmitX(this), cy = playerEmitY(this)
       if (children.length !== count) {
         this.scythes.clear(true, true)
         for (let i = 0; i < count; i++) {
-          const s = this.scythes.create(this.player.x, this.player.y, 'scythe')
+          const s = this.scythes.create(cx, cy, 'scythe')
           s.setDepth(6)
         }
       }
@@ -497,11 +597,11 @@ export function createGameScene(Phaser: any) {
       const rotSpeed = 0.004
       const angleBase = this.gameTime * rotSpeed
       const areaMul = 1 + this.bonusArea
-      const effectiveScythesRadius = this.scythesRadius * areaMul
+      const effectiveScythesRadius = this.scythesRadius * (1 + this.bonusArea / 3)
       children.forEach((s: any, i: number) => {
         const angle = angleBase + (i / count) * Math.PI * 2
-        const x = this.player.x + Math.cos(angle) * effectiveScythesRadius
-        const y = this.player.y + Math.sin(angle) * effectiveScythesRadius
+        const x = cx + Math.cos(angle) * effectiveScythesRadius
+        const y = cy + Math.sin(angle) * effectiveScythesRadius
         s.setPosition(x, y)
         s.setRotation(angle + Math.PI / 2)
         if (s.scaleX !== areaMul) { s.setScale(areaMul); s.refreshBody?.() }
@@ -515,8 +615,8 @@ export function createGameScene(Phaser: any) {
       }
 
       this.auraGfx.setVisible(true)
-      this.auraGfx.x = this.player.x
-      this.auraGfx.y = this.player.y
+      this.auraGfx.x = playerEmitX(this)
+      this.auraGfx.y = playerEmitY(this)
       this.auraGfx.setRotation(this.gameTime * 0.0006)
 
       const effectiveAuraRadius = this.auraRadius * (1 + this.bonusArea)
@@ -545,10 +645,6 @@ export function createGameScene(Phaser: any) {
       this.auraGfx.strokePath()
     }
 
-    public updateTrailSprites(delta: number) {
-      updateTrailSprites(this, delta)
-    }
-
     private _runJITWarmup() {
       const temps: any[] = []
       for (let i = 0; i < 15; i++) {
@@ -569,7 +665,6 @@ export function createGameScene(Phaser: any) {
       for (let i = 0; i < 100; i++) {
         this.moveEnemies(16)
         this.pullOrbs()
-        this.updateTrailSprites(16)
         this.autoShoot(i * 100)
       }
       this.drawUI()
@@ -586,10 +681,11 @@ export function createGameScene(Phaser: any) {
       const up    = this.cursors.up?.isDown || this.wasd.up?.isDown
       const down  = this.cursors.down?.isDown || this.wasd.down?.isDown
 
-      if (left) vx -= this.moveSpeed
-      if (right) vx += this.moveSpeed
-      if (up) vy -= this.moveSpeed
-      if (down) vy += this.moveSpeed
+      const effSpeed = this.moveSpeed * (1 - this.lockdownSlow)
+      if (left) vx -= effSpeed
+      if (right) vx += effSpeed
+      if (up) vy -= effSpeed
+      if (down) vy += effSpeed
       if (vx !== 0 && vy !== 0) { vx *= 0.707; vy *= 0.707 }
       this.player.setVelocity(vx, vy)
     }
@@ -633,10 +729,6 @@ export function createGameScene(Phaser: any) {
       fireRocket(this, angle, wt)
     }
 
-    public fireTrail() {
-      fireTrail(this)
-    }
-
     public fireLaser(angle: number) {
       fireLaser(this, angle)
     }
@@ -663,6 +755,10 @@ export function createGameScene(Phaser: any) {
 
     public fireDrones() {
       fireDrones(this)
+    }
+
+    public fireCleave(angle: number) {
+      fireCleave(this, angle)
     }
 
     public updateSpecials(delta: number) {
@@ -719,6 +815,18 @@ export function createGameScene(Phaser: any) {
       showUpgradeMenu(this)
     }
 
+    public openDebugMenu() {
+      openDebugMenu(this)
+    }
+
+    public closeDebugMenu() {
+      closeDebugMenu(this)
+    }
+
+    public drawDebugOverlays() {
+      drawDebugOverlays(this)
+    }
+
     public recalculateStats() {
       this.moveSpeed = Math.round(200 * (1 + this.bonusMoveSpeed))
       this.shotgunDmg = Math.round(WEAPON_BASE['shotgun'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['shotgun'] ?? 0)))
@@ -730,7 +838,6 @@ export function createGameScene(Phaser: any) {
       this.boomerangDmg = Math.round(WEAPON_BASE['boomerang'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['boomerang'] ?? 0)))
       const rocketEvoMult = this.weaponEvolutions['rocket'] ? 2.5 : 1
       this.rocketDmg = Math.round(WEAPON_BASE['rocket'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['rocket'] ?? 0)) * rocketEvoMult)
-      this.trailDmg = Math.round(WEAPON_BASE['trail'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['trail'] ?? 0)))
       this.laserDmg = Math.round(WEAPON_BASE['laser'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['laser'] ?? 0)))
       this.turretDmg = Math.round(WEAPON_BASE['turret'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['turret'] ?? 0)))
       this.orbitalDmg = Math.round(WEAPON_BASE['orbital'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['orbital'] ?? 0)))
@@ -738,6 +845,7 @@ export function createGameScene(Phaser: any) {
       this.cryoDmg = Math.round(WEAPON_BASE['cryo'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['cryo'] ?? 0)))
       this.railgunDmg = Math.round(WEAPON_BASE['railgun'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['railgun'] ?? 0)))
       this.droneDmg = Math.round(WEAPON_BASE['drones'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['drones'] ?? 0)))
+      this.cleaveDmg = Math.round(WEAPON_BASE['cleave'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['cleave'] ?? 0)))
 
       for (const wt of ALL_WEAPON_TYPES) {
         const baseSpd = WEAPON_BASE[wt].bulletSpd
@@ -782,7 +890,7 @@ export function createGameScene(Phaser: any) {
       if (pt === 'bounty')      { this.magnetRadius += 35; this.orbMultiplier += 0.15 }
       if (pt === 'hp')          { this.maxHp += 25; this.hp += 25; this.hpRegen += 0.5 }
       if (pt === 'damage')      this.bonusDamage += 0.15
-      if (pt === 'cooldown')    this.bonusCooldown += 0.12
+      if (pt === 'cooldown')    this.bonusCooldown += 0.08
       if (pt === 'area')        { this.bonusArea += 0.15; this._lastAuraRadius = -1 }
       if (pt === 'projectiles') this.bonusProjectiles += 1
 
@@ -848,6 +956,10 @@ export function createGameScene(Phaser: any) {
 
     public showGameOver() {
       showGameOver(this)
+    }
+
+    public showShop() {
+      showShop(this)
     }
 
     // ─── power-ups ──────────────────────────────────────────────────────

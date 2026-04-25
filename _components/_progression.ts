@@ -1,5 +1,11 @@
 import { IGameScene } from './_sceneInterface'
 import { WeaponType, PassiveType, WEAPON_NAMES, ALL_WEAPON_TYPES, WEAPON_BASE, PASSIVE_DATA, ALL_PASSIVE_TYPES, WEAPON_EVOLUTIONS } from './_types'
+import { isWeaponUnlocked } from './_persistence'
+
+const MULTISHOT_AFFECTS: ReadonlySet<WeaponType> = new Set<WeaponType>([
+  'shotgun', 'machinegun', 'boomerang', 'rocket', 'cryo', 'drones',
+  'cleave', 'scythes', 'tesla', 'turret',
+])
 
 export function onCollectOrb(scene: IGameScene, _p: any, orb: any) {
   const o = orb as any
@@ -83,7 +89,7 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: '+1 boomerang  ·  −150ms cooldown',          icon: 'wico_boomerang', apply: () => { scene.boomerangCount++; scene.flatWeaponShootRateReductions['boomerang'] = (scene.flatWeaponShootRateReductions['boomerang'] ?? 0) + 150; scene.recalculateStats() } },
       { desc: '+60% damage  ·  +30% bullet speed',         icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['boomerang'] = (scene.bonusWeaponDmg['boomerang'] ?? 0) + 0.6; scene.bonusWeaponBulletSpd['boomerang'] = (scene.bonusWeaponBulletSpd['boomerang'] ?? 0) + 0.3; scene.recalculateStats() } },
       { desc: '+80% damage  ·  +1 boomerang',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['boomerang'] = (scene.bonusWeaponDmg['boomerang'] ?? 0) + 0.8; scene.boomerangCount++; scene.recalculateStats() } },
-      { desc: 'Spark trail — leaves damaging sparks',      icon: 'ico_spark', apply: () => { scene.trailDmg += 5; scene.trailBurn = true } },
+      { desc: '+100% damage  ·  −150ms cooldown',          icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['boomerang'] = (scene.bonusWeaponDmg['boomerang'] ?? 0) + 1.0; scene.flatWeaponShootRateReductions['boomerang'] = (scene.flatWeaponShootRateReductions['boomerang'] ?? 0) + 150; scene.recalculateStats() } },
     ],
     rocket: [
       { desc: '+20px explosion radius',                    icon: 'ico_radius', apply: () => { scene.rocketRadius += 20; scene.recalculateStats() } },
@@ -94,16 +100,6 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: 'Burst fire — 3 rockets per shot',           icon: 'ico_burst', apply: () => { scene.rocketBurst = 3 } },
       { desc: '+100% damage  ·  +30px radius',             icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['rocket'] = (scene.bonusWeaponDmg['rocket'] ?? 0) + 1.0; scene.rocketRadius += 30; scene.recalculateStats() } },
       { desc: 'Cluster impact — rockets split on hit',     icon: 'ico_split', apply: () => { scene.rocketSplit = true } },
-    ],
-    trail: [
-      { desc: '+1s duration  ·  +10px size',               icon: 'ico_cooldown', apply: () => { scene.trailDuration += 1000; scene.trailSize += 10; scene.recalculateStats() } },
-      { desc: '+40% damage  ·  −50ms cooldown',            icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['trail'] = (scene.bonusWeaponDmg['trail'] ?? 0) + 0.4; scene.flatWeaponShootRateReductions['trail'] = (scene.flatWeaponShootRateReductions['trail'] ?? 0) + 50; scene.recalculateStats() } },
-      { desc: '+2s duration  ·  +15px size',               icon: 'ico_cooldown', apply: () => { scene.trailDuration += 2000; scene.trailSize += 15; scene.recalculateStats() } },
-      { desc: 'Burn effect — enemies keep taking damage',  icon: 'ico_burn', apply: () => { scene.trailBurn = true } },
-      { desc: '+60% damage  ·  −50ms cooldown',            icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['trail'] = (scene.bonusWeaponDmg['trail'] ?? 0) + 0.6; scene.flatWeaponShootRateReductions['trail'] = (scene.flatWeaponShootRateReductions['trail'] ?? 0) + 50; scene.recalculateStats() } },
-      { desc: '+80% damage  ·  +2s duration',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['trail'] = (scene.bonusWeaponDmg['trail'] ?? 0) + 0.8; scene.trailDuration += 2000; scene.recalculateStats() } },
-      { desc: '−100ms cooldown  ·  +20px size',            icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['trail'] = (scene.flatWeaponShootRateReductions['trail'] ?? 0) + 100; scene.trailSize += 20; scene.recalculateStats() } },
-      { desc: 'Volatile fire — patches explode on expiry', icon: 'ico_split', apply: () => { scene.trailExplode = true } },
     ],
     laser: [
       { desc: '+40% damage  ·  +40px range',               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['laser'] = (scene.bonusWeaponDmg['laser'] ?? 0) + 0.4; scene.laserRange += 40; scene.recalculateStats() } },
@@ -175,6 +171,16 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: '+2 drones  ·  +30% damage',                 icon: 'wico_drones', apply: () => { scene.droneCount += 2; scene.bonusWeaponDmg['drones'] = (scene.bonusWeaponDmg['drones'] ?? 0) + 0.3; scene.recalculateStats() } },
       { desc: '+100% damage  ·  +1 drone  ·  −200ms',      icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['drones'] = (scene.bonusWeaponDmg['drones'] ?? 0) + 1.0; scene.droneCount++; scene.flatWeaponShootRateReductions['drones'] = (scene.flatWeaponShootRateReductions['drones'] ?? 0) + 200; scene.recalculateStats() } },
     ],
+    cleave: [
+      { desc: '+40% damage  ·  +15px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cleave'] = (scene.bonusWeaponDmg['cleave'] ?? 0) + 0.4; scene.cleaveRadius += 15; scene.recalculateStats() } },
+      { desc: '−250ms cooldown  ·  +20° arc',              icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['cleave'] = (scene.flatWeaponShootRateReductions['cleave'] ?? 0) + 250; scene.cleaveArc += (20 * Math.PI) / 180; scene.recalculateStats() } },
+      { desc: '+1 slash  ·  +20% damage',                  icon: 'wico_cleave', apply: () => { scene.cleaveCount++; scene.bonusWeaponDmg['cleave'] = (scene.bonusWeaponDmg['cleave'] ?? 0) + 0.2; scene.recalculateStats() } },
+      { desc: '+50% damage  ·  +20px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cleave'] = (scene.bonusWeaponDmg['cleave'] ?? 0) + 0.5; scene.cleaveRadius += 20; scene.recalculateStats() } },
+      { desc: '−250ms cooldown  ·  +25° arc',              icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['cleave'] = (scene.flatWeaponShootRateReductions['cleave'] ?? 0) + 250; scene.cleaveArc += (25 * Math.PI) / 180; scene.recalculateStats() } },
+      { desc: '+1 slash  ·  +30° arc',                     icon: 'wico_cleave', apply: () => { scene.cleaveCount++; scene.cleaveArc += (30 * Math.PI) / 180 } },
+      { desc: '+70% damage  ·  +25px radius',              icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cleave'] = (scene.bonusWeaponDmg['cleave'] ?? 0) + 0.7; scene.cleaveRadius += 25; scene.recalculateStats() } },
+      { desc: '+100% damage  ·  +1 slash  ·  −300ms',      icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['cleave'] = (scene.bonusWeaponDmg['cleave'] ?? 0) + 1.0; scene.cleaveCount++; scene.flatWeaponShootRateReductions['cleave'] = (scene.flatWeaponShootRateReductions['cleave'] ?? 0) + 300; scene.recalculateStats() } },
+    ],
   }
   const result: any[] = []
   for (const wt of scene.weapons) {
@@ -231,7 +237,7 @@ export function getUpgrades(scene: IGameScene) {
 
   const weaponUnlockOptions = (!scene.oneWeaponMode && scene.weapons.length < 3)
     ? ALL_WEAPON_TYPES
-        .filter(wt => !scene.weapons.includes(wt))
+        .filter(wt => !scene.weapons.includes(wt) && isWeaponUnlocked(wt))
         .map(wt => ({
           name: `Unlock ${WEAPON_NAMES[wt]}`,
           icon: `wico_${wt}`,
@@ -290,14 +296,14 @@ function weaponUnlockDesc(wt: WeaponType): string {
     tesla:      'Chain lightning · jumps between targets',
     boomerang:  'Returning blade · hits enemies twice',
     rocket:     'Seeking missiles · explosive impact',
-    trail:      'Fire walk · leaves damaging path',
     laser:      'Beam of light · pierces several enemies',
     turret:     'Deploys a sentry · fires for 8 seconds',
     orbital:    'Marks a target · strikes from above',
     blackhole:  'Gravity well · pulls and crushes',
     cryo:       'Icy shards · slow enemies on hit',
     railgun:    'Charges then sustains a piercing beam',
-    drones:     'Autonomous drones · hunt and orbit enemies',
+    drones:     'Homing drones · ram their target, pass-through damage',
+    cleave:     'Crescent slash · heavy burst hit in a wide arc',
   }
   return descs[wt]
 }
@@ -387,20 +393,35 @@ export function showUpgradeMenu(scene: IGameScene) {
     cardDraws.forEach((d, idx) => d(idx === selectedIndex))
   }
 
-  const confirm = (i: number) => {
+  const cleanup = () => {
     scene.input.keyboard?.off('keydown-LEFT', moveLeft)
     scene.input.keyboard?.off('keydown-A', moveLeft)
     scene.input.keyboard?.off('keydown-RIGHT', moveRight)
     scene.input.keyboard?.off('keydown-D', moveRight)
     scene.input.keyboard?.off('keydown-SPACE', confirmKey)
     scene.input.keyboard?.off('keydown-ENTER', confirmKey)
-    upgrades[i].apply()
-    scene.hudDirty = true
+    scene.input.keyboard?.off('keydown-ESC', skip)
     scene.children.list.filter((o: any) => o.__menuCard).forEach((o: any) => o.destroy())
     scene.levelUpPending = false
     scene.tweens.resumeAll()
     scene.time.paused = false
     scene.physics.world.resume()
+    if (scene.debugLevelQueue > 0) {
+      scene.debugLevelQueue--
+      scene.level++
+      scene.levelText.setText(`Level ${scene.level}`)
+      scene.showUpgradeMenu()
+    }
+  }
+
+  const confirm = (i: number) => {
+    upgrades[i].apply()
+    scene.hudDirty = true
+    cleanup()
+  }
+
+  const skip = () => {
+    cleanup()
   }
 
   const moveLeft   = () => setSelected((selectedIndex - 1 + cardDraws.length) % cardDraws.length)
@@ -451,6 +472,24 @@ export function showUpgradeMenu(scene: IGameScene) {
       align: 'center', wordWrap: { width: cardW - 16 },
     }).setOrigin(0.5).setScrollFactor(0).setDepth(42)
 
+    const isMultishot = (u.icon as string | undefined) === 'ico_projectiles'
+    if (isMultishot) {
+      const affected = scene.weapons.filter(wt => MULTISHOT_AFFECTS.has(wt))
+      if (affected.length > 0) {
+        const iconSize = 18
+        const gap = 6
+        const rowW = affected.length * iconSize + (affected.length - 1) * gap
+        const rowY = cy + 56
+        const startCx = cx - rowW / 2 + iconSize / 2
+        affected.forEach((wt, idx) => {
+          const ix = startCx + idx * (iconSize + gap)
+          const wIcon = scene.add.image(ix, rowY, `wico_${wt}`)
+            .setDisplaySize(iconSize, iconSize).setScrollFactor(0).setDepth(42)
+          tag(wIcon)
+        })
+      }
+    }
+
     const zone = scene.add.zone(cx, cy, cardW, cardH)
       .setScrollFactor(0).setDepth(43).setInteractive({ useHandCursor: true })
 
@@ -460,12 +499,35 @@ export function showUpgradeMenu(scene: IGameScene) {
     tag(bg); tag(nameText); tag(descText); tag(zone)
   })
 
+  const skipW = 140, skipH = 32
+  const skipY = h / 2 + cardH / 2 + 35
+  const skipBg = scene.add.graphics().setScrollFactor(0).setDepth(41)
+  let skipHover = false
+  const drawSkip = () => {
+    skipBg.clear()
+    skipBg.fillStyle(skipHover ? 0x2a2a3e : 0x16161e)
+    skipBg.fillRoundedRect(w / 2 - skipW / 2, skipY - skipH / 2, skipW, skipH, 8)
+    skipBg.lineStyle(skipHover ? 2 : 1, skipHover ? 0xfbbf24 : 0x3a3a5a)
+    skipBg.strokeRoundedRect(w / 2 - skipW / 2, skipY - skipH / 2, skipW, skipH, 8)
+  }
+  drawSkip()
+  const skipText = scene.add.text(w / 2, skipY, 'Skip (Esc)', {
+    fontSize: '13px', color: '#aaaacc', stroke: '#000', strokeThickness: 2,
+  }).setOrigin(0.5).setScrollFactor(0).setDepth(42)
+  const skipZone = scene.add.zone(w / 2, skipY, skipW, skipH)
+    .setScrollFactor(0).setDepth(43).setInteractive({ useHandCursor: true })
+  skipZone.on('pointerover', () => { skipHover = true; drawSkip() })
+  skipZone.on('pointerout',  () => { skipHover = false; drawSkip() })
+  skipZone.on('pointerdown', () => skip())
+  tag(skipBg); tag(skipText); tag(skipZone)
+
   scene.input.keyboard?.on('keydown-LEFT',  moveLeft)
   scene.input.keyboard?.on('keydown-A',     moveLeft)
   scene.input.keyboard?.on('keydown-RIGHT', moveRight)
   scene.input.keyboard?.on('keydown-D',     moveRight)
   scene.input.keyboard?.on('keydown-SPACE', confirmKey)
   scene.input.keyboard?.on('keydown-ENTER', confirmKey)
+  scene.input.keyboard?.on('keydown-ESC',   skip)
 
   scene.addStatsPanel((o: any) => tag(o))
 }
@@ -499,10 +561,10 @@ export function unlockWeapon(scene: IGameScene, wt: WeaponType) {
   if (wt === 'tesla')    scene.teslaJumps = 2
   if (wt === 'boomerang') scene.boomerangCount = 1
   if (wt === 'rocket')   scene.rocketBurst = 1
-  if (wt === 'trail')    scene.trailSize = 20
   if (wt === 'drones')   scene.droneCount = 1
   if (wt === 'orbital')  scene.orbitalCount = 1
   if (wt === 'turret')   scene.turretMax = Math.max(scene.turretMax, 2)
+  if (wt === 'cleave')   scene.cleaveCount = 1
 
   if (scene.weaponShootRates[wt] === undefined) {
     scene.weaponShootRates[wt] = WEAPON_BASE[wt].shootRate

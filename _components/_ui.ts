@@ -152,6 +152,13 @@ export function buildStatLines(scene: IGameScene) {
         { label: 'Drones', value: String(scene.droneCount), icon: 'wico_drones' },
         { label: 'Damage', value: String(dmgValue),         icon: 'ico_damage' },
       )
+    } else if (wt === 'cleave') {
+      lines.push(
+        { label: 'Slashes', value: String(scene.cleaveCount),                                      icon: 'wico_cleave' },
+        { label: 'Radius',  value: String(Math.round(scene.cleaveRadius * (1 + scene.bonusArea))), icon: 'ico_radius' },
+        { label: 'Arc',     value: `${Math.round((scene.cleaveArc * (1 + scene.bonusArea) * 180) / Math.PI)}°`, icon: 'ico_area' },
+        { label: 'Damage',  value: String(dmgValue),                                               icon: 'ico_damage' },
+      )
     }
   }
   lines.push({ label: '── Passive', value: '' })
@@ -164,7 +171,7 @@ export function buildStatLines(scene: IGameScene) {
     ...(scene.hpRegen > 0 ? [{ label: 'HP Regen', value: `${scene.hpRegen.toFixed(1)}/s`, icon: 'ico_regen' }] : []),
     { label: 'Move Speed', value: String(scene.moveSpeed),        icon: 'ico_movespeed' },
     { label: 'Dmg Boost',  value: `+${Math.round(scene.bonusDamage * 100)}%`,    icon: 'ico_damage' },
-    { label: 'Fire Rate',  value: `+${Math.round(scene.bonusCooldown * 100)}%`, icon: 'ico_cooldown' },
+    { label: 'Cooldown',   value: `-${Math.round(scene.bonusCooldown * 100)}%`, icon: 'ico_cooldown' },
     { label: 'Area Boost', value: `+${Math.round(scene.bonusArea * 100)}%`,     icon: 'ico_area' },
     { label: 'XP Boost',   value: `+${Math.round((scene.orbMultiplier - 1) * 100)}%`, icon: 'ico_orbmult' },
     { label: 'Magnet',     value: String(scene.magnetRadius),     icon: 'ico_magnet' },

@@ -20,11 +20,6 @@ export function spawnPowerUp(scene: IGameScene) {
   const pu = scene.powerUps.create(x, y, type.key)
   pu.setDepth(6).setData('type', type.key)
 
-  const lbl = scene.add.text(x, y - 26, type.label, {
-    fontSize: '11px', color: '#ffffff', stroke: '#000000', strokeThickness: 2,
-  }).setOrigin(0.5).setDepth(7)
-  pu.setData('label', lbl)
-
   scene.tweens.add({
     targets: pu, scaleX: 1.18, scaleY: 1.18,
     duration: 550, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
@@ -35,7 +30,6 @@ export function onCollectPowerUp(scene: IGameScene, _p: any, powerUp: any) {
   const pu = powerUp as any
   if (!pu.active) return
   const type = pu.getData('type')
-  pu.getData('label')?.destroy()
   pu.destroy()
   scene.applyPowerUp(type)
 }

@@ -30,6 +30,7 @@ The scene class is assembled in `_components/_scene.ts` but most logic lives in 
 | Enemy catalogue | `_enemyTypes.ts` | `ENEMY_TYPES` array; textures auto-build from it. |
 | Map catalogue, background drawing | `_maps.ts` | `MapKey`, `MAPS`, `bgPattern` union, `drawBackground`. |
 | World size, spawn rate, orb caps, consolidation tuning | `_constants.ts` | |
+| Debug menu (hotkey `U`), debug overlays, debug actions | `_debug.ts` | Toggles (invuln, radius rings, hitboxes, HP bars) and actions (evolve, +10 levels, spawn power-up, etc). |
 
 ---
 

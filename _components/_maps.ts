@@ -1,4 +1,5 @@
 import { WORLD } from './_constants'
+import { WaveDef } from './_waves'
 
 export type MapKey = 'ruins' | 'swamp' | 'fortress' | 'speedzone'
 
@@ -14,6 +15,7 @@ export interface MapDef {
   bgAccent: number
   bgPattern: 'hex' | 'grid' | 'circuit' | 'wetland'
   enemyWeights: Partial<Record<string, number>>
+  waves: WaveDef[]
 }
 
 export const MAPS: readonly MapDef[] = [
@@ -28,7 +30,20 @@ export const MAPS: readonly MapDef[] = [
     bgDark: 0x101e32,
     bgAccent: 0x2e4870,
     bgPattern: 'hex',
-    enemyWeights: {},
+    enemyWeights: {
+      enemy_charger: 0.35,
+      enemy_scavenger: 0.8,
+      enemy_ambusher: 0.6,
+    },
+    waves: [
+      { name: 'Vanguard',      durationSec: 45, weights: { enemy_grunt: 1.0 } },
+      { name: 'Scavenger Raid', durationSec: 60, weights: { enemy_scavenger: 1.0, enemy_ambusher: 0.7 } },
+      { name: 'Heavy Hitters', durationSec: 75, weights: { enemy_brute: 1.0, enemy_grunt: 0.4 } },
+      { name: 'Crashers',      durationSec: 75, weights: { enemy_charger: 1.0, enemy_speeder: 0.6 } },
+      { name: 'Warlord',       durationSec: 60, weights: { enemy_grunt: 0.5, enemy_elite: 0.7, enemy_brute: 0.5 }, isBoss: true },
+      { name: 'The Remnant',   durationSec: 90, weights: { enemy_grunt: 0.5, enemy_speeder: 0.6, enemy_elite: 0.7, enemy_charger: 0.4, enemy_ghost: 0.5, enemy_swarm: 0.5 } },
+      { name: 'Last Stand',    durationSec: 90, weights: { enemy_elite: 0.8, enemy_tank: 0.5, enemy_healer: 0.4, enemy_splitter: 0.5, enemy_brute: 0.5, enemy_grunt: 0.4 } },
+    ],
   },
   {
     key: 'swamp',
@@ -47,10 +62,21 @@ export const MAPS: readonly MapDef[] = [
       enemy_swarm: 2.0,
       enemy_speeder: 1.5,
       enemy_grunt: 0.6,
-      enemy_charger: 0.2,
+      enemy_charger: 0.1,
       enemy_elite: 0,
       enemy_tank: 0,
+      enemy_plague: 1.5,
+      enemy_nest: 0.4,
     },
+    waves: [
+      { name: 'Fog Rises',       durationSec: 45, weights: { enemy_grunt: 0.6, enemy_ghost: 1.5 } },
+      { name: 'Phantom Tide',    durationSec: 60, weights: { enemy_ghost: 1.0 } },
+      { name: 'Bomb Run',        durationSec: 75, weights: { enemy_bomber: 1.0, enemy_grunt: 0.4 } },
+      { name: 'Plaguebearers',   durationSec: 75, weights: { enemy_plague: 1.8, enemy_grunt: 0.4 } },
+      { name: 'Swamp Warden',    durationSec: 60, weights: { enemy_ghost: 1.2, enemy_plague: 1.0 }, isBoss: true },
+      { name: 'Nesting Grounds', durationSec: 90, weights: { enemy_nest: 0.7, enemy_swarm: 2.0, enemy_ghost: 0.8 } },
+      { name: 'Miasma',          durationSec: 90, weights: { enemy_plague: 1.6, enemy_ghost: 1.6, enemy_swarm: 1.2, enemy_healer: 0.5, enemy_bomber: 0.6 } },
+    ],
   },
   {
     key: 'fortress',
@@ -67,12 +93,25 @@ export const MAPS: readonly MapDef[] = [
       enemy_tank: 1.8,
       enemy_brute: 1.6,
       enemy_elite: 1.8,
-      enemy_charger: 1.5,
+      enemy_charger: 0.25,
       enemy_grunt: 0.4,
       enemy_speeder: 0.2,
       enemy_ghost: 0,
       enemy_swarm: 0,
+      enemy_juggernaut: 0.8,
+      enemy_sapper: 0.6,
+      enemy_berserker: 1.0,
+      enemy_lockdown: 0.5,
     },
+    waves: [
+      { name: 'Garrison',     durationSec: 45, weights: { enemy_grunt: 0.6, enemy_brute: 1.0 } },
+      { name: 'Heavy Watch',  durationSec: 60, weights: { enemy_brute: 1.4, enemy_tank: 0.8 } },
+      { name: 'Shock Troops', durationSec: 75, weights: { enemy_charger: 1.0, enemy_berserker: 1.0 } },
+      { name: 'Bulwark',      durationSec: 75, weights: { enemy_tank: 1.4, enemy_juggernaut: 0.7 } },
+      { name: 'Warden',       durationSec: 60, weights: { enemy_tank: 0.8, enemy_juggernaut: 0.6, enemy_elite: 0.8, enemy_brute: 0.6 }, isBoss: true },
+      { name: 'Iron Column',  durationSec: 90, weights: { enemy_sapper: 0.8, enemy_lockdown: 0.7, enemy_brute: 1.0, enemy_grunt: 0.3 } },
+      { name: 'Reckoning',    durationSec: 90, weights: { enemy_juggernaut: 1.0, enemy_tank: 1.5, enemy_elite: 1.8, enemy_brute: 1.2, enemy_sapper: 0.5, enemy_healer: 0.5, enemy_lockdown: 0.6 } },
+    ],
   },
   {
     key: 'speedzone',
@@ -87,14 +126,26 @@ export const MAPS: readonly MapDef[] = [
     bgPattern: 'circuit',
     enemyWeights: {
       enemy_speeder: 3.0,
-      enemy_charger: 2.5,
+      enemy_charger: 1.2,
       enemy_elite: 2.0,
       enemy_swarm: 1.5,
       enemy_grunt: 0.3,
       enemy_tank: 0,
       enemy_bomber: 0,
       enemy_brute: 0,
+      enemy_hunter: 1.4,
+      enemy_dasher: 1.0,
+      enemy_blinker: 1.0,
     },
+    waves: [
+      { name: 'Runners',           durationSec: 45, weights: { enemy_speeder: 1.0 } },
+      { name: 'Pack Hunters',      durationSec: 60, weights: { enemy_speeder: 1.5, enemy_hunter: 1.2 } },
+      { name: 'Quick Step',        durationSec: 60, weights: { enemy_dasher: 1.3, enemy_speeder: 1.0 } },
+      { name: 'Slipstream',        durationSec: 45, weights: { enemy_grunt: 0.6, enemy_speeder: 0.9 } },
+      { name: 'Phase Shift',       durationSec: 75, weights: { enemy_speeder: 1.5, enemy_blinker: 0.8 } },
+      { name: 'Velocity',          durationSec: 60, weights: { enemy_speeder: 2.0, enemy_elite: 1.5, enemy_hunter: 1.0 }, isBoss: true },
+      { name: 'Terminal Velocity', durationSec: 90, weights: { enemy_speeder: 2.5, enemy_elite: 2.0, enemy_hunter: 1.4, enemy_dasher: 1.2, enemy_blinker: 0.9, enemy_charger: 1.0 } },
+    ],
   },
 ]
 

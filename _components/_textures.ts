@@ -123,10 +123,6 @@ export function buildTextures(scene: IGameScene) {
     g.lineStyle(1, 0xfde68a, 0.9); g.strokeRect(2, 1, 14, 8)
   }, 18, 10)
 
-  make('fire', g => {
-    g.fillStyle(0xf97316, 0.8); g.fillCircle(8, 8, 8)
-    g.fillStyle(0xfacc15, 0.5); g.fillCircle(8, 8, 5)
-  }, 16, 16)
 
   make('turret', g => {
     g.fillStyle(0x1f2937); g.fillCircle(14, 14, 11)
@@ -163,11 +159,17 @@ export function buildTextures(scene: IGameScene) {
 
   make('orb', g => {
     g.fillStyle(0x38bdf8, 0.65)
-    g.fillTriangle(5, 1, 9, 5, 5, 9)
-    g.fillTriangle(5, 1, 1, 5, 5, 9)
-    g.lineStyle(1, 0xbae6fd, 0.5)
-    g.strokeTriangle(5, 1, 9, 5, 5, 9)
-    g.strokeTriangle(5, 1, 1, 5, 5, 9)
+    g.fillTriangle(2.5, 0.5, 4.5, 2.5, 2.5, 4.5)
+    g.fillTriangle(2.5, 0.5, 0.5, 2.5, 2.5, 4.5)
+    g.lineStyle(0.8, 0xbae6fd, 0.5)
+    g.strokeTriangle(2.5, 0.5, 4.5, 2.5, 2.5, 4.5)
+    g.strokeTriangle(2.5, 0.5, 0.5, 2.5, 2.5, 4.5)
+  }, 5, 5)
+
+  make('drone_hit', g => {
+    g.lineStyle(2, 0xf97316)
+    g.lineBetween(1, 1, 9, 9)
+    g.lineBetween(9, 1, 1, 9)
   }, 10, 10)
 
   make('shock', g => {

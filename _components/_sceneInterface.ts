@@ -39,6 +39,7 @@ export interface IGameScene {
   xpNeeded: number
   level: number
   score: number
+  runCoins: number
   spawnTimer: number
   spawnRate: number
   iframes: number
@@ -74,13 +75,6 @@ export interface IGameScene {
   rocketRadius: number
   rocketBurst: number
   rocketSplit: boolean
-  trailDmg: number
-  trailDuration: number
-  trailSize: number
-  trailBurn: boolean
-  trailExplode: boolean
-  trailLastX: number
-  trailLastY: number
   laserDmg: number
   laserRange: number
   laserWidth: number
@@ -104,16 +98,35 @@ export interface IGameScene {
   railgunWidth: number
   droneDmg: number
   droneCount: number
+  cleaveDmg: number
+  cleaveCount: number
+  cleaveRadius: number
+  cleaveArc: number
   bonusProjectiles: number
   powerUpSpawnTimer: number
   frenzyTimer: number
   freezeTimer: number
   gameTime: number
   globalSpeedMult: number
-  nextBossWave: number
+  currentWaveIndex: number
+  currentWaveEndSec: number
+  _lastWaveIndexApplied: number
   paused: boolean
   showBaseStats: boolean
   pauseUI: any[]
+
+  // --- debug ---
+  debugInvuln: boolean
+  debugRadiusOverlay: boolean
+  debugHpBars: boolean
+  debugHitboxes: boolean
+  debugMenuOpen: boolean
+  debugLevelQueue: number
+  debugRadiusGfx: any
+  debugHpBarGfx: any
+  debugHitboxGfx: any
+  debugRadiusLabels: any[]
+  debugMenuUI: any[]
   hudDirty: boolean
   _lastHp: number
   _lastMaxHp: number
@@ -152,6 +165,8 @@ export interface IGameScene {
   orbitalStrikes: any[]
   railgunCharges: any[]
   drones: any[]
+  plaguePools: any[]
+  lockdownSlow: number
 
   // --- methods ---
   resetState(): void
@@ -184,6 +199,7 @@ export interface IGameScene {
   showMapSelection(): void
   showWeaponSelection(): void
   showGameOver(): void
+  showShop(): void
   unlockWeapon(wt: WeaponType): void
   rebuildWeaponHUDTexts(): void
   unlockPassive(pt: PassiveType): void
@@ -192,11 +208,10 @@ export interface IGameScene {
   effectiveShootRate(wt: WeaponType): number
   acquireGfx(depth?: number): any
   releaseGfx(gfx: any): void
-  trailSprites: any[]
-  _trailCheckTimer: number
   _lastAuraRadius: number
-  updateTrailSprites(delta: number): void
   updateSpecials(delta: number): void
+  updatePlaguePools(delta: number): void
+  updateLockdownAura(): void
   fireShotgun(angle: number, wt: WeaponType): void
   fireSniper(angle: number, wt: WeaponType): void
   fireMachineGun(angle: number, wt: WeaponType): void
@@ -205,7 +220,6 @@ export interface IGameScene {
   fireTesla(angle: number, wt: WeaponType): void
   fireBoomerang(angle: number, wt: WeaponType): void
   fireRocket(angle: number, wt: WeaponType): void
-  fireTrail(): void
   fireLaser(angle: number): void
   fireTurret(): void
   fireOrbital(): void
@@ -213,9 +227,13 @@ export interface IGameScene {
   fireCryo(angle: number, wt: WeaponType): void
   fireRailgun(angle: number): void
   fireDrones(): void
+  fireCleave(angle: number): void
   move(): void
   autoShoot(time: number): void
   moveEnemies(delta: number): void
   pullOrbs(): void
   tintConsolidatedOrb(orb: any, value: number): void
+  openDebugMenu(): void
+  closeDebugMenu(): void
+  drawDebugOverlays(): void
 }
