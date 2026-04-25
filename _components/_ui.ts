@@ -105,9 +105,9 @@ export function buildStatLines(scene: IGameScene) {
       )
     } else if (wt === 'machinegun') {
       lines.push(
-        { label: 'Burst',  value: String(scene.machineGunBurst), icon: 'ico_burst' },
-        { label: 'Pierce', value: scene.machineGunPierce ? 'Yes' : 'No', icon: 'ico_pierce' },
-        { label: 'Damage', value: String(dmgValue),              icon: 'ico_damage' },
+        { label: 'Bullets', value: String(scene.machineGunBullets), icon: 'ico_pellets' },
+        { label: 'Crit',    value: `${Math.round(scene.machineGunCritChance * 100)}%`, icon: 'ico_crit' },
+        { label: 'Damage',  value: String(dmgValue),                 icon: 'ico_damage' },
       )
     } else if (wt === 'laser') {
       lines.push(

@@ -57,8 +57,8 @@ export interface IGameScene {
   sniperDmg: number
   auraDmg: number
   machineGunDmg: number
-  machineGunBurst: number
-  machineGunPierce: boolean
+  machineGunBullets: number
+  machineGunCritChance: number
   scythesDmg: number
   scythesCount: number
   scythesRadius: number

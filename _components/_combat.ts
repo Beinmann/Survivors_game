@@ -115,19 +115,18 @@ export function fireMachineGun(scene: IGameScene, angle: number, wt: WeaponType)
     const b = scene.bullets.create(ex, ey, evolved ? 'mgBullet_evolved' : 'mgBullet') as any
     b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
     b.setRotation(a)
-    b.setData('dmg', scene.machineGunDmg)
+    const isCrit = scene.machineGunCritChance > 0 && Math.random() < scene.machineGunCritChance
+    b.setData('dmg', isCrit ? scene.machineGunDmg * 3 : scene.machineGunDmg)
     if (evolved) b.setData('wt', 'machinegun')
-    else if (scene.machineGunPierce) {
-      b.setData('pierceLeft', 1)
-      b.setData('hitEnemies', new Set())
-    }
+    const finalScale = isCrit ? bulletScale * 1.5 : bulletScale
+    if (finalScale !== 1) { b.setScale(finalScale); b.refreshBody() }
+    if (isCrit) b.setTint(0xfde047)
     b.setDepth(4)
-    if (bulletScale !== 1) { b.setScale(bulletScale); b.refreshBody() }
   }
   const offset = 0.022
-  const burst = scene.machineGunBurst + scene.bonusProjectiles
-  for (let i = 0; i < burst; i++) {
-    fire(angle + (burst > 1 ? (i - (burst - 1) / 2) * offset : 0))
+  const count = scene.machineGunBullets + scene.bonusProjectiles
+  for (let i = 0; i < count; i++) {
+    fire(angle + (count > 1 ? (i - (count - 1) / 2) * offset : 0))
   }
 }
 

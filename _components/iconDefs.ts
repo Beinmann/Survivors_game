@@ -754,6 +754,22 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
     },
   },
   {
+    key: 'ico_crit', w: 24, h: 24,
+    draw: (g: G) => {
+      g.lineStyle(2, 0xfde047)
+      g.lineBetween(12, 3, 12, 9)
+      g.lineBetween(12, 15, 12, 21)
+      g.lineBetween(3, 12, 9, 12)
+      g.lineBetween(15, 12, 21, 12)
+      g.lineBetween(6, 6, 10, 10)
+      g.lineBetween(14, 14, 18, 18)
+      g.lineBetween(18, 6, 14, 10)
+      g.lineBetween(10, 14, 6, 18)
+      g.fillStyle(0xfacc15)
+      g.fillCircle(12, 12, 2.5)
+    },
+  },
+  {
     key: 'ico_hp', w: 24, h: 24,
     draw: (g: G) => {
       g.fillStyle(0xef4444)

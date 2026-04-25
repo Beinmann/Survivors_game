@@ -74,8 +74,8 @@ export function createGameScene(Phaser: any) {
     public sniperDmg = 0
     public auraDmg = 0
     public machineGunDmg = 0
-    public machineGunBurst = 0
-    public machineGunPierce = false
+    public machineGunBullets = 0
+    public machineGunCritChance = 0
     public scythesDmg = 0
     public scythesCount = 0
     public scythesRadius = 0
@@ -337,7 +337,7 @@ export function createGameScene(Phaser: any) {
       this.extraBullets = 0; this.pierceCount = 2; this.bonusProjectiles = 0
       this.magnetRadius = 145; this.orbMultiplier = 1.0
       this.auraRadius = 110; this.shotgunRange = 220
-      this.machineGunBurst = 1; this.machineGunPierce = false
+      this.machineGunBullets = 1; this.machineGunCritChance = 0
       this.scythesCount = 0; this.scythesRadius = 100; this.scythesLifeSteal = false
       this.teslaJumps = 2; this.teslaStun = false; this.teslaArcBack = false
       this.boomerangCount = 1; this.boomerangDist = 250; this.boomerangPierce = false

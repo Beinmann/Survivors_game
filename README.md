@@ -33,7 +33,7 @@ Pick one starting weapon; up to two more can be unlocked through the level-up me
 | **Shotgun** | 6 pellets · 950ms cooldown · 220px range | More pellets, damage, range, rear shot |
 | **Sniper Rifle** | 2 pierce · 1400ms cooldown · 680px/s bullets | Pierce, damage multipliers, bullet speed, rear shot |
 | **Shock Aura** | 110px radius · 500ms pulse · omnidirectional | Radius, damage, cooldown |
-| **Machine Gun** | 1 bullet · 200ms cooldown · 520px/s bullets | Damage, pierce, 2–3 round burst, rear shot |
+| **Machine Gun** | 1 bullet · 170ms cooldown · 520px/s bullets · 7 dmg | Damage, fire rate, crit chance, +1 bullet capstone |
 | **Spectral Scythes** | 1 blade · 100px orbit · continuous | Blade count, radius, damage, lifesteal |
 | **Tesla Chain** | 2 jumps · 1400ms cooldown · 85px jump range | Jumps, damage, stun, arc-back |
 | **Ricochet Boomerang** | 1 projectile · 1000ms cooldown · 250px range | Range, count, pierce, speed |
