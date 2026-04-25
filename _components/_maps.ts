@@ -140,11 +140,11 @@ export const MAPS: readonly MapDef[] = [
     waves: [
       { name: 'Runners',           durationSec: 45, weights: { enemy_speeder: 1.0 } },
       { name: 'Pack Hunters',      durationSec: 60, weights: { enemy_speeder: 1.5, enemy_hunter: 1.2 } },
-      { name: 'Blink Strike',      durationSec: 75, weights: { enemy_dasher: 1.3, enemy_blinker: 1.3 } },
-      { name: 'Elite Circuit',     durationSec: 75, weights: { enemy_elite: 1.8, enemy_charger: 0.9 } },
+      { name: 'Quick Step',        durationSec: 60, weights: { enemy_dasher: 1.3, enemy_speeder: 1.0 } },
+      { name: 'Slipstream',        durationSec: 45, weights: { enemy_grunt: 0.6, enemy_speeder: 0.9 } },
+      { name: 'Phase Shift',       durationSec: 75, weights: { enemy_speeder: 1.5, enemy_blinker: 0.8 } },
       { name: 'Velocity',          durationSec: 60, weights: { enemy_speeder: 2.0, enemy_elite: 1.5, enemy_hunter: 1.0 }, isBoss: true },
-      { name: 'Overdrive',         durationSec: 90, weights: { enemy_speeder: 2.5, enemy_dasher: 1.3, enemy_blinker: 1.3, enemy_swarm: 1.2 } },
-      { name: 'Terminal Velocity', durationSec: 90, weights: { enemy_speeder: 2.5, enemy_elite: 2.0, enemy_hunter: 1.4, enemy_dasher: 1.3, enemy_blinker: 1.3, enemy_charger: 1.0 } },
+      { name: 'Terminal Velocity', durationSec: 90, weights: { enemy_speeder: 2.5, enemy_elite: 2.0, enemy_hunter: 1.4, enemy_dasher: 1.2, enemy_blinker: 0.9, enemy_charger: 1.0 } },
     ],
   },
 ]
