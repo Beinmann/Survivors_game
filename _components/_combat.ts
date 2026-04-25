@@ -1364,7 +1364,10 @@ function updateBlackholes(scene: IGameScene, delta: number) {
         if (d2 <= cr2)      { pullBase = bh.corePull;  zoneR = cr }
         else if (d2 <= mr2) { pullBase = bh.midPull;   zoneR = mr }
         else                { pullBase = bh.outerPull; zoneR = orR }
-        const pullSpd = pullBase * (1 - Math.min(1, d / zoneR) * 0.3)
+        // proximity: 0 at zone edge, 1 at center → pull accelerates inward
+        const proximity = 1 - Math.min(1, d / zoneR)
+        const enemySpeed = e.getData('speed') ?? 0
+        const pullSpd = Math.max(pullBase * (1 + proximity * 0.9), enemySpeed * 1.05)
         e.setVelocity((dx / d) * pullSpd, (dy / d) * pullSpd)
         if (doTick && d2 <= cr2) scene.damageEnemy(e, bh.dmg, false)
       }
