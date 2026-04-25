@@ -133,6 +133,7 @@ export function createGameScene(Phaser: any) {
     public drones: any[] = []
     public teslaStorms: any[] = []
     public cleaveShockwaves: any[] = []
+    public cleavePending: { delay: number; front: boolean }[] = []
     public plaguePools: any[] = []
     public lockdownSlow = 0
 
@@ -340,7 +341,7 @@ export function createGameScene(Phaser: any) {
       this.paused = false; this.showBaseStats = false; this.pauseUI = []
       this.extraBullets = 0; this.pierceCount = 2; this.bonusProjectiles = 0
       this.magnetRadius = 145; this.orbMultiplier = 1.0
-      this.auraRadius = 110; this.shotgunRange = 220
+      this.auraRadius = 44; this.shotgunRange = 220
       this.machineGunBullets = 1; this.machineGunCritChance = 0
       this.scythesCount = 0; this.scythesRadius = 100; this.scythesLifeSteal = false
       this.teslaJumps = 2; this.teslaStun = false; this.teslaArcBack = false
@@ -355,7 +356,8 @@ export function createGameScene(Phaser: any) {
       this.cryoShardCount = 3; this.cryoSlowDuration = 1500
       this.railgunChargeTime = 1500; this.railgunWidth = 6
       this.droneCount = 1
-      this.cleaveCount = 1; this.cleaveRadius = 150; this.cleaveArc = (140 * Math.PI) / 180
+      this.cleaveCount = 1; this.cleaveRadius = 110; this.cleaveArc = (60 * Math.PI) / 180
+      this.cleavePending = []
       this.clearSpecials()
       this.frenzyTimer = 0; this.freezeTimer = 0; this.powerUpSpawnTimer = 15000 + Math.random() * 30000
       this.miniBossSpawnTimer = 50000
@@ -406,6 +408,7 @@ export function createGameScene(Phaser: any) {
       destroyAll(this.drones); this.drones = []
       destroyAll(this.teslaStorms); this.teslaStorms = []
       destroyAll(this.cleaveShockwaves); this.cleaveShockwaves = []
+      this.cleavePending = []
       destroyAll(this.plaguePools); this.plaguePools = []
       this.lockdownSlow = 0
     }

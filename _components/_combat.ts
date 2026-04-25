@@ -876,6 +876,7 @@ export function updateSpecials(scene: IGameScene, delta: number) {
   updateDrones(scene, delta)
   updateTeslaStorms(scene, delta)
   updateCleaveShockwaves(scene, delta)
+  updateCleavePending(scene, delta)
 }
 
 function updateCleaveShockwaves(scene: IGameScene, delta: number) {
@@ -1452,13 +1453,27 @@ function updateDrones(scene: IGameScene, delta: number) {
 
 // ── Crescent Cleave ───────────────────────────────────────────────────────
 
+const CLEAVE_ARC_CAP = (105 * Math.PI) / 180
+const CLEAVE_DELAY_MS = 150
+
 export function fireCleave(scene: IGameScene, angle: number) {
   const count = scene.cleaveCount + scene.bonusProjectiles
   if (count <= 0) return
+
+  performCleaveSlash(scene, angle)
+
+  // Slot 1 = behind, slot 2 = front, slot 3 = behind, ... — each slightly delayed.
+  // Delayed slashes recompute aim at fire time so they track the player's current target.
+  for (let i = 1; i < count; i++) {
+    scene.cleavePending.push({ delay: CLEAVE_DELAY_MS * i, front: i % 2 === 0 })
+  }
+}
+
+function performCleaveSlash(scene: IGameScene, centerAngle: number) {
   const areaMul = 1 + scene.bonusArea
   const outerR = scene.cleaveRadius * areaMul
   const innerR = outerR * 0.35
-  const arc = Math.min(Math.PI * 2, scene.cleaveArc * areaMul)
+  const arc = Math.min(CLEAVE_ARC_CAP, scene.cleaveArc * areaMul)
   const halfArc = arc / 2
   const dmg = scene.cleaveDmg
   const px = playerEmitX(scene), py = playerEmitY(scene)
@@ -1466,36 +1481,54 @@ export function fireCleave(scene: IGameScene, angle: number) {
   const innerR2 = innerR * innerR
   const evolved = !!scene.weaponEvolutions['cleave']
 
-  for (let i = 0; i < count; i++) {
-    const centerAngle = count > 1 ? angle + (i * Math.PI * 2) / count : angle
-    for (const e of scene.enemies.getChildren() as any[]) {
-      if (!e.active) continue
-      const dx = e.x - px, dy = e.y - py
-      const d2 = dx * dx + dy * dy
-      if (d2 > outerR2 || d2 < innerR2) continue
-      let diff = Math.atan2(dy, dx) - centerAngle
-      while (diff > Math.PI) diff -= Math.PI * 2
-      while (diff < -Math.PI) diff += Math.PI * 2
-      if (Math.abs(diff) > halfArc) continue
-      scene.damageEnemy(e, dmg, true)
-    }
-    spawnCleaveVisual(scene, px, py, centerAngle, innerR, outerR, halfArc)
+  for (const e of scene.enemies.getChildren() as any[]) {
+    if (!e.active) continue
+    const dx = e.x - px, dy = e.y - py
+    const d2 = dx * dx + dy * dy
+    if (d2 > outerR2 || d2 < innerR2) continue
+    let diff = Math.atan2(dy, dx) - centerAngle
+    while (diff > Math.PI) diff -= Math.PI * 2
+    while (diff < -Math.PI) diff += Math.PI * 2
+    if (Math.abs(diff) > halfArc) continue
+    scene.damageEnemy(e, dmg, true)
+  }
+  spawnCleaveVisual(scene, px, py, centerAngle, innerR, outerR, halfArc)
 
-    if (evolved) {
-      scene.cleaveShockwaves.push({
-        x: px,
-        y: py,
-        centerAngle,
-        halfArc,
-        startR: outerR,
-        endR: outerR * 2.2,
-        age: 0,
-        duration: 350,
-        damage: Math.max(1, Math.floor(dmg * 0.6)),
-        hitSet: new Set<any>(),
-        gfx: scene.add.graphics().setDepth(6),
-      })
-    }
+  if (evolved) {
+    scene.cleaveShockwaves.push({
+      x: px,
+      y: py,
+      centerAngle,
+      halfArc,
+      startR: outerR,
+      endR: outerR * 2.2,
+      age: 0,
+      duration: 350,
+      damage: Math.max(1, Math.floor(dmg * 0.6)),
+      hitSet: new Set<any>(),
+      gfx: scene.add.graphics().setDepth(6),
+    })
+  }
+}
+
+function updateCleavePending(scene: IGameScene, delta: number) {
+  if (scene.cleavePending.length === 0) return
+  for (let i = scene.cleavePending.length - 1; i >= 0; i--) {
+    const p = scene.cleavePending[i]
+    p.delay -= delta
+    if (p.delay > 0) continue
+    scene.cleavePending.splice(i, 1)
+
+    const targets = scene.enemies.getChildren() as any[]
+    if (targets.length === 0) continue
+    const px = playerEmitX(scene), py = playerEmitY(scene)
+    const nearest = targets.reduce((a, b) => {
+      const dax = px - a.x, day = py - a.y
+      const dbx = px - b.x, dby = py - b.y
+      return dax * dax + day * day <= dbx * dbx + dby * dby ? a : b
+    })
+    const aim = Math.atan2(nearest.y - py, nearest.x - px)
+    performCleaveSlash(scene, p.front ? aim : aim + Math.PI)
   }
 }
 

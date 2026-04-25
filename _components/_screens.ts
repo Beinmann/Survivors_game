@@ -25,8 +25,8 @@ const ALL_WEAPONS: WeaponMeta[] = [
     desc: 'Single piercing shot.\nSlower but punches through enemies.',
     stats: 'Pierces 2 enemies · 1400ms cooldown', accent: 0x60a5fa },
   { type: 'aura',       name: 'Shock Aura',
-    desc: 'Electric pulse in all directions.\nSlow to kill but fully omnidirectional.',
-    stats: '110px radius · 500ms pulse', accent: 0xa78bfa },
+    desc: 'Tight electric pulse around you.\nShort reach but fully omnidirectional.',
+    stats: '44px radius · 500ms pulse', accent: 0xa78bfa },
   { type: 'machinegun', name: 'Machine Gun',
     desc: 'Rapid single shots.\nBuilds into a multi-barrel onslaught.',
     stats: '200ms cooldown · High fire rate', accent: 0x4ade80 },
@@ -64,8 +64,8 @@ const ALL_WEAPONS: WeaponMeta[] = [
     desc: 'Homing drones that chase a target.\nDeal contact damage to anything they pass.',
     stats: '1 drone · 8s target lock', accent: 0xd1d5db },
   { type: 'cleave',     name: 'Crescent Cleave',
-    desc: 'Heavy melee sweep in a wide arc.\nLong cooldown, big burst.',
-    stats: '80 dmg · 140° arc · 1800ms cooldown', accent: 0xfca5a5 },
+    desc: 'Forward arc strike.\nExtra slashes follow up behind and ahead with a brief delay.',
+    stats: '80 dmg · 60° forward arc · 1800ms cooldown', accent: 0xfca5a5 },
 ]
 
 export function showTitleScreen(scene: IGameScene) {

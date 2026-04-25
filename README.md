@@ -32,7 +32,7 @@ Pick one starting weapon; up to two more can be unlocked through the level-up me
 |--------|-----------|-------------------|
 | **Shotgun** | 6 pellets · 950ms cooldown · 220px range | More pellets, damage, range, rear shot |
 | **Sniper Rifle** | 2 pierce · 1400ms cooldown · 680px/s bullets | Pierce, damage multipliers, bullet speed, rear shot |
-| **Shock Aura** | 110px radius · 500ms pulse · omnidirectional | Radius, damage, cooldown |
+| **Shock Aura** | 44px radius · 500ms pulse · omnidirectional | Radius, damage, cooldown |
 | **Machine Gun** | 1 bullet · 170ms cooldown · 520px/s bullets · 7 dmg | Damage, fire rate, crit chance, +1 bullet capstone |
 | **Spectral Scythes** | 1 blade · 100px orbit · continuous | Blade count, radius, damage, lifesteal |
 | **Tesla Chain** | 2 jumps · 1400ms cooldown · 85px jump range | Jumps, damage, stun, arc-back |
@@ -46,7 +46,7 @@ Pick one starting weapon; up to two more can be unlocked through the level-up me
 | **Cryo Shards** | 3 shards · 1.5s slow · 900ms cooldown | Shards, slow duration, damage |
 | **Plasma Lance** | 1.5s charge · 900ms sustained beam · pierces all · ticks every 150ms | Charge time, beam width, damage |
 | **Swarm Drones** | 1 drone · 8s target lock · homes onto a target and zooms past on contact; pass-through damages any enemy en route | Drone count, damage, respawn cooldown |
-| **Crescent Cleave** | 80 dmg · 1800ms cooldown · 140° forward arc · 150px reach | Damage, radius, arc width, extra slashes |
+| **Crescent Cleave** | 80 dmg · 1800ms cooldown · 60° forward arc (caps at 105°) · 110px reach · extra slashes alternate behind/front with 150ms delay | Damage, radius, arc width, extra slashes |
 
 ---
 

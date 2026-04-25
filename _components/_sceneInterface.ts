@@ -172,6 +172,7 @@ export interface IGameScene {
   drones: any[]
   teslaStorms: any[]
   cleaveShockwaves: any[]
+  cleavePending: { delay: number; front: boolean }[]
   plaguePools: any[]
   lockdownSlow: number
 
