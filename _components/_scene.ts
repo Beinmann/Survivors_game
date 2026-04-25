@@ -9,7 +9,7 @@ import { showTitleScreen, showModeSelection, showMapSelection, showWeaponSelecti
 import { drawUI, drawWeaponHUD, drawWeaponIcon, buildStatLines, addStatsPanel, rebuildWeaponHUDTexts } from './_ui'
 import { PU_TYPES, spawnPowerUp, onCollectPowerUp, applyPowerUp } from './_powerups'
 import { spawnWave, spawnBossWave, spawnObstacles, moveEnemies, getActiveWave, showWaveBanner } from './_spawning'
-import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireCryo, fireRailgun, fireDrones, fireCleave, updateSpecials } from './_combat'
+import { onBulletHitEnemy, onPlayerHitEnemy, damageEnemy, killEnemy, tintConsolidatedOrb, autoShoot, fireShotgun, fireSniper, fireMachineGun, fireAura, fireTesla, fireBoomerang, fireRocket, fireLaser, fireTurret, fireOrbital, fireBlackhole, fireCryo, fireRailgun, fireDrones, fireCleave, updateSpecials, playerEmitX, playerEmitY } from './_combat'
 import { onCollectOrb, getWeaponUpgrades, getUpgrades, showUpgradeMenu, pullOrbs, unlockWeapon } from './_progression'
 import { openDebugMenu, closeDebugMenu, drawDebugOverlays } from './_debug'
 
@@ -578,10 +578,11 @@ export function createGameScene(Phaser: any) {
       }
       const count = this.scythesCount + this.bonusProjectiles
       const children = this.scythes.getChildren()
+      const cx = playerEmitX(this), cy = playerEmitY(this)
       if (children.length !== count) {
         this.scythes.clear(true, true)
         for (let i = 0; i < count; i++) {
-          const s = this.scythes.create(this.player.x, this.player.y, 'scythe')
+          const s = this.scythes.create(cx, cy, 'scythe')
           s.setDepth(6)
         }
       }
@@ -592,8 +593,8 @@ export function createGameScene(Phaser: any) {
       const effectiveScythesRadius = this.scythesRadius * (1 + this.bonusArea / 3)
       children.forEach((s: any, i: number) => {
         const angle = angleBase + (i / count) * Math.PI * 2
-        const x = this.player.x + Math.cos(angle) * effectiveScythesRadius
-        const y = this.player.y + Math.sin(angle) * effectiveScythesRadius
+        const x = cx + Math.cos(angle) * effectiveScythesRadius
+        const y = cy + Math.sin(angle) * effectiveScythesRadius
         s.setPosition(x, y)
         s.setRotation(angle + Math.PI / 2)
         if (s.scaleX !== areaMul) { s.setScale(areaMul); s.refreshBody?.() }
@@ -607,8 +608,8 @@ export function createGameScene(Phaser: any) {
       }
 
       this.auraGfx.setVisible(true)
-      this.auraGfx.x = this.player.x
-      this.auraGfx.y = this.player.y
+      this.auraGfx.x = playerEmitX(this)
+      this.auraGfx.y = playerEmitY(this)
       this.auraGfx.setRotation(this.gameTime * 0.0006)
 
       const effectiveAuraRadius = this.auraRadius * (1 + this.bonusArea)

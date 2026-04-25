@@ -2,9 +2,23 @@ import { IGameScene } from './_sceneInterface'
 import { MAX_ORBS, VISION_MARGIN, OFFSCREEN_MERGE_RADIUS } from './_constants'
 import { WeaponType, WEAPON_BASE } from './_types'
 
+// Phaser's arcade physics steps body.position during the scene's UPDATE
+// event, but only syncs body -> gameObject in POST_UPDATE — which runs
+// AFTER user update(). So `player.x/y` here is the previous frame's
+// rendered position, while body.center is the position the player will
+// render at this frame. Use body.center for muzzle/beam start so shots
+// don't trail behind a moving player. (Falls back to player.x/y in case
+// the body is briefly missing.)
+export function playerEmitX(scene: IGameScene): number {
+  return scene.player.body?.center?.x ?? scene.player.x
+}
+export function playerEmitY(scene: IGameScene): number {
+  return scene.player.body?.center?.y ?? scene.player.y
+}
+
 export function autoShoot(scene: IGameScene, time: number) {
   const targets = scene.enemies.getChildren() as any[]
-  const px = scene.player.x, py = scene.player.y
+  const px = playerEmitX(scene), py = playerEmitY(scene)
   const nearest = targets.length > 0
     ? targets.reduce((a, b) => {
         const dax = px - a.x, day = py - a.y
@@ -14,7 +28,7 @@ export function autoShoot(scene: IGameScene, time: number) {
     : null
   
   const angle = nearest
-    ? Math.atan2(nearest.y - scene.player.y, nearest.x - scene.player.x)
+    ? Math.atan2(nearest.y - py, nearest.x - px)
     : 0
 
   for (const wt of scene.weapons) {
@@ -56,11 +70,12 @@ export function fireShotgun(scene: IGameScene, angle: number, wt: WeaponType) {
   const step = pellets > 1 ? cone / (pellets - 1) : 0
 
   const bulletScale = 1 + scene.bonusArea * 0.5
+  const ex = playerEmitX(scene), ey = playerEmitY(scene)
   const fire = (a: number) => {
-    const b = scene.bullets.create(scene.player.x, scene.player.y, 'bullet') as any
+    const b = scene.bullets.create(ex, ey, 'bullet') as any
     b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
     b.setRotation(a)
-    b.setData('sx', scene.player.x).setData('sy', scene.player.y).setData('dmg', scene.shotgunDmg)
+    b.setData('sx', ex).setData('sy', ey).setData('dmg', scene.shotgunDmg)
     b.setDepth(4)
     if (bulletScale !== 1) { b.setScale(bulletScale); b.refreshBody() }
   }
@@ -69,7 +84,7 @@ export function fireShotgun(scene: IGameScene, angle: number, wt: WeaponType) {
 
 export function fireSniper(scene: IGameScene, angle: number, wt: WeaponType) {
   const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
-  const b = scene.bullets.create(scene.player.x, scene.player.y, 'sniperBullet') as any
+  const b = scene.bullets.create(playerEmitX(scene), playerEmitY(scene), 'sniperBullet') as any
   b.setVelocity(Math.cos(angle) * spd, Math.sin(angle) * spd)
   b.setRotation(angle)
   b.setData('dmg', scene.sniperDmg)
@@ -83,8 +98,9 @@ export function fireSniper(scene: IGameScene, angle: number, wt: WeaponType) {
 export function fireMachineGun(scene: IGameScene, angle: number, wt: WeaponType) {
   const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
   const bulletScale = 1 + scene.bonusArea * 0.5
+  const ex = playerEmitX(scene), ey = playerEmitY(scene)
   const fire = (a: number) => {
-    const b = scene.bullets.create(scene.player.x, scene.player.y, 'mgBullet') as any
+    const b = scene.bullets.create(ex, ey, 'mgBullet') as any
     b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
     b.setRotation(a)
     b.setData('dmg', scene.machineGunDmg)
@@ -111,8 +127,9 @@ function spawnShockIcon(scene: IGameScene, x: number, y: number) {
 export function fireAura(scene: IGameScene) {
   const r = scene.auraRadius * (1 + scene.bonusArea)
   const dmg = scene.auraDmg
+  const px = playerEmitX(scene), py = playerEmitY(scene)
   for (const e of scene.enemies.getChildren() as any[]) {
-    if (e.active && Math.sqrt((scene.player.x - e.x) ** 2 + (scene.player.y - e.y) ** 2) < r) {
+    if (e.active && Math.sqrt((px - e.x) ** 2 + (py - e.y) ** 2) < r) {
       scene.damageEnemy(e, dmg, false)
       spawnShockIcon(scene, e.x, e.y)
     }
@@ -123,9 +140,10 @@ export function fireTesla(scene: IGameScene, angle: number, wt: WeaponType) {
   const targets = scene.enemies.getChildren() as any[]
   if (targets.length === 0) return
 
+  const px = playerEmitX(scene), py = playerEmitY(scene)
   let currentTarget = targets.reduce((a, b) => {
-    const distA = Math.sqrt((scene.player.x - a.x) ** 2 + (scene.player.y - a.y) ** 2)
-    const distB = Math.sqrt((scene.player.x - b.x) ** 2 + (scene.player.y - b.y) ** 2)
+    const distA = Math.sqrt((px - a.x) ** 2 + (py - a.y) ** 2)
+    const distB = Math.sqrt((px - b.x) ** 2 + (py - b.y) ** 2)
     return distA <= distB ? a : b
   })
 
@@ -163,7 +181,7 @@ export function fireTesla(scene: IGameScene, angle: number, wt: WeaponType) {
 
   const startLine = scene.acquireGfx(15)
   startLine.lineStyle(2, 0xffffff, 0.9)
-  startLine.lineBetween(scene.player.x, scene.player.y, currentTarget.x, currentTarget.y)
+  startLine.lineBetween(px, py, currentTarget.x, currentTarget.y)
   scene.tweens.add({ targets: startLine, alpha: 0, duration: 150, onComplete: () => scene.releaseGfx(startLine) })
   chain()
 }
@@ -173,13 +191,14 @@ export function fireBoomerang(scene: IGameScene, angle: number, wt: WeaponType) 
   const count = scene.boomerangCount + scene.bonusProjectiles
   const bulletScale = 1 + scene.bonusArea * 0.5
   const effectiveDist = scene.boomerangDist * (1 + scene.bonusArea)
+  const ex = playerEmitX(scene), ey = playerEmitY(scene)
   for (let i = 0; i < count; i++) {
     const a = angle + (i * Math.PI * 2) / count
-    const b = scene.bullets.create(scene.player.x, scene.player.y, 'boomerang') as any
+    const b = scene.bullets.create(ex, ey, 'boomerang') as any
     b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
     b.setData('dmg', scene.boomerangDmg)
     b.setData('dist', effectiveDist)
-    b.setData('sx', scene.player.x).setData('sy', scene.player.y)
+    b.setData('sx', ex).setData('sy', ey)
     b.setData('returning', false)
     b.setData('wt', 'boomerang')
     if (scene.boomerangPierce) {
@@ -197,7 +216,7 @@ export function fireRocket(scene: IGameScene, angle: number, wt: WeaponType) {
   for (let i = 0; i < burst; i++) {
     scene.time.delayedCall(i * 100, () => {
       if (!scene.player.active) return
-      const b = scene.bullets.create(scene.player.x, scene.player.y, 'rocket') as any
+      const b = scene.bullets.create(playerEmitX(scene), playerEmitY(scene), 'rocket') as any
       b.setVelocity(Math.cos(angle) * spd, Math.sin(angle) * spd)
       b.setRotation(angle)
       b.setData('dmg', scene.rocketDmg)
@@ -410,7 +429,7 @@ export function tintConsolidatedOrb(scene: IGameScene, orb: any, value: number) 
 export function fireLaser(scene: IGameScene, angle: number) {
   const range = scene.laserRange * (1 + scene.bonusArea)
   const width = scene.laserWidth * (1 + scene.bonusArea * 0.5)
-  const sx = scene.player.x, sy = scene.player.y
+  const sx = playerEmitX(scene), sy = playerEmitY(scene)
   const ex = sx + Math.cos(angle) * range
   const ey = sy + Math.sin(angle) * range
 
@@ -446,7 +465,7 @@ export function fireTurret(scene: IGameScene) {
     const old = scene.turrets.shift()
     if (old?.sprite?.active) old.sprite.destroy()
   }
-  const s = scene.add.sprite(scene.player.x, scene.player.y, 'turret').setDepth(4)
+  const s = scene.add.sprite(playerEmitX(scene), playerEmitY(scene), 'turret').setDepth(4)
   scene.turrets.push({
     sprite: s,
     expiry: scene.gameTime + scene.turretDuration,
@@ -463,7 +482,7 @@ export function fireOrbital(scene: IGameScene) {
   const enemies = scene.enemies.getChildren().filter((e: any) => e.active) as any[]
   if (enemies.length === 0) return
   const count = Math.min(scene.orbitalCount, enemies.length)
-  const px = scene.player.x, py = scene.player.y
+  const px = playerEmitX(scene), py = playerEmitY(scene)
   const pool = enemies.map((e) => ({
     e,
     weight: 1 / (Math.hypot(e.x - px, e.y - py) + 100),
@@ -513,7 +532,7 @@ export function fireOrbital(scene: IGameScene) {
 export function fireBlackhole(scene: IGameScene, angle: number, wt: WeaponType) {
   const spd = scene.weaponBulletSpd[wt] ?? WEAPON_BASE[wt].bulletSpd
   const flightDist = 280
-  const s = scene.add.sprite(scene.player.x, scene.player.y, 'blackhole').setDepth(4)
+  const s = scene.add.sprite(playerEmitX(scene), playerEmitY(scene), 'blackhole').setDepth(4)
   scene.blackholes.push({
     sprite: s,
     vx: Math.cos(angle) * spd,
@@ -537,12 +556,13 @@ export function fireCryo(scene: IGameScene, angle: number, wt: WeaponType) {
   const cone = Math.PI / 6
   const step = shards > 1 ? cone / (shards - 1) : 0
   const bulletScale = 1 + scene.bonusArea * 0.5
+  const ex = playerEmitX(scene), ey = playerEmitY(scene)
   for (let i = 0; i < shards; i++) {
     const a = angle + (shards > 1 ? -cone / 2 + step * i : 0)
-    const b = scene.bullets.create(scene.player.x, scene.player.y, 'cryoshard') as any
+    const b = scene.bullets.create(ex, ey, 'cryoshard') as any
     b.setVelocity(Math.cos(a) * spd, Math.sin(a) * spd)
     b.setRotation(a)
-    b.setData('sx', scene.player.x).setData('sy', scene.player.y)
+    b.setData('sx', ex).setData('sy', ey)
     b.setData('maxRange', 380)
     b.setData('dmg', scene.cryoDmg)
     b.setData('wt', 'cryo')
@@ -575,8 +595,8 @@ export function fireDrones(scene: IGameScene) {
     const ang = Math.random() * Math.PI * 2
     const speed = 230
     const s = scene.add.sprite(
-      scene.player.x + Math.cos(ang) * 80,
-      scene.player.y + Math.sin(ang) * 80,
+      playerEmitX(scene) + Math.cos(ang) * 80,
+      playerEmitY(scene) + Math.sin(ang) * 80,
       'drone',
     ).setDepth(4)
     scene.drones.push({
@@ -720,7 +740,7 @@ const RAILGUN_TICK_INTERVAL = 150
 function updateRailgunCharges(scene: IGameScene, delta: number) {
   for (let i = scene.railgunCharges.length - 1; i >= 0; i--) {
     const c = scene.railgunCharges[i]
-    const sx = scene.player.x, sy = scene.player.y
+    const sx = playerEmitX(scene), sy = playerEmitY(scene)
     const range = 1600
     const ex = sx + Math.cos(c.angle) * range
     const ey = sy + Math.sin(c.angle) * range
@@ -792,10 +812,11 @@ function updateDrones(scene: IGameScene, delta: number) {
     d.targetTimer = Math.max(0, d.targetTimer - delta)
     d.gfx.clear()
 
-    const pdx = d.sprite.x - scene.player.x, pdy = d.sprite.y - scene.player.y
+    const px = playerEmitX(scene), py = playerEmitY(scene)
+    const pdx = d.sprite.x - px, pdy = d.sprite.y - py
     if (pdx * pdx + pdy * pdy > recallDist2) {
-      d.sprite.x = scene.player.x + Math.cos(d.orbitAngle) * 60
-      d.sprite.y = scene.player.y + Math.sin(d.orbitAngle) * 60
+      d.sprite.x = px + Math.cos(d.orbitAngle) * 60
+      d.sprite.y = py + Math.sin(d.orbitAngle) * 60
       d.target = null
       d.targetTimer = 0
     }
@@ -847,8 +868,8 @@ function updateDrones(scene: IGameScene, delta: number) {
       }
     } else {
       d.orbitAngle += dtSec * 1.1
-      const tx = scene.player.x + Math.cos(d.orbitAngle) * DRONE_IDLE_RADIUS
-      const ty = scene.player.y + Math.sin(d.orbitAngle) * DRONE_IDLE_RADIUS
+      const tx = px + Math.cos(d.orbitAngle) * DRONE_IDLE_RADIUS
+      const ty = py + Math.sin(d.orbitAngle) * DRONE_IDLE_RADIUS
       const dx = tx - d.sprite.x, dy = ty - d.sprite.y
       const dist = Math.sqrt(dx * dx + dy * dy) || 1
       const move = Math.min(d.speed * dtSec, dist)
@@ -873,7 +894,7 @@ export function fireCleave(scene: IGameScene, angle: number) {
   const arc = Math.min(Math.PI * 2, scene.cleaveArc * areaMul)
   const halfArc = arc / 2
   const dmg = scene.cleaveDmg
-  const px = scene.player.x, py = scene.player.y
+  const px = playerEmitX(scene), py = playerEmitY(scene)
   const outerR2 = outerR * outerR
   const innerR2 = innerR * innerR
 
