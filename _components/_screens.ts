@@ -566,18 +566,23 @@ export function showShop(scene: IGameScene, page = 0) {
     scene.showShop()
   })
 
+  const goBack = () => {
+    scene.input.keyboard?.off('keydown-ESC', goBack)
+    ui.forEach(o => o.destroy())
+    scene.showTitleScreen()
+  }
+  scene.input.keyboard?.on('keydown-ESC', goBack)
+
   const backBtn = scene.add.text(20, 28, '[ BACK ]', {
     fontSize: '18px', color: '#4ade80', stroke: '#000', strokeThickness: 3,
   }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
   ui.push(backBtn)
   backBtn.on('pointerover', () => backBtn.setColor('#86efac'))
   backBtn.on('pointerout', () => backBtn.setColor('#4ade80'))
-  backBtn.on('pointerdown', () => {
-    ui.forEach(o => o.destroy())
-    scene.showTitleScreen()
-  })
+  backBtn.on('pointerdown', goBack)
 
   const redraw = () => {
+    scene.input.keyboard?.off('keydown-ESC', goBack)
     ui.forEach(o => o.destroy())
     showShop(scene, page)
   }
@@ -706,7 +711,7 @@ export function showShop(scene: IGameScene, page = 0) {
       }).setOrigin(0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
       prevBtn.on('pointerover', () => prevBtn.setColor('#86efac'))
       prevBtn.on('pointerout',  () => prevBtn.setColor('#4ade80'))
-      prevBtn.on('pointerdown', () => { ui.forEach(o => o.destroy()); showShop(scene, page - 1) })
+      prevBtn.on('pointerdown', () => { scene.input.keyboard?.off('keydown-ESC', goBack); ui.forEach(o => o.destroy()); showShop(scene, page - 1) })
       ui.push(prevBtn)
     }
 
@@ -716,7 +721,7 @@ export function showShop(scene: IGameScene, page = 0) {
       }).setOrigin(0.5).setScrollFactor(0).setDepth(51).setInteractive({ useHandCursor: true })
       nextBtn.on('pointerover', () => nextBtn.setColor('#86efac'))
       nextBtn.on('pointerout',  () => nextBtn.setColor('#4ade80'))
-      nextBtn.on('pointerdown', () => { ui.forEach(o => o.destroy()); showShop(scene, page + 1) })
+      nextBtn.on('pointerdown', () => { scene.input.keyboard?.off('keydown-ESC', goBack); ui.forEach(o => o.destroy()); showShop(scene, page + 1) })
       ui.push(nextBtn)
     }
   }
