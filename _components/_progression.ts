@@ -32,6 +32,7 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: '+40% damage  ·  +2 pellets',                icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['shotgun'] = (scene.bonusWeaponDmg['shotgun'] ?? 0) + 0.4; scene.extraBullets += 2; scene.recalculateStats() } },
       { desc: '−80ms cooldown  ·  +60px range',            icon: 'ico_cooldown', apply: () => { scene.flatWeaponShootRateReductions['shotgun'] = (scene.flatWeaponShootRateReductions['shotgun'] ?? 0) + 80; scene.shotgunRange += 60; scene.recalculateStats() } },
       { desc: '+60% damage  ·  +4 pellets  ·  −100ms',     icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['shotgun'] = (scene.bonusWeaponDmg['shotgun'] ?? 0) + 0.6; scene.extraBullets += 4; scene.flatWeaponShootRateReductions['shotgun'] = (scene.flatWeaponShootRateReductions['shotgun'] ?? 0) + 100; scene.recalculateStats() } },
+      { desc: '+100% damage  ·  +4 pellets',               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['shotgun'] = (scene.bonusWeaponDmg['shotgun'] ?? 0) + 1.0; scene.extraBullets += 4; scene.recalculateStats() } },
     ],
     sniper: [
       { desc: '+1 pierce  ·  +50% damage',                 icon: 'ico_pierce', apply: () => { scene.pierceCount++; scene.bonusWeaponDmg['sniper'] = (scene.bonusWeaponDmg['sniper'] ?? 0) + 0.5; scene.recalculateStats() } },
@@ -41,6 +42,7 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: '+2 pierce  ·  −200ms cooldown',             icon: 'ico_pierce', apply: () => { scene.pierceCount += 2; scene.flatWeaponShootRateReductions['sniper'] = (scene.flatWeaponShootRateReductions['sniper'] ?? 0) + 200; scene.recalculateStats() } },
       { desc: '+80% damage  ·  +30% bullet speed',         icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['sniper'] = (scene.bonusWeaponDmg['sniper'] ?? 0) + 0.8; scene.bonusWeaponBulletSpd['sniper'] = (scene.bonusWeaponBulletSpd['sniper'] ?? 0) + 0.3; scene.recalculateStats() } },
       { desc: '+3 pierce  ·  +100% damage  ·  −200ms',     icon: 'ico_pierce', apply: () => { scene.pierceCount += 3; scene.bonusWeaponDmg['sniper'] = (scene.bonusWeaponDmg['sniper'] ?? 0) + 1.0; scene.flatWeaponShootRateReductions['sniper'] = (scene.flatWeaponShootRateReductions['sniper'] ?? 0) + 200; scene.recalculateStats() } },
+      { desc: '+150% damage  ·  −250ms cooldown',          icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['sniper'] = (scene.bonusWeaponDmg['sniper'] ?? 0) + 1.5; scene.flatWeaponShootRateReductions['sniper'] = (scene.flatWeaponShootRateReductions['sniper'] ?? 0) + 250; scene.recalculateStats() } },
     ],
     aura: [
       { desc: '+15% damage',                               icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['aura'] = (scene.bonusWeaponDmg['aura'] ?? 0) + 0.15; scene.recalculateStats() } },
@@ -60,6 +62,7 @@ export function getWeaponUpgrades(scene: IGameScene): any[] {
       { desc: 'Burst fire — 2 bullets per shot',           icon: 'ico_burst', apply: () => { scene.machineGunBurst = 2 } },
       { desc: '3-round burst  ·  −30ms cooldown',          icon: 'ico_burst', apply: () => { scene.machineGunBurst = 3; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 30; scene.recalculateStats() } },
       { desc: '+80% damage  ·  −30ms cooldown',            icon: 'ico_damage', apply: () => { scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.8; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 30; scene.recalculateStats() } },
+      { desc: '4-round burst  ·  +60% damage  ·  −50ms',  icon: 'ico_burst', apply: () => { scene.machineGunBurst = 4; scene.bonusWeaponDmg['machinegun'] = (scene.bonusWeaponDmg['machinegun'] ?? 0) + 0.6; scene.flatWeaponShootRateReductions['machinegun'] = (scene.flatWeaponShootRateReductions['machinegun'] ?? 0) + 50; scene.recalculateStats() } },
     ],
     scythes: [
       { desc: '+1 blade',                                        icon: 'wico_scythes', apply: () => { scene.scythesCount++; scene.recalculateStats() } },

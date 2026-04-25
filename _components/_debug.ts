@@ -1,5 +1,5 @@
 import { IGameScene } from './_sceneInterface'
-import { ALL_WEAPON_TYPES, ALL_PASSIVE_TYPES, WEAPON_NAMES, WeaponType, PassiveType, PASSIVE_DATA } from './_types'
+import { ALL_WEAPON_TYPES, ALL_PASSIVE_TYPES, WEAPON_NAMES, WeaponType, PassiveType, PASSIVE_DATA, WEAPON_EVOLUTIONS } from './_types'
 import { PU_TYPES } from './_powerups'
 import { ENEMY_TYPES } from './_enemyTypes'
 import { awardCoins } from './_persistence'
@@ -25,7 +25,13 @@ type DebugEntry = {
 
 const mainEntries: DebugEntry[] = [
   {
-    label: (s) => s.weapons.length > 0 ? `Evolve first weapon (${WEAPON_NAMES[s.weapons[0]]} → Lv 9)` : 'Evolve first weapon',
+    label: (s) => {
+      if (s.weapons.length === 0) return 'Evolve first weapon'
+      const wt = s.weapons[0]
+      const evo = WEAPON_EVOLUTIONS[wt]
+      if (s.weaponEvolutions[wt]) return `${WEAPON_NAMES[wt]} already evolved`
+      return evo ? `Evolve: ${WEAPON_NAMES[wt]} → ${evo.name}` : `${WEAPON_NAMES[wt]} → Lv 9 (no evolution)`
+    },
     run: evolveFirstWeapon,
   },
   {
@@ -293,6 +299,8 @@ export function closeDebugMenu(scene: IGameScene) {
 function evolveFirstWeapon(scene: IGameScene) {
   if (scene.weapons.length === 0) return
   const wt: WeaponType = scene.weapons[0]
+  if (scene.weaponEvolutions[wt]) return
+
   const targetName = WEAPON_NAMES[wt]
   let guard = 16
   while (((scene.weaponLevels[wt] ?? 1) < 9) && guard-- > 0) {
@@ -301,6 +309,19 @@ function evolveFirstWeapon(scene: IGameScene) {
     if (!entry) break
     entry.apply()
   }
+
+  const evo = WEAPON_EVOLUTIONS[wt]
+  if (evo) {
+    const pt = evo.linkedPassive
+    if (!scene.passives.includes(pt)) scene.unlockPassive(pt)
+    while ((scene.passiveLevels[pt] ?? 1) < evo.linkedPassiveMinLevel) {
+      scene.passiveLevels[pt] = (scene.passiveLevels[pt] ?? 1) + 1
+      scene.applyPassiveBoost(pt)
+    }
+    scene.weaponEvolutions[wt] = true
+    scene.rebuildWeaponHUDTexts()
+  }
+
   scene.recalculateStats()
   scene.hudDirty = true
 }
