@@ -127,6 +127,7 @@ export function createGameScene(Phaser: any) {
     public orbitalStrikes: any[] = []
     public railgunCharges: any[] = []
     public drones: any[] = []
+    public voltaicBeams: any[] = []
     public plaguePools: any[] = []
     public lockdownSlow = 0
 
@@ -278,7 +279,8 @@ export function createGameScene(Phaser: any) {
       this.physics.add.overlap(this.scythes, this.enemies, (scythe: any, enemy: any) => {
         if (!enemy.active) return
         this.damageEnemy(enemy, this.scythesDmg, false)
-        if (this.scythesLifeSteal && Math.random() < 0.05) {
+        const lifeSteal = this.scythesLifeSteal || !!this.weaponEvolutions['scythes']
+        if (lifeSteal && Math.random() < 0.05) {
           this.hp = Math.min(this.maxHp, this.hp + 1)
         }
       }, undefined, this)
@@ -386,6 +388,7 @@ export function createGameScene(Phaser: any) {
       destroyAll(this.orbitalStrikes); this.orbitalStrikes = []
       destroyAll(this.railgunCharges); this.railgunCharges = []
       destroyAll(this.drones); this.drones = []
+      destroyAll(this.voltaicBeams); this.voltaicBeams = []
       destroyAll(this.plaguePools); this.plaguePools = []
       this.lockdownSlow = 0
     }
@@ -489,8 +492,28 @@ export function createGameScene(Phaser: any) {
             if (!img.getData('returning')) {
               if (dist > img.getData('dist')) {
                 img.setData('returning', true)
-                img.setData('hitEnemies', new Set())
+                if (!img.getData('hitEnemies')) img.setData('hitEnemies', new Set())
               }
+            } else if (img.getData('seekReturn')) {
+              let tx: number, ty: number
+              const hitSet: Set<any> = img.getData('hitEnemies')
+              let nearest: any = null
+              let bestD2 = Infinity
+              for (const en of enemyList) {
+                if (!en.active || hitSet.has(en)) continue
+                const dx = en.x - img.x, dy = en.y - img.y
+                const d2 = dx*dx + dy*dy
+                if (d2 < bestD2) { bestD2 = d2; nearest = en }
+              }
+              if (nearest) { tx = nearest.x; ty = nearest.y }
+              else { tx = plx; ty = ply }
+              const bdx = tx - img.x, bdy = ty - img.y
+              const bdist = Math.sqrt(bdx*bdx + bdy*bdy)
+              const angle = Math.atan2(bdy, bdx)
+              const spd = WEAPON_BASE['boomerang'].bulletSpd * 1.5
+              img.setVelocity(Math.cos(angle) * spd, Math.sin(angle) * spd)
+              img.setRotation(angle)
+              if (!nearest && bdist < 20) { img.destroy(); continue }
             } else {
               const bdx = plx - img.x, bdy = ply - img.y
               const bdist = Math.sqrt(bdx*bdx + bdy*bdy)
@@ -583,12 +606,16 @@ export function createGameScene(Phaser: any) {
         this.scythes.clear(true, true)
         return
       }
-      const count = this.scythesCount + this.bonusProjectiles
+      const evolved = !!this.weaponEvolutions['scythes']
+      const baseCount = this.scythesCount + this.bonusProjectiles
+      const innerCount = evolved ? baseCount + 2 : baseCount
+      const outerCount = evolved ? baseCount + 2 : 0
+      const total = innerCount + outerCount
       const children = this.scythes.getChildren()
       const cx = playerEmitX(this), cy = playerEmitY(this)
-      if (children.length !== count) {
+      if (children.length !== total) {
         this.scythes.clear(true, true)
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < total; i++) {
           const s = this.scythes.create(cx, cy, 'scythe')
           s.setDepth(6)
         }
@@ -598,11 +625,15 @@ export function createGameScene(Phaser: any) {
       const angleBase = this.gameTime * rotSpeed
       const areaMul = 1 + this.bonusArea
       const effectiveScythesRadius = this.scythesRadius * (1 + this.bonusArea / 3)
-      children.forEach((s: any, i: number) => {
-        const angle = angleBase + (i / count) * Math.PI * 2
-        const x = cx + Math.cos(angle) * effectiveScythesRadius
-        const y = cy + Math.sin(angle) * effectiveScythesRadius
-        s.setPosition(x, y)
+      const updated = this.scythes.getChildren()
+      updated.forEach((s: any, i: number) => {
+        const isOuter = i >= innerCount
+        const ringCount = isOuter ? outerCount : innerCount
+        const ringIndex = isOuter ? i - innerCount : i
+        const dir = isOuter ? -1 : 1
+        const radius = isOuter ? effectiveScythesRadius * 1.6 : effectiveScythesRadius
+        const angle = angleBase * dir + (ringIndex / ringCount) * Math.PI * 2
+        s.setPosition(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius)
         s.setRotation(angle + Math.PI / 2)
         if (s.scaleX !== areaMul) { s.setScale(areaMul); s.refreshBody?.() }
       })
@@ -619,7 +650,8 @@ export function createGameScene(Phaser: any) {
       this.auraGfx.y = playerEmitY(this)
       this.auraGfx.setRotation(this.gameTime * 0.0006)
 
-      const effectiveAuraRadius = this.auraRadius * (1 + this.bonusArea)
+      const evoMult = this.weaponEvolutions['aura'] ? 2 : 1
+      const effectiveAuraRadius = this.auraRadius * (1 + this.bonusArea) * evoMult
       if (effectiveAuraRadius === this._lastAuraRadius) return
       this._lastAuraRadius = effectiveAuraRadius
 
@@ -828,34 +860,47 @@ export function createGameScene(Phaser: any) {
     }
 
     public recalculateStats() {
+      const evo = this.weaponEvolutions
+      const weaponEvoDmgMult: Partial<Record<WeaponType, number>> = {
+        rocket:     evo['rocket']     ? 2.5 : 1,
+        blackhole:  evo['blackhole']  ? 2 : 1,
+        machinegun: evo['machinegun'] ? 1.8 : 1,
+        turret:     evo['turret']     ? 3 : 1,
+      }
+
       this.moveSpeed = Math.round(200 * (1 + this.bonusMoveSpeed))
-      this.shotgunDmg = Math.round(WEAPON_BASE['shotgun'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['shotgun'] ?? 0)))
-      this.sniperDmg = Math.round(WEAPON_BASE['sniper'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['sniper'] ?? 0)))
-      this.auraDmg = Math.round(WEAPON_BASE['aura'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['aura'] ?? 0)))
-      this.machineGunDmg = Math.round(WEAPON_BASE['machinegun'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['machinegun'] ?? 0)))
-      this.scythesDmg = Math.round(WEAPON_BASE['scythes'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['scythes'] ?? 0)))
-      this.teslaDmg = Math.round(WEAPON_BASE['tesla'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['tesla'] ?? 0)))
-      this.boomerangDmg = Math.round(WEAPON_BASE['boomerang'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['boomerang'] ?? 0)))
-      const rocketEvoMult = this.weaponEvolutions['rocket'] ? 2.5 : 1
-      this.rocketDmg = Math.round(WEAPON_BASE['rocket'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['rocket'] ?? 0)) * rocketEvoMult)
-      this.laserDmg = Math.round(WEAPON_BASE['laser'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['laser'] ?? 0)))
-      this.turretDmg = Math.round(WEAPON_BASE['turret'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['turret'] ?? 0)))
-      this.orbitalDmg = Math.round(WEAPON_BASE['orbital'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['orbital'] ?? 0)))
-      this.blackholeDmg = Math.round(WEAPON_BASE['blackhole'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['blackhole'] ?? 0)))
-      this.cryoDmg = Math.round(WEAPON_BASE['cryo'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['cryo'] ?? 0)))
-      this.railgunDmg = Math.round(WEAPON_BASE['railgun'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['railgun'] ?? 0)))
-      this.droneDmg = Math.round(WEAPON_BASE['drones'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['drones'] ?? 0)))
-      this.cleaveDmg = Math.round(WEAPON_BASE['cleave'].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg['cleave'] ?? 0)))
+      const dmg = (wt: WeaponType) =>
+        Math.round(WEAPON_BASE[wt].damage * (1 + this.bonusDamage + (this.bonusWeaponDmg[wt] ?? 0)) * (weaponEvoDmgMult[wt] ?? 1))
+      this.shotgunDmg    = dmg('shotgun')
+      this.sniperDmg     = dmg('sniper')
+      this.auraDmg       = dmg('aura')
+      this.machineGunDmg = dmg('machinegun')
+      this.scythesDmg    = dmg('scythes')
+      this.teslaDmg      = dmg('tesla')
+      this.boomerangDmg  = dmg('boomerang')
+      this.rocketDmg     = dmg('rocket')
+      this.laserDmg      = dmg('laser')
+      this.turretDmg     = dmg('turret')
+      this.orbitalDmg    = dmg('orbital')
+      this.blackholeDmg  = dmg('blackhole')
+      this.cryoDmg       = dmg('cryo')
+      this.railgunDmg    = dmg('railgun')
+      this.droneDmg      = dmg('drones')
+      this.cleaveDmg     = dmg('cleave')
 
       for (const wt of ALL_WEAPON_TYPES) {
         const baseSpd = WEAPON_BASE[wt].bulletSpd
         this.weaponBulletSpd[wt] = Math.round(baseSpd * (1 + (this.bonusWeaponBulletSpd[wt] ?? 0)))
 
         const baseRate = WEAPON_BASE[wt].shootRate
-        const evoFlatRed = wt === 'rocket' && this.weaponEvolutions['rocket'] ? 400 : 0
+        const evoFlatRed = wt === 'rocket' && evo['rocket'] ? 400 : 0
         const flatRed = (this.flatWeaponShootRateReductions[wt] ?? 0) + evoFlatRed
         const minRate = wt === 'machinegun' ? 50 : (wt === 'sniper' ? 300 : 100)
-        this.weaponShootRates[wt] = Math.max(minRate, Math.round(baseRate * (1 - this.bonusCooldown)) - flatRed)
+        const evoRateMult =
+          wt === 'machinegun' && evo['machinegun'] ? 1.43 :
+          wt === 'aura'       && evo['aura']       ? 0.5 :
+          1
+        this.weaponShootRates[wt] = Math.max(minRate, Math.round(baseRate * (1 - this.bonusCooldown) * evoRateMult) - flatRed)
       }
     }
 

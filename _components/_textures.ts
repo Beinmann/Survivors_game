@@ -87,6 +87,18 @@ export function buildTextures(scene: IGameScene) {
     g.lineStyle(1, 0x86efac); g.strokeRect(0, 1, 10, 4)
   }, 10, 6)
 
+  make('mgBullet_evolved', g => {
+    g.fillStyle(0xf97316); g.fillRect(0, 1, 10, 4)
+    g.fillStyle(0xfde68a); g.fillRect(7, 2, 3, 2)
+    g.lineStyle(1, 0xfbbf24); g.strokeRect(0, 1, 10, 4)
+  }, 10, 6)
+
+  make('sniperBullet_evolved', g => {
+    g.fillStyle(0xfbbf24); g.fillRect(0, 1, 14, 6)
+    g.lineStyle(1, 0xfde68a); g.strokeRect(0, 1, 14, 6)
+    g.fillStyle(0xfef3c7); g.fillRect(10, 2, 4, 4)
+  }, 14, 8)
+
   make('sniperBullet', g => {
     g.fillStyle(0x93c5fd); g.fillRect(0, 1, 14, 6)
     g.lineStyle(1, 0xbfdbfe); g.strokeRect(0, 1, 14, 6)
@@ -115,6 +127,12 @@ export function buildTextures(scene: IGameScene) {
     g.fillStyle(0xef4444); g.fillRect(0, 3, 3, 4)
   }, 16, 10)
 
+  make('bullet_shock', g => {
+    g.fillStyle(0xbfdbfe, 0.9); g.fillCircle(5, 5, 4)
+    g.fillStyle(0xffffff); g.fillCircle(5, 5, 2)
+    g.lineStyle(1, 0xfde68a, 0.9); g.strokeCircle(5, 5, 4)
+  }, 10, 10)
+
   make('rocket_evolved', g => {
     g.fillStyle(0xfbbf24); g.fillRect(2, 1, 14, 8)
     g.fillStyle(0xb45309); g.fillRect(3, 3, 12, 4)
@@ -136,12 +154,27 @@ export function buildTextures(scene: IGameScene) {
     g.lineStyle(1, 0xfde68a); g.strokeRect(0, 1, 10, 4)
   }, 10, 6)
 
+  make('mortarbullet', g => {
+    g.fillStyle(0x7f1d1d); g.fillRect(2, 1, 10, 6)
+    g.fillStyle(0xef4444); g.fillRect(0, 2, 3, 4)
+    g.fillStyle(0xfde68a); g.fillRect(10, 2, 3, 4)
+    g.lineStyle(1, 0xfbbf24); g.strokeRect(2, 1, 10, 6)
+  }, 14, 8)
+
   make('blackhole', g => {
     g.fillStyle(0x000000, 1); g.fillCircle(14, 14, 10)
     g.lineStyle(2, 0xa78bfa, 0.9); g.strokeCircle(14, 14, 12)
     g.lineStyle(1, 0xc4b5fd, 0.7); g.strokeCircle(14, 14, 8)
     g.fillStyle(0xa78bfa, 0.5); g.fillCircle(14, 14, 4)
   }, 28, 28)
+
+  make('blackhole_evolved', g => {
+    g.fillStyle(0x000000, 1); g.fillCircle(18, 18, 13)
+    g.lineStyle(2.5, 0xc084fc, 0.95); g.strokeCircle(18, 18, 15)
+    g.lineStyle(1, 0xfde68a, 0.8); g.strokeCircle(18, 18, 11)
+    g.lineStyle(1, 0xfde68a, 0.55); g.strokeCircle(18, 18, 8)
+    g.fillStyle(0xa78bfa, 0.7); g.fillCircle(18, 18, 4)
+  }, 36, 36)
 
   make('cryoshard', g => {
     g.fillStyle(0x22d3ee); g.fillTriangle(6, 0, 12, 6, 6, 12)

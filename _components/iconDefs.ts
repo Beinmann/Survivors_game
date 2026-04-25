@@ -194,6 +194,219 @@ export const ICON_DEFS: { key: string; w: number; h: number; draw: (g: G) => voi
     },
   },
   {
+    key: 'wico_shotgun_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      g.lineStyle(1.5, 0xfcd34d)
+      const spread = Math.PI / 2.2
+      for (let i = 0; i < 5; i++) {
+        const a = -Math.PI / 2 - spread / 2 + (i / 4) * spread
+        g.lineBetween(cx, cy + 6, cx + Math.cos(a) * 13, cy + Math.sin(a) * 13 + 6)
+      }
+      g.lineStyle(2, 0xbfdbfe, 0.85)
+      g.lineBetween(cx - 10, cy - 3, cx - 3, cy)
+      g.lineBetween(cx - 3, cy, cx - 5, cy + 4)
+      g.lineBetween(cx + 5, cy - 1, cx + 9, cy + 3)
+      g.fillStyle(0xfbbf24).fillRect(cx - 2, cy + 1, 4, 6)
+    },
+  },
+  {
+    key: 'wico_sniper_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      g.lineStyle(1.5, 0x60a5fa)
+      g.strokeCircle(cx, cy, 9)
+      g.lineBetween(cx - 11, cy, cx - 8, cy)
+      g.lineBetween(cx + 8, cy, cx + 11, cy)
+      g.lineBetween(cx, cy - 11, cx, cy - 8)
+      g.lineBetween(cx, cy + 8, cx, cy + 11)
+      g.lineStyle(1, 0xfde68a, 0.8)
+      g.lineBetween(cx + 2, cy - 6, cx - 4, cy - 2)
+      g.lineBetween(cx - 4, cy - 2, cx + 3, cy + 2)
+      g.lineBetween(cx + 3, cy + 2, cx - 2, cy + 7)
+      g.fillStyle(0x60a5fa).fillCircle(cx, cy, 2)
+    },
+  },
+  {
+    key: 'wico_aura_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      g.lineStyle(2, 0xc4b5fd, 0.9).strokeCircle(cx, cy, 9)
+      g.lineStyle(1.2, 0xe9d5ff, 0.75).strokeCircle(cx, cy, 5)
+      g.lineStyle(1.5, 0xbfdbfe, 0.9)
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2 + Math.PI / 4
+        g.lineBetween(cx + Math.cos(a) * 3, cy + Math.sin(a) * 3, cx + Math.cos(a) * 10, cy + Math.sin(a) * 10)
+      }
+      g.fillStyle(0xbfdbfe).fillCircle(cx, cy, 2)
+    },
+  },
+  {
+    key: 'wico_machinegun_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      g.fillStyle(0x4ade80).fillRect(cx - 3, cy - 10, 6, 18)
+      g.fillStyle(0x1e5c30).fillRect(cx - 5, cy - 1, 10, 4)
+      g.fillStyle(0xf97316, 0.85).fillCircle(cx, cy - 11, 3.5)
+      g.fillStyle(0xfde68a).fillCircle(cx, cy - 11, 1.2)
+    },
+  },
+  {
+    key: 'wico_scythes_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      g.lineStyle(2, 0x94a3b8)
+      g.beginPath()
+      g.arc(cx, cy, 10, -Math.PI / 2, Math.PI / 2)
+      g.strokePath()
+      g.lineStyle(2, 0xe2e8f0)
+      g.beginPath()
+      g.arc(cx, cy, 6, Math.PI / 2, Math.PI * 1.5)
+      g.strokePath()
+      g.fillStyle(0xef4444).fillCircle(cx, cy, 1.5)
+    },
+  },
+  {
+    key: 'wico_tesla_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      g.lineStyle(3, 0xfde68a, 0.85).lineBetween(cx - 10, cy, cx + 10, cy)
+      g.lineStyle(1.5, 0xffffff, 0.95).lineBetween(cx - 10, cy, cx + 10, cy)
+      g.fillStyle(0xbfdbfe).fillCircle(cx - 10, cy, 2)
+      g.fillStyle(0xfde68a).fillCircle(cx + 10, cy, 2)
+    },
+  },
+  {
+    key: 'wico_boomerang_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      g.lineStyle(2, 0xf87171)
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2 - Math.PI / 2
+        const x1 = cx + Math.cos(a) * 3, y1 = cy + Math.sin(a) * 3
+        const x2 = cx + Math.cos(a) * 10, y2 = cy + Math.sin(a) * 10
+        g.lineBetween(x1, y1, x2, y2)
+      }
+      g.fillStyle(0xef4444).fillCircle(cx, cy, 2)
+    },
+  },
+  {
+    key: 'wico_laser_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      g.fillStyle(0xfde047).fillCircle(cx, cy, 3)
+      g.lineStyle(3, 0xfde047, 0.85)
+      g.lineBetween(cx + 3, cy, cx + 12, cy)
+      g.lineBetween(cx - 3, cy, cx - 12, cy)
+      g.lineBetween(cx, cy + 3, cx, cy + 12)
+      g.lineBetween(cx, cy - 3, cx, cy - 12)
+      g.lineStyle(1.3, 0xffffff, 1)
+      g.lineBetween(cx + 3, cy, cx + 12, cy)
+      g.lineBetween(cx - 3, cy, cx - 12, cy)
+      g.lineBetween(cx, cy + 3, cx, cy + 12)
+      g.lineBetween(cx, cy - 3, cx, cy - 12)
+    },
+  },
+  {
+    key: 'wico_turret_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      g.fillStyle(0x1f2937).fillCircle(cx, cy, 8)
+      g.lineStyle(2, 0xef4444).strokeCircle(cx, cy, 8)
+      g.fillStyle(0xef4444).fillRect(cx - 2, cy - 10, 4, 6)
+      g.fillStyle(0xfbbf24).fillCircle(cx, cy, 2)
+      g.fillStyle(0xfde68a).fillCircle(cx, cy - 12, 1.5)
+    },
+  },
+  {
+    key: 'wico_orbital_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      g.fillStyle(0xef4444, 0.85).fillCircle(cx - 6, cy - 4, 2)
+      g.fillStyle(0xef4444, 0.85).fillCircle(cx + 4, cy - 7, 1.5)
+      g.fillStyle(0xef4444, 0.85).fillCircle(cx - 2, cy + 2, 2.5)
+      g.fillStyle(0xef4444, 0.85).fillCircle(cx + 6, cy + 5, 2)
+      g.fillStyle(0xfde68a, 0.85).fillCircle(cx - 5, cy + 6, 1.5)
+      g.lineStyle(1, 0xfbbf24, 0.55)
+      g.lineBetween(cx - 6, cy - 10, cx - 6, cy - 4)
+      g.lineBetween(cx + 4, cy - 12, cx + 4, cy - 7)
+      g.lineBetween(cx - 2, cy - 4, cx - 2, cy + 2)
+      g.lineBetween(cx + 6, cy - 1, cx + 6, cy + 5)
+    },
+  },
+  {
+    key: 'wico_blackhole_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      g.fillStyle(0x000000).fillCircle(cx, cy, 9)
+      g.lineStyle(2.5, 0xc084fc).strokeCircle(cx, cy, 11)
+      g.lineStyle(1, 0xfde68a, 0.7).strokeCircle(cx, cy, 7)
+      g.lineStyle(1, 0xfde68a, 0.55).strokeCircle(cx, cy, 5)
+      g.fillStyle(0xa78bfa, 0.8).fillCircle(cx, cy, 2.5)
+    },
+  },
+  {
+    key: 'wico_cryo_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2
+        const x1 = cx + Math.cos(a) * 2
+        const y1 = cy + Math.sin(a) * 2
+        const x2 = cx + Math.cos(a) * 10
+        const y2 = cy + Math.sin(a) * 10
+        g.lineStyle(1.5, 0x22d3ee, 0.95).lineBetween(x1, y1, x2, y2)
+      }
+      g.fillStyle(0xa5f3fc).fillCircle(cx, cy, 2.5)
+    },
+  },
+  {
+    key: 'wico_railgun_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      g.fillStyle(0x1e3a8a).fillCircle(cx, cy, 4)
+      g.lineStyle(2.5, 0x93c5fd, 0.95)
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2 + Math.PI / 8
+        g.lineBetween(cx + Math.cos(a) * 4, cy + Math.sin(a) * 4, cx + Math.cos(a) * 11, cy + Math.sin(a) * 11)
+      }
+      g.lineStyle(1, 0xffffff, 0.8)
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2 + Math.PI / 8
+        g.lineBetween(cx + Math.cos(a) * 4, cy + Math.sin(a) * 4, cx + Math.cos(a) * 11, cy + Math.sin(a) * 11)
+      }
+      g.fillStyle(0xfde68a).fillCircle(cx, cy, 1.5)
+    },
+  },
+  {
+    key: 'wico_drones_evolved', w: 28, h: 28,
+    draw: (g: G) => {
+      const cx = 14, cy = 14
+      g.lineStyle(2, 0xfbbf24, 1).strokeCircle(cx, cy, 13)
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2 - Math.PI / 4
+        const x = cx + Math.cos(a) * 8
+        const y = cy + Math.sin(a) * 8
+        g.fillStyle(0xfde68a).fillRect(x - 3, y - 1, 6, 3)
+        g.fillStyle(0xf97316).fillRect(x - 1, y - 2, 2, 5)
+      }
+      g.fillStyle(0xef4444).fillCircle(cx, cy, 1.5)
+    },
+  },
+  {
     key: 'wico_cleave', w: 28, h: 28,
     draw: (g: G) => {
       const cx = 14, cy = 14

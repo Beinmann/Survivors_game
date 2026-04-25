@@ -165,6 +165,7 @@ export interface IGameScene {
   orbitalStrikes: any[]
   railgunCharges: any[]
   drones: any[]
+  voltaicBeams: any[]
   plaguePools: any[]
   lockdownSlow: number
 

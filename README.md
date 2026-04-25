@@ -57,6 +57,20 @@ Once a weapon reaches **level 9** and you hold the right **passive at a required
 | Base weapon | Evolution | Linked passive | Required level | What changes |
 |---|---|---|---|---|
 | Homing Rockets | Swarm Barrage | Power Core | 3 | 5-rocket salvo at 60ms stagger, +150% damage, −400ms cooldown, cluster always splits into 6 homing shards at 70% damage |
+| Black Hole | Supermassive | Arcane Reach | 3 | Radius ×2, pull ×3, duration ×2, tick damage ×2 |
+| Cryo Shards | Glacial Volley | Multishot | 2 | 8 shards per volley, ×2 slow duration, shards fracture into 2 child shards on hit |
+| Spectral Scythes | Death Coil | Arcane Reach | 3 | Adds a counter-rotating outer ring at ×1.6 radius, +2 inner blades, life steal always on |
+| Shotgun | Thunder Hail | Multishot | 2 | Wider cone (+30°), +40% range, each pellet chains a bolt to nearest enemy within 120px at 60% damage |
+| Machine Gun | Flak Cannon | Power Core | 3 | Every bullet detonates in a 40px AoE, +80% damage, −30% fire rate |
+| Laser Beam | Prism Array | Multishot | 2 | Fires 4 independent beams in a + pattern each pulse |
+| Orbital Strike | Meteor Shower | Multishot | 2 | 5 strikes spread across 450px, telegraph shortened to 0.6s |
+| Sentry Turret | Mortar Squad | Power Core | 3 | Turrets fire homing mortar shells with 40px AoE; ×3 damage, ×0.5 fire rate |
+| Sniper | Crit Cascade | Arcane Reach | 3 | Shot ricochets up to 6 times between enemies within 240px at full damage (pierce replaced) |
+| Shock Aura | Thunderdome | Arcane Reach | 3 | ×2 radius, ×2 pulse rate, each hit chains a bolt to nearest neighbor at +50% damage |
+| Tesla Chain | Voltaic Lance | Power Core | 3 | 1s sustained beam player→target, ticks every 100ms on everything in the line |
+| Ricochet Boomerang | Star Fan | Multishot | 2 | 5 piercing blades in a star; return paths seek nearest enemy instead of player |
+| Plasma Lance | Starbreaker | Arcane Reach | 3 | During the 900ms sustain the beam sweeps 360° around the player (lighthouse) |
+| Swarm Drones | Hornet Swarm | Multishot | 2 | +4 drones, ×2 attack rate, each attack fires a homing micro-rocket with small AoE |
 
 Evolution cards have slightly higher pool weight than regular upgrades, so they are very likely but not guaranteed to show up right after eligibility. After evolving, no more level upgrades appear for that weapon.
 
