@@ -56,7 +56,7 @@ export const PASSIVE_DATA: Record<PassiveType, { name: string, icon: string, des
   bounty:      { name: 'Bounty Magnet', icon: 'ico_magnet',      desc: '+35px pickup range and +15% XP per orb' },
   hp:          { name: 'Vital Surge',   icon: 'ico_hp',          desc: '+25 max HP and +0.5 HP/s regen' },
   damage:      { name: 'Power Core',    icon: 'ico_damage',      desc: '+15% damage for all active weapons' },
-  cooldown:    { name: 'Overclock',     icon: 'ico_cooldown',    desc: 'All weapons fire 12% faster' },
+  cooldown:    { name: 'Overclock',     icon: 'ico_cooldown',    desc: '−8% cooldown for all weapons' },
   area:        { name: 'Arcane Reach',  icon: 'ico_area',        desc: '+15% size to all weapons and shots' },
   projectiles: { name: 'Multishot',     icon: 'ico_projectiles', desc: '+1 projectile per volley', maxLevel: 2 },
 }

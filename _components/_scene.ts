@@ -880,7 +880,7 @@ export function createGameScene(Phaser: any) {
       if (pt === 'bounty')      { this.magnetRadius += 35; this.orbMultiplier += 0.15 }
       if (pt === 'hp')          { this.maxHp += 25; this.hp += 25; this.hpRegen += 0.5 }
       if (pt === 'damage')      this.bonusDamage += 0.15
-      if (pt === 'cooldown')    this.bonusCooldown += 0.12
+      if (pt === 'cooldown')    this.bonusCooldown += 0.08
       if (pt === 'area')        { this.bonusArea += 0.15; this._lastAuraRadius = -1 }
       if (pt === 'projectiles') this.bonusProjectiles += 1
 
