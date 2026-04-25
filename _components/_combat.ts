@@ -1505,12 +1505,13 @@ const DRONE_REHIT_MS = 300
 const DRONE_IDLE_RADIUS = 110
 const DRONE_RETURN_SPEED_MULT = 1.5
 const DRONE_RETURN_ARRIVE_RADIUS2 = DRONE_IDLE_RADIUS * DRONE_IDLE_RADIUS
+const DRONE_OPERATING_RANGE = 700
+const DRONE_OPERATING_RANGE2 = DRONE_OPERATING_RANGE * DRONE_OPERATING_RANGE
+const DRONE_TARGET_RANGE2 = DRONE_OPERATING_RANGE * DRONE_OPERATING_RANGE
 
 function updateDrones(scene: IGameScene, delta: number) {
   const dtSec = delta / 1000
-  const cam = scene.cameras.main
-  const recallDist = Math.max(cam.width, cam.height) * 0.6
-  const recallDist2 = recallDist * recallDist
+  const recallDist2 = DRONE_OPERATING_RANGE2
   const hitRange2 = DRONE_HIT_RANGE * DRONE_HIT_RANGE
   const now = scene.gameTime
 
@@ -1560,6 +1561,8 @@ function updateDrones(scene: IGameScene, delta: number) {
       let best: any = null, bestD2 = Infinity
       for (const e of enemies) {
         if (!e.active || claimed.has(e)) continue
+        const playerD2 = (e.x - px) ** 2 + (e.y - py) ** 2
+        if (playerD2 > DRONE_TARGET_RANGE2) continue
         const d2 = (e.x - d.sprite.x) ** 2 + (e.y - d.sprite.y) ** 2
         if (d2 < bestD2) { bestD2 = d2; best = e }
       }
